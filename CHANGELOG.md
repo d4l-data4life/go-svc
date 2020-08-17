@@ -9,7 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Support for Postgres test-DB with custom TXDB driver
+
 ### Changed
+
+- Go version upgraded to 1.15
+- Clint version upgraded to 1.30
 
 ### Deprecated
 

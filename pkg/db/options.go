@@ -1,12 +1,16 @@
 package db
 
 import (
+	"database/sql"
+	"sort"
 	"time"
 
+	"github.com/DATA-DOG/go-txdb"
 	"github.com/jinzhu/gorm"
 )
 
 type MigrationFunc func(do *gorm.DB) error
+type DriverFunc func(connectString string) (*gorm.DB, error)
 
 func NewConnection(opts ...ConnectionOption) *ConnectionOptions {
 	o := &ConnectionOptions{}
@@ -31,6 +35,7 @@ type ConnectionOptions struct {
 	Password              string
 	SSLMode               string
 	MigrationFunc         MigrationFunc
+	DriverFunc            DriverFunc
 }
 
 type ConnectionOption func(*ConnectionOptions)
@@ -102,4 +107,30 @@ func WithMigrationFunc(fn MigrationFunc) ConnectionOption {
 	return func(c *ConnectionOptions) {
 		c.MigrationFunc = fn
 	}
+}
+
+func WithDriverFunc(fn DriverFunc) ConnectionOption {
+	return func(c *ConnectionOptions) {
+		c.DriverFunc = fn
+	}
+}
+
+// DefaultPostgresDriver defines the default DB driver
+// To be used in options as argument for db.WithDriverFunc()
+// Is default, hence will be used when db.WithDriverFunc() is not used in options
+// Example: db.InitializeTestPostgres(db.NewConnection(db.WithDriverFunc(db.DefaultPostgresDriver)))
+func DefaultPostgresDriver(connectString string) (*gorm.DB, error) {
+	return gorm.Open("postgres", connectString)
+}
+
+// TXDBPostgresDriver defines the TXDB DB driver which treats every operation as transaction, and does rollback on disconnect.
+// To be used in options as argument for db.WithDriverFunc()
+// Example: db.InitializeTestPostgres(db.NewConnection(db.WithDriverFunc(db.TXDBPostgresDriver)))
+func TXDBPostgresDriver(connectString string) (*gorm.DB, error) {
+	drivers := sql.Drivers()
+	i := sort.SearchStrings(drivers, "txdb")
+	if i >= len(drivers) || drivers[i] != "txdb" {
+		txdb.Register("txdb", "postgres", connectString)
+	}
+	return gorm.Open("postgres", "txdb", "tx_1")
 }
