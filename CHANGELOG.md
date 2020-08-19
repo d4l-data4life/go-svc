@@ -9,8 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Interface client.NotificationV2 and its implementations to enable tests in survey-svc
-
 ### Changed
 
 ### Deprecated
@@ -20,6 +18,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Security
+
+## [v0.4.0] - 2020-08-19
+
+### Added
+
+- Interface client.NotificationV2 and its implementations to enable tests in survey-svc
 
 ## [v0.3.0] - 2020-08-17
 
@@ -44,7 +48,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial state: standards for Main, HTTP Server, DB access (gorm), Logging, Instrumented-Handler, and K8s Probe
 
-[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v0.4.0...HEAD
+[v0.4.0]: https://github.com/gesundheitscloud/go-svc/compare/v0.3.0...v0.4.0
 [v0.3.0]: https://github.com/gesundheitscloud/go-svc/compare/v0.2.0...v0.3.0
 [v0.2.0]: https://github.com/gesundheitscloud/go-svc/compare/v0.1.0...v0.2.0
 [v0.1.0]: https://github.com/gesundheitscloud/go-svc/releases/tag/v0.1.0
