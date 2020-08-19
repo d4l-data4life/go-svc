@@ -25,14 +25,30 @@ type NotificationServiceRequest struct {
 }
 
 type Notification interface {
+	// SendTemplated sends a templated email and returns error
 	SendTemplated(templateKey, language string, payload map[string]interface{}, subscribers ...uuid.UUID) error
 }
 
-var _ Notification = (*NotificationService)(nil)
+// NotificationV2 is an extension of Notification(V1) intreface
+// It adds new method(s) and is compatible with NotificationV1
+type NotificationV2 interface {
+	// SendTemplated sends a templated email and returns error
+	SendTemplated(templateKey, language string, payload map[string]interface{}, subscribers ...uuid.UUID) error
+	// GetNotifiedUsers returns basic info about notififed users and error
+	GetNotifiedUsers() NotifiedUsers
+}
 
-// NotificationService is a client for the cds-notification - it implements Notification interface
+var _ Notification = (*NotificationService)(nil)
+var _ NotificationV2 = (*NotificationService)(nil)
+
+// NotificationService is a client for the cds-notification
+// it implements Notification and NotificationV2 interfaces
 type NotificationService struct {
-	svcAddr, svcSecret, caller string
+	svcAddr   string
+	svcSecret string
+	caller    string
+	// counter stores state to return the NotifiedUsers information - mainly used in tests
+	counter *notifiedUsersCounter
 }
 
 func NewNotificationService(svcAddr, svcSecret, caller string) *NotificationService {
@@ -43,7 +59,12 @@ func NewNotificationService(svcAddr, svcSecret, caller string) *NotificationServ
 		svcAddr:   svcAddr,
 		svcSecret: svcSecret,
 		caller:    caller,
+		counter:   newNotifiedUsersCounter(),
 	}
+}
+
+func (c *NotificationService) GetNotifiedUsers() NotifiedUsers {
+	return c.counter.GetStatus()
 }
 
 func (c *NotificationService) SendTemplated(templateKey, language string,
@@ -61,6 +82,8 @@ func (c *NotificationService) SendTemplated(templateKey, language string,
 		TemplatePayload:              payload,
 		TemplateErrorReportingEmail:  "",
 	}
+	// for calculation of notifiedUsersInfo
+	c.counter.Count(templateKey, language, subscribers...)
 	return c.sendTemplatedEmail(requestBody)
 }
 
