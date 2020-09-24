@@ -4,7 +4,7 @@ go 1.15
 
 require (
 	github.com/DATA-DOG/go-txdb v0.1.3
-	github.com/gesundheitscloud/go-log/v2 v2.2.0
+	github.com/gesundheitscloud/go-log/v2 v2.3.0
 	github.com/gesundheitscloud/go-monitoring v0.4.0
 	github.com/go-chi/chi v4.1.2+incompatible
 	github.com/jinzhu/gorm v1.9.16

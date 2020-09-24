@@ -25,8 +25,8 @@ github.com/envoyproxy/go-control-plane v0.9.1-0.20191026205805-5f8ba28d4473/go.m
 github.com/envoyproxy/protoc-gen-validate v0.1.0/go.mod h1:iSmxcyjqTsJpI2R4NaDN7+kN2VEUnK/pcBlmesArF7c=
 github.com/erikstmartin/go-testdb v0.0.0-20160219214506-8d10e4a1bae5 h1:Yzb9+7DPaBjB8zlTR87/ElzFsnQfuHnVUVqpZZIcV5Y=
 github.com/erikstmartin/go-testdb v0.0.0-20160219214506-8d10e4a1bae5/go.mod h1:a2zkGnVExMxdzMo3M0Hi/3sEU+cWnZpSni0O6/Yb/P0=
-github.com/gesundheitscloud/go-log/v2 v2.2.0 h1:YWXb5sV+ROJYzhQBuaf2hrmAzAhi0gDlgWENCFiwKrg=
-github.com/gesundheitscloud/go-log/v2 v2.2.0/go.mod h1:hV5/RLdZyNrhyTyuxvke0Phj/cYhuA5fgXpmlxWcZZ4=
+github.com/gesundheitscloud/go-log/v2 v2.3.0 h1:v3wfql+3jinA3u8KwpVATWZZx3VMozA1Qx1oyI97K+U=
+github.com/gesundheitscloud/go-log/v2 v2.3.0/go.mod h1:hV5/RLdZyNrhyTyuxvke0Phj/cYhuA5fgXpmlxWcZZ4=
 github.com/gesundheitscloud/go-monitoring v0.4.0 h1:r77JppYkwzOb/iu09etvoVcDeeZgYqfSRoQLq4zPq1k=
 github.com/gesundheitscloud/go-monitoring v0.4.0/go.mod h1:d+iEg8e7r0h+jJOdT+aP4muPDh1PXSIyPXSR6gPfnhk=
 github.com/go-chi/chi v4.1.2+incompatible h1:fGFk2Gmi/YKXk0OmGfBh0WgmN3XB8lVnEyNz34tQRec=

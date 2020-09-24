@@ -144,31 +144,31 @@ func LogWarningf(err error, format string, fields ...interface{}) {
 }
 
 // LogAudit logs a warning with the singleton logger with message and error
-func LogAudit(message string, object ...interface{}) {
-	if err := Logger().Audit(context.TODO(), strings.TrimRight(message, "\n"), object); err != nil {
+func LogAudit(ctx context.Context, message string, object ...interface{}) {
+	if err := Logger().Audit(ctx, strings.TrimRight(message, "\n"), object); err != nil {
 		fmt.Printf("Logging error (LogAudit): %s", err.Error())
 	}
 }
 
 // LogAuditCreate logs a resource creation with the singleton logger with message and error
-func LogAuditCreate(ownerID fmt.Stringer, resourceType string, resourceID interface{}, value interface{}) {
-	err := Logger().AuditCreate(context.TODO(), ownerID, newStringer(resourceType), newStringer(resourceID), value)
+func LogAuditCreate(ctx context.Context, ownerID fmt.Stringer, resourceType string, resourceID interface{}, value interface{}) {
+	err := Logger().AuditCreate(ctx, ownerID, newStringer(resourceType), newStringer(resourceID), value)
 	if err != nil {
 		fmt.Printf("Logging error (LogAuditCreate): %s", err.Error())
 	}
 }
 
 // LogAuditUpdate logs a resource modification with the singleton logger with message and error
-func LogAuditUpdate(ownerID fmt.Stringer, resourceType string, resourceID interface{}, value interface{}) {
-	err := Logger().AuditUpdate(context.TODO(), ownerID, newStringer(resourceType), newStringer(resourceID), value)
+func LogAuditUpdate(ctx context.Context, ownerID fmt.Stringer, resourceType string, resourceID interface{}, value interface{}) {
+	err := Logger().AuditUpdate(ctx, ownerID, newStringer(resourceType), newStringer(resourceID), value)
 	if err != nil {
 		fmt.Printf("Logging error (LogAuditUpdate): %s", err.Error())
 	}
 }
 
 // LogAuditDelete logs a resource deletion with the singleton logger with message and error
-func LogAuditDelete(ownerID fmt.Stringer, resourceType string, resourceID interface{}) {
-	err := Logger().AuditDelete(context.TODO(), ownerID, newStringer(resourceType), newStringer(resourceID))
+func LogAuditDelete(ctx context.Context, ownerID fmt.Stringer, resourceType string, resourceID interface{}) {
+	err := Logger().AuditDelete(ctx, ownerID, newStringer(resourceType), newStringer(resourceID))
 	if err != nil {
 		fmt.Printf("Logging error (LogAuditDelete): %s", err.Error())
 	}
