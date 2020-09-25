@@ -17,6 +17,7 @@ func Unnamed() LoggerOption {
 	return func(c *Config) {
 		c.SvcName = "unnamed"
 		c.SvcVersion = "unknown"
+		c.Hostname = ""
 		c.HumanReadable = false
 		c.Debug = false
 	}
@@ -31,6 +32,24 @@ func ServiceName(value string) LoggerOption {
 func ServiceVersion(value string) LoggerOption {
 	return func(c *Config) {
 		c.SvcVersion = value
+	}
+}
+
+func Hostname(value string) LoggerOption {
+	return func(c *Config) {
+		c.Hostname = value
+	}
+}
+
+func Environment(value string) LoggerOption {
+	return func(c *Config) {
+		c.Environment = value
+	}
+}
+
+func PodName(value string) LoggerOption {
+	return func(c *Config) {
+		c.PodName = value
 	}
 }
 
@@ -51,6 +70,9 @@ type Config struct {
 	Debug         bool
 	SvcName       string
 	SvcVersion    string
+	Hostname      string
+	Environment   string
+	PodName       string
 }
 
 var onceLogger sync.Once
@@ -110,7 +132,9 @@ func Logger(opts ...LoggerOption) *golog.Logger {
 		instance = golog.NewLogger(
 			lConf.SvcName,
 			lConf.SvcVersion,
-			os.Getenv("HOSTNAME"),
+			lConf.Hostname,
+			golog.WithPodName(lConf.PodName),
+			golog.WithEnv(lConf.Environment),
 			golog.WithEncoder(encoder),
 		)
 	})
