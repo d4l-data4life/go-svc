@@ -11,9 +11,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- audit logging functions require context
-- add functions to set environment, hostname and pod name for audit logs
-
 ### Deprecated
 
 ### Removed
@@ -22,11 +19,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
-## [v0.5.0] - 2020-09-24
+## [v0.5.0] - 2020-09-25
 
 ### Added
 
 - Functions for audit logging
+- Audit logging functions require context
+- Add functions to set environment, hostname and pod name for audit logs
 
 ## [v0.4.0] - 2020-08-19
 
