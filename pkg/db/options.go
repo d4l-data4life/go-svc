@@ -36,6 +36,7 @@ type ConnectionOptions struct {
 	SSLMode               string
 	MigrationFunc         MigrationFunc
 	DriverFunc            DriverFunc
+	EnableInstrumentation bool
 }
 
 type ConnectionOption func(*ConnectionOptions)
@@ -49,6 +50,7 @@ func WithDefaults() ConnectionOption {
 		c.Host = "localhost"
 		c.Port = "5432"
 		c.SSLMode = "disable"
+		c.EnableInstrumentation = true
 	}
 }
 
@@ -112,6 +114,12 @@ func WithMigrationFunc(fn MigrationFunc) ConnectionOption {
 func WithDriverFunc(fn DriverFunc) ConnectionOption {
 	return func(c *ConnectionOptions) {
 		c.DriverFunc = fn
+	}
+}
+
+func WithEnableInstrumentation(value bool) ConnectionOption {
+	return func(c *ConnectionOptions) {
+		c.EnableInstrumentation = value
 	}
 }
 

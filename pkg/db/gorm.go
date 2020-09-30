@@ -56,6 +56,10 @@ func Initialize(runCtx context.Context, opts *ConnectionOptions) <-chan struct{}
 		conn.DB().SetMaxOpenConns(opts.MaxOpenConnections)
 		db = conn
 		logging.LogInfof("database connection is up and configured")
+		if opts.EnableInstrumentation {
+			registerInstrumenterPlugin()
+			logging.LogInfof("database instrumenter plugin registered")
+		}
 		dbUp <- struct{}{} // notify that DB is up now
 	}()
 
