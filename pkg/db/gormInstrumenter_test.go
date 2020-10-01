@@ -3,8 +3,11 @@ package db
 import (
 	"io/ioutil"
 	"net/http/httptest"
+	"strconv"
 	"strings"
+	"sync"
 	"testing"
+	"time"
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
@@ -19,6 +22,28 @@ type TestType struct {
 
 func migrateFunc(conn *gorm.DB) error {
 	return conn.AutoMigrate(&TestType{}).Error
+}
+
+func BenchmarkMapFunctions(b *testing.B) {
+
+	m := make(map[string]time.Time)
+	mutex := sync.RWMutex{}
+
+	getWithLock := createGetWithLock(m, &mutex)
+	deleteWithLock := createDeleteWithLock(m, &mutex)
+	setWithLock := createSetWithLock(m, &mutex)
+
+	for i := 0; i < b.N; i++ {
+		key := strconv.Itoa(i)
+		ts := time.Now()
+
+		go func() {
+			setWithLock(key, ts)
+			if _, ok := getWithLock(key); ok {
+				deleteWithLock(key)
+			}
+		}()
+	}
 }
 
 func TestGormInstrumenter(t *testing.T) {
