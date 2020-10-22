@@ -141,12 +141,12 @@ func Logger(opts ...LoggerOption) *golog.Logger {
 	return instance
 }
 
-// LogError logs an error with the singleton logger with message and error
+// LogError (DEPRECATED in favour of LogErrorfCtx) logs an error with the singleton logger with message and error
 func LogError(message string, err error) {
 	LogErrorf(err, message)
 }
 
-// LogErrorf logs an error with the singleton logger with message and error
+// LogErrorf (DEPRECATED in favour of LogErrorfCtx) logs an error with the singleton logger with message and error
 func LogErrorf(err error, format string, fields ...interface{}) {
 	msg := fmt.Sprintf(format, fields...)
 	if err := Logger().ErrMessage(context.TODO(), strings.TrimRight(msg, "\n"), err); err != nil {
@@ -154,15 +154,31 @@ func LogErrorf(err error, format string, fields ...interface{}) {
 	}
 }
 
-// LogWarning logs a warning with the singleton logger with message and error
+// LogErrorfCtx logs an error with the singleton logger with message, error, and context
+func LogErrorfCtx(ctx context.Context, err error, format string, fields ...interface{}) {
+	msg := fmt.Sprintf(format, fields...)
+	if err := Logger().ErrMessage(ctx, strings.TrimRight(msg, "\n"), err); err != nil {
+		fmt.Printf("Logging error (LogErrorf): %s", err.Error())
+	}
+}
+
+// LogWarning (DEPRECATED in favour of LogWarningfCtx) logs a warning with the singleton logger with message and error
 func LogWarning(message string, err error) {
 	LogWarningf(err, message)
 }
 
-// LogWarningf logs a warning with the singleton logger with message and error
+// LogWarningf (DEPRECATED in favour of LogWarningfCtx) logs a warning with the singleton logger with message and error
 func LogWarningf(err error, format string, fields ...interface{}) {
 	msg := fmt.Sprintf(format, fields...)
 	if err := Logger().WarnGeneric(context.TODO(), strings.TrimRight(msg, "\n"), err); err != nil {
+		fmt.Printf("Logging error (LogWarningf): %s", err.Error())
+	}
+}
+
+// LogWarningfCtx logs a warning with the singleton logger with message and error
+func LogWarningfCtx(ctx context.Context, err error, format string, fields ...interface{}) {
+	msg := fmt.Sprintf(format, fields...)
+	if err := Logger().WarnGeneric(ctx, strings.TrimRight(msg, "\n"), err); err != nil {
 		fmt.Printf("Logging error (LogWarningf): %s", err.Error())
 	}
 }
@@ -198,12 +214,12 @@ func LogAuditDelete(ctx context.Context, ownerID fmt.Stringer, resourceType stri
 	}
 }
 
-// LogInfo logs an info with the singleton logger with message and error
+// LogInfo (DEPRECATED in favour of LogInfofCtx) logs an info with the singleton logger with message and error
 func LogInfo(message string) {
 	LogInfof(message)
 }
 
-// LogInfof info-level log with formatting
+// LogInfof (DEPRECATED in favour of LogInfofCtx) info-level log with formatting
 func LogInfof(format string, fields ...interface{}) {
 	msg := fmt.Sprintf(format, fields...)
 	if err := Logger().InfoGeneric(context.TODO(), strings.TrimRight(msg, "\n")); err != nil {
@@ -211,11 +227,29 @@ func LogInfof(format string, fields ...interface{}) {
 	}
 }
 
-// LogDebugf acts as log-info when config.Debug flag is enabled
+// LogInfofCtx info-level log with formatting
+func LogInfofCtx(ctx context.Context, format string, fields ...interface{}) {
+	msg := fmt.Sprintf(format, fields...)
+	if err := Logger().InfoGeneric(ctx, strings.TrimRight(msg, "\n")); err != nil {
+		fmt.Printf("Logging error (LogInfof): %s", err.Error())
+	}
+}
+
+// LogDebugf (DEPRECATED in favour of LogDebugfCtx) acts as log-info when config.Debug flag is enabled
 func LogDebugf(format string, fields ...interface{}) {
 	if LoggerConfig().Debug {
 		msg := fmt.Sprintf(format, fields...)
 		if err := Logger().InfoGeneric(context.TODO(), "DEBUG: "+strings.TrimRight(msg, "\n")); err != nil {
+			fmt.Printf("Logging error (LogDebugf): %s", err.Error())
+		}
+	}
+}
+
+// LogDebugfCtx acts as log-info when config.Debug flag is enabled
+func LogDebugfCtx(ctx context.Context, format string, fields ...interface{}) {
+	if LoggerConfig().Debug {
+		msg := fmt.Sprintf(format, fields...)
+		if err := Logger().InfoGeneric(ctx, "DEBUG: "+strings.TrimRight(msg, "\n")); err != nil {
 			fmt.Printf("Logging error (LogDebugf): %s", err.Error())
 		}
 	}

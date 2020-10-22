@@ -2,6 +2,7 @@ package client
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -17,6 +18,7 @@ type NotificationServiceRequest struct {
 	AccountIDs                   []uuid.UUID            `json:"accountIDs"`
 	TemplateKey                  string                 `json:"templateKey"`
 	TemplateLanguage             string                 `json:"templateLanguage"`
+	LanguageSettingKey           string                 `json:"languageSettingKey"`
 	Caller                       string                 `json:"caller"`
 	TraceID                      uuid.UUID              `json:"traceID"`
 	UseMailJetTemplatingLanguage bool                   `json:"useMailJetTemplatingLanguage"`
@@ -29,7 +31,7 @@ type Notification interface {
 	SendTemplated(templateKey, language string, payload map[string]interface{}, subscribers ...uuid.UUID) error
 }
 
-// NotificationV2 is an extension of Notification(V1) intreface
+// NotificationV2 is an extension of Notification(V1) interface
 // It adds new method(s) and is compatible with NotificationV1
 type NotificationV2 interface {
 	// SendTemplated sends a templated email and returns error
@@ -38,8 +40,18 @@ type NotificationV2 interface {
 	GetNotifiedUsers() NotifiedUsers
 }
 
-var _ Notification = (*NotificationService)(nil)
-var _ NotificationV2 = (*NotificationService)(nil)
+// NotificationV3 is an extension of Notification(V2) interface
+// It changes a method signature and is not backwards-compatible with NotificationV2 and NotificationV1
+// However, NotificationV2 and NotificationV1 remain compatible with cds-notification v0.6.x
+type NotificationV3 interface {
+	// SendTemplated sends a templated email and returns error
+	SendTemplated(ctx context.Context,
+		templateKey, language, languageSettingKey string, payload map[string]interface{}, subscribers ...uuid.UUID) error
+	// GetNotifiedUsers returns basic info about notififed users and error
+	GetNotifiedUsers() NotifiedUsers
+}
+
+var _ NotificationV3 = (*NotificationService)(nil)
 
 // NotificationService is a client for the cds-notification
 // it implements Notification and NotificationV2 interfaces
@@ -67,7 +79,8 @@ func (c *NotificationService) GetNotifiedUsers() NotifiedUsers {
 	return c.counter.GetStatus()
 }
 
-func (c *NotificationService) SendTemplated(templateKey, language string,
+func (c *NotificationService) SendTemplated(ctx context.Context,
+	templateKey, language, languageSettingKey string,
 	payload map[string]interface{},
 	subscribers ...uuid.UUID,
 ) error {
@@ -76,6 +89,7 @@ func (c *NotificationService) SendTemplated(templateKey, language string,
 		AccountIDs:                   subscribers,
 		TemplateKey:                  templateKey,
 		TemplateLanguage:             language,
+		LanguageSettingKey:           languageSettingKey,
 		Caller:                       c.caller,
 		TraceID:                      traceID,
 		UseMailJetTemplatingLanguage: payload != nil,
@@ -84,25 +98,26 @@ func (c *NotificationService) SendTemplated(templateKey, language string,
 	}
 	// for calculation of notifiedUsersInfo
 	c.counter.Count(templateKey, language, subscribers...)
-	return c.sendTemplatedEmail(requestBody)
+	return c.sendTemplatedEmail(ctx, requestBody)
 }
 
-func (c *NotificationService) sendTemplatedEmail(requestBody NotificationServiceRequest) error {
+func (c *NotificationService) sendTemplatedEmail(ctx context.Context, requestBody NotificationServiceRequest) error {
 	tracePrefix := "traceID = " + requestBody.TraceID.String() + ": "
 	jsonBytes, err := json.Marshal(requestBody)
 	if err != nil {
-		logging.LogError(tracePrefix+"error transforming notification request to JSON", err)
+		logging.LogErrorfCtx(ctx, err, "error transforming notification request to JSON")
 		return err
 	}
 
 	contentURL := fmt.Sprintf("%s/api/v1/notifications/template", c.svcAddr)
-	request, err := http.NewRequest("POST", contentURL, bytes.NewBuffer(jsonBytes))
+	request, err := http.NewRequestWithContext(ctx, "POST", contentURL, bytes.NewBuffer(jsonBytes))
 	if err != nil {
-		logging.LogError(tracePrefix+"error creating HTTP request", err)
+		logging.LogErrorfCtx(ctx, err, "error creating HTTP request")
 		return err
 	}
 	request.Header.Add("Authorization", c.svcSecret)
 	request.Header.Set("Content-Type", "application/json")
+	request.Header.Set("User-Agent", "go-svc.client.NotificationService")
 	request.Close = true
 
 	client := &http.Client{}
@@ -112,7 +127,7 @@ func (c *NotificationService) sendTemplatedEmail(requestBody NotificationService
 	}
 
 	if err != nil {
-		logging.LogError(tracePrefix+"error sending request to notification service", err)
+		logging.LogErrorf(err, "%s error sending request to notification service", tracePrefix)
 		return err
 	}
 
