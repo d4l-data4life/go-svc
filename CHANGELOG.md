@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## [v0.7.0] - 2020-10-22
+
+### Added
+
 - Client for `user-preferences` service
 - Logging functions accepting context e.g., `LogInfofCtx`, `LogErrorfCtx`
 
@@ -23,12 +37,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     When using this version of `go-svc`, all `NotificationClient`s that rely on `cds-notification` `< v0.6.0` should be changed to `NotificationClientLegacy`
     or updated migrated to support `NotificationV3` (it adds one optional parameter).
 - Logging functions without context, e.g., `LogInfo`, `LogError`, `LogWarning`
-
-### Removed
-
-### Fixed
-
-### Security
 
 ## [v0.6.1] - 2020-10-01
 
@@ -79,7 +87,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial state: standards for Main, HTTP Server, DB access (gorm), Logging, Instrumented-Handler, and K8s Probe
 
-[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v0.6.1...HEAD
+[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v0.7.0...HEAD
+[v0.7.0]: https://github.com/gesundheitscloud/go-svc/compare/v0.6.1...v0.7.0
 [v0.6.1]: https://github.com/gesundheitscloud/go-svc/compare/v0.6.0...v0.6.1
 [v0.6.0]: https://github.com/gesundheitscloud/go-svc/compare/v0.5.0...v0.6.0
 [v0.5.0]: https://github.com/gesundheitscloud/go-svc/compare/v0.4.0...v0.5.0
