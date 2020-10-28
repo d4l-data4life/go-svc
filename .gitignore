@@ -13,3 +13,6 @@
 
 # Golang vendor folder
 vendor/
+
+.vscode/
+.DS_Store

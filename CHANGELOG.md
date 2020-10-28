@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Auth middlewares for JWT and service secret based authentication
+- XSRF middleware
+- XSRF handler
+
 ### Changed
 
 ### Deprecated
