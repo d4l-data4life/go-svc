@@ -31,7 +31,7 @@ unit-test:          ## Run unit tests inside the Docker image
 
 local-test:      ## Run tests natively
 	go vet ./... && \
-	go test -v -cover -covermode=atomic --race -timeout 5s ./...
+	go test -v -cover -covermode=atomic ./...
 
 twistlock-scan:
 	true

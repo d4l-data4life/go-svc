@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Client for `consent-management` service `>= v0.7.0` (operation: batch-fetching user consents)
+- Notification client (interface `NotificationV4`) supports now
+  - Operations: `GetJobStatus` and `DeleteJob`
+  - Consent verification and recipient list filtering based on consent-key and minimum consent version
+- NotificationMock client implementing `NotificationV3` and `NotificationV4`
+
 ### Changed
 
 ### Deprecated
@@ -36,15 +42,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Update client for `cds-notification` service `>= v0.6.x`
+- Update client for `cds-notification` service to support `consentGuardKey` and `minConsentVersion` parameters used in `>= v0.6.x`
 
 ### Deprecated
 
-- Deprecate client interfaces `NotificationV1` and `NotificationV2`.
-    Please migrate to compatible `NotificationV3` client.
-    When using this version of `go-svc`, all `NotificationClient`s that rely on `cds-notification` `< v0.6.0` should be changed to `NotificationClientLegacy`
-    or updated migrated to support `NotificationV3` (it adds one optional parameter).
-- Logging functions without context, e.g., `LogInfo`, `LogError`, `LogWarning`
+- Deprecate client interfaces `NotificationV3`.
+    Please migrate to compatible `NotificationV4` client.
+    When using this version of `go-svc`, all `NotificationClient`s that rely on `cds-notification` `< v0.6.0` should be changed to `NotificationClientLegacy`,
+    `NotificationClientLegacyV3` or be updated to support `NotificationV4` (it adds two optional parameters).
 
 ## [v0.6.1] - 2020-10-01
 

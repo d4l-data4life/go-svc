@@ -43,7 +43,7 @@ func ParseRequesterID(w http.ResponseWriter, r *http.Request) (requesterID uuid.
 	requester := r.Context().Value(UserIDContextKey)
 	if requester == nil {
 		err := errors.New("missing account id")
-		logging.LogError("error parsing Requester UUID", err)
+		logging.LogErrorfCtx(r.Context(), err, "error parsing Requester UUID")
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return uuid.Nil, err
 	}
@@ -53,7 +53,7 @@ func ParseRequesterID(w http.ResponseWriter, r *http.Request) (requesterID uuid.
 		requesterID, err = uuid.FromString(id)
 		if err != nil || requesterID == uuid.Nil {
 			err := errors.New("malformed Account ID")
-			logging.LogError("error parsing Requester UUID", err)
+			logging.LogErrorfCtx(r.Context(), err, "error parsing Requester UUID")
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return uuid.Nil, err
 		}

@@ -91,7 +91,7 @@ func (auth *Auth) JWT(next http.Handler) http.Handler {
 			if ve, ok := err.(*jwt.ValidationError); ok {
 				switch {
 				case ve.Errors&jwt.ValidationErrorMalformed != 0:
-					logging.LogError("malformed jwt", err)
+					logging.LogErrorfCtx(r.Context(), err, "malformed jwt")
 					WriteHTTPErrorCode(w, errors.New("token is malformed"), http.StatusUnauthorized)
 					return
 				case ve.Errors&jwt.ValidationErrorExpired != 0:
@@ -101,7 +101,7 @@ func (auth *Auth) JWT(next http.Handler) http.Handler {
 					WriteHTTPErrorCode(w, errors.New("token is not valid yet"), http.StatusUnauthorized)
 					return
 				default:
-					logging.LogError("Error parsing jwt", err)
+					logging.LogErrorfCtx(r.Context(), err, "Error parsing jwt")
 					WriteHTTPErrorCode(w, errors.New("error parsing jwt"), http.StatusUnauthorized)
 					return
 				}
@@ -140,13 +140,13 @@ func (auth *Auth) getAuthSecret(r *http.Request) (string, error) {
 	authHeaderContent := r.Header.Get(AuthHeaderName)
 	if strings.HasPrefix(authHeaderContent, "Bearer ") {
 		deprecatedErr := errors.New("deprecated 'bearer' key in the authentication")
-		logging.LogWarningf(deprecatedErr, "remove the 'bearer' key from the header content")
+		logging.LogWarningfCtx(r.Context(), deprecatedErr, "remove the 'bearer' key from the header for service-secert authentication")
 		authHeaderContent = strings.TrimPrefix(authHeaderContent, "Bearer ")
 	}
 
 	if authHeaderContent == "" {
 		err := errors.New("missing authentication header")
-		logging.LogErrorf(err, "error in secret-based authorization")
+		logging.LogErrorfCtx(r.Context(), err, "error in secret-based authorization")
 		return "", err
 	}
 	return authHeaderContent, nil

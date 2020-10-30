@@ -27,5 +27,29 @@ func (c *NotificationServiceLegacy) SendTemplated(templateKey, language string,
 	payload map[string]interface{},
 	subscribers ...uuid.UUID,
 ) error {
-	return c.ns.SendTemplated(context.Background(), templateKey, language, "global.language", payload, subscribers...)
+	_, err := c.ns.SendTemplated(context.Background(), templateKey, language, "global.language", "", 0, payload, subscribers...)
+	return err
+}
+
+// NotificationServiceLegacyV3 is a client for the cds-notification
+// it implements NotificationV3 interface
+type NotificationServiceLegacyV3 struct {
+	ns *NotificationService
+}
+
+func NewNotificationServiceLegacyV3(svcAddr, svcSecret, caller string) *NotificationServiceLegacyV3 {
+	return &NotificationServiceLegacyV3{NewNotificationService(svcAddr, svcSecret, caller)}
+}
+
+func (c *NotificationServiceLegacyV3) GetNotifiedUsers() NotifiedUsers {
+	return c.ns.GetNotifiedUsers()
+}
+
+func (c *NotificationServiceLegacyV3) SendTemplated(ctx context.Context,
+	templateKey, language, languageSettingKey string,
+	payload map[string]interface{},
+	subscribers ...uuid.UUID,
+) error {
+	_, err := c.ns.SendTemplated(context.Background(), templateKey, language, languageSettingKey, "", 0, payload, subscribers...)
+	return err
 }

@@ -40,7 +40,7 @@ func (c *UserPreferencesMock) GetKeySettings(ctx context.Context, key string) (G
 	// there is no such API to get a single setting for all users, so we need to compute it
 	globalSettings, err := c.GetGlobal(ctx)
 	if err != nil {
-		logging.LogErrorf(err, "error fetching global settings")
+		logging.LogErrorfCtx(ctx, err, "error fetching global settings")
 		return setting, err
 	}
 	for accID, usrSettings := range globalSettings {
