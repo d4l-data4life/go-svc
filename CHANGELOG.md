@@ -9,12 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Client for `consent-management` service `>= v0.7.0` (operation: batch-fetching user consents)
-- Notification client (interface `NotificationV4`) supports now
-  - Operations: `GetJobStatus` and `DeleteJob`
-  - Consent verification and recipient list filtering based on consent-key and minimum consent version
-- NotificationMock client implementing `NotificationV3` and `NotificationV4`
-
 ### Changed
 
 ### Deprecated
@@ -24,6 +18,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Security
+
+## [v0.9.0] - 2020-10-30
+
+### Added
+
+- Client for `consent-management` service `>= v0.7.0` (operation: batch-fetching user consents)
+- Notification client (interface `NotificationV4`) supports now
+- NotificationMock client implementing `NotificationV3` and `NotificationV4`
 
 ## [v0.8.0] - 2020-10-28
 
@@ -49,7 +51,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Deprecate client interfaces `NotificationV3`.
     Please migrate to compatible `NotificationV4` client.
     When using this version of `go-svc`, all `NotificationClient`s that rely on `cds-notification` `< v0.6.0` should be changed to `NotificationClientLegacy`,
-    `NotificationClientLegacyV3` or be updated to support `NotificationV4` (it adds two optional parameters).
 
 ## [v0.6.1] - 2020-10-01
 
@@ -100,7 +101,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial state: standards for Main, HTTP Server, DB access (gorm), Logging, Instrumented-Handler, and K8s Probe
 
-[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v0.8.0...HEAD
+[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v0.9.0...HEAD
+[v0.9.0]: https://github.com/gesundheitscloud/go-svc/compare/v0.8.0...v0.9.0
 [v0.8.0]: https://github.com/gesundheitscloud/go-svc/compare/v0.7.0...v0.8.0
 [v0.7.0]: https://github.com/gesundheitscloud/go-svc/compare/v0.6.1...v0.7.0
 [v0.6.1]: https://github.com/gesundheitscloud/go-svc/compare/v0.6.0...v0.6.1
