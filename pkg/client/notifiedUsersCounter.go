@@ -1,6 +1,10 @@
 package client
 
-import uuid "github.com/satori/go.uuid"
+import (
+	"sort"
+
+	uuid "github.com/satori/go.uuid"
+)
 
 // NotifiedUsers is a structured map that represents a tree: templateID->language->userID
 type NotifiedUsers map[string]map[string][]uuid.UUID
@@ -26,6 +30,12 @@ func (nuc *notifiedUsersCounter) Count(templateKey, language string, subscribers
 		users = []uuid.UUID{}
 	}
 	langToUsers[language] = append(users, subscribers...)
+	// sort array of user-ids for test assertions
+	sorted := langToUsers[language]
+	sort.SliceStable(sorted, func(i, j int) bool {
+		return sorted[i].String() < sorted[j].String()
+	})
+	langToUsers[language] = sorted
 }
 func (nuc *notifiedUsersCounter) GetStatus() NotifiedUsers {
 	return nuc.notifiedUsers

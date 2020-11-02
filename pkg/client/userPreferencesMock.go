@@ -16,16 +16,22 @@ type UserPreferencesMock struct {
 }
 
 func NewUserPreferencesMock() *UserPreferencesMock {
+	// use some hardcoded data
+	data := map[uuid.UUID]struct{ K, V string }{
+		uuid.FromStringOrNil("02c172e0-1d22-41f8-a4c1-5613f9882daa"): {"key1", "02c172e0-key1-value"},
+		uuid.FromStringOrNil("02c172e0-1d22-41f8-a4c1-5613f9882daa"): {"key2", "02c172e0-key2-value"},
+		uuid.FromStringOrNil("4f140045-4764-47c2-a8b5-71a7d3515928"): {"key1", "4f140045-key1-value"},
+		uuid.FromStringOrNil("4f140045-4764-47c2-a8b5-71a7d3515928"): {"key3", "4f140045-key1-value"},
+		uuid.FromStringOrNil("c7908420-b9d3-4a1b-844c-ea0eb363f0bd"): {"key1", ""},
+	}
+	return NewUserPreferencesMockWithState(data)
+}
+
+func NewUserPreferencesMockWithState(data map[uuid.UUID]struct{ K, V string }) *UserPreferencesMock {
 	storage := NewAllSettings()
-	// generate some data
-	storage.Add(uuid.FromStringOrNil("02c172e0-1d22-41f8-a4c1-5613f9882daa"), "key1", "02c172e0-key1-value")
-	storage.Add(uuid.FromStringOrNil("02c172e0-1d22-41f8-a4c1-5613f9882daa"), "key2", "02c172e0-key2-value")
-
-	storage.Add(uuid.FromStringOrNil("4f140045-4764-47c2-a8b5-71a7d3515928"), "key1", "4f140045-key1-value")
-	storage.Add(uuid.FromStringOrNil("4f140045-4764-47c2-a8b5-71a7d3515928"), "key3", "4f140045-key1-value")
-
-	storage.Add(uuid.FromStringOrNil("c7908420-b9d3-4a1b-844c-ea0eb363f0bd"), "key1", "")
-
+	for accID, pair := range data {
+		storage.Add(accID, pair.K, pair.V)
+	}
 	return &UserPreferencesMock{storage}
 }
 

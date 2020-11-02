@@ -46,14 +46,19 @@ func (c *NotificationMock) SendTemplated(ctx context.Context,
 		if len(languageSettingKey) == 0 {
 			languageSettingKey = "global.language"
 		}
-		settings, err := c.upCli.GetKeySettings(ctx, languageSettingKey)
+		langSettings, err := c.upCli.GetKeySettings(ctx, languageSettingKey)
 		if err != nil {
 			return NotificationStatus{
 				Error: "error calling user-preferences service",
 			}, err
 		}
-		for accID, lang := range settings {
-			c.counter.Count(templateKey, lang, accID)
+		for _, subsID := range subscribers {
+			if prefLang, ok := langSettings[subsID]; ok {
+				c.counter.Count(templateKey, prefLang, subsID)
+			} else {
+				// simulate template-default-language which is always 'en' in mock
+				c.counter.Count(templateKey, "en", subsID)
+			}
 		}
 	} else {
 		c.counter.Count(templateKey, language, subscribers...)

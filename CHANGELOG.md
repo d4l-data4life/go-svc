@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Bug in counting notified users in notification mock
+
 ### Security
 
 ## [v0.9.0] - 2020-10-30
