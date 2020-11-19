@@ -17,9 +17,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Bug in auth middleware that returned wrong error message if auth header was empty
-
 ### Security
+
+## [v0.9.2] - 2020-11-19
+
+### Fixed
+
+- Bug in auth middleware that returned wrong error message if auth header was empty
 
 ## [v0.9.1] - 2020-11-02
 
@@ -109,7 +113,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial state: standards for Main, HTTP Server, DB access (gorm), Logging, Instrumented-Handler, and K8s Probe
 
-[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v0.9.1...HEAD
+[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v0.9.2...HEAD
+[v0.9.2]: https://github.com/gesundheitscloud/go-svc/compare/v0.9.1...v0.9.2
 [v0.9.1]: https://github.com/gesundheitscloud/go-svc/compare/v0.9.0...v0.9.1
 [v0.9.0]: https://github.com/gesundheitscloud/go-svc/compare/v0.8.0...v0.9.0
 [v0.8.0]: https://github.com/gesundheitscloud/go-svc/compare/v0.7.0...v0.8.0
