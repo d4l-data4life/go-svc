@@ -81,6 +81,7 @@ func (auth *Auth) JWT(next http.Handler) http.Handler {
 		authToken, err := auth.getBearerToken(r)
 		if err != nil {
 			WriteHTTPErrorCode(w, err, http.StatusUnauthorized)
+			return
 		}
 		tk := &claims{}
 		_, err = jwt.ParseWithClaims(authToken, tk, func(token *jwt.Token) (interface{}, error) {
@@ -93,18 +94,15 @@ func (auth *Auth) JWT(next http.Handler) http.Handler {
 				case ve.Errors&jwt.ValidationErrorMalformed != 0:
 					logging.LogErrorfCtx(r.Context(), err, "malformed jwt")
 					WriteHTTPErrorCode(w, errors.New("token is malformed"), http.StatusUnauthorized)
-					return
 				case ve.Errors&jwt.ValidationErrorExpired != 0:
 					WriteHTTPErrorCode(w, errors.New("token is expired"), http.StatusUnauthorized)
-					return
 				case ve.Errors&jwt.ValidationErrorNotValidYet != 0:
 					WriteHTTPErrorCode(w, errors.New("token is not valid yet"), http.StatusUnauthorized)
-					return
 				default:
 					logging.LogErrorfCtx(r.Context(), err, "Error parsing jwt")
 					WriteHTTPErrorCode(w, errors.New("error parsing jwt"), http.StatusUnauthorized)
-					return
 				}
+				return
 			}
 		}
 

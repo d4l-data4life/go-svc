@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Bug in auth middleware that returned wrong error message if auth header was empty
+
 ### Security
 
 ## [v0.9.1] - 2020-11-02
