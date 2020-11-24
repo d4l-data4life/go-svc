@@ -3,6 +3,7 @@ package client
 import (
 	"context"
 
+	"github.com/gesundheitscloud/go-log/v2/log"
 	uuid "github.com/satori/go.uuid"
 )
 
@@ -65,7 +66,7 @@ func (c *NotificationMock) SendTemplated(ctx context.Context,
 	}
 
 	caller, _ := payload["caller"].(string)
-	traceID, _ := ctx.Value(TraceIDContextKey).(string)
+	traceID, _ := ctx.Value(log.TraceIDContextKey).(string)
 
 	userConsents, _ := c.csCli.GetBatchConsents(ctx, consentGuardKey, minConsentVersion, subscribers...)
 	stats := make(map[string]int)

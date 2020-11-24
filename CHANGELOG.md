@@ -9,7 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Trace transport client 
+- Trace middleware
+
 ### Changed
+
+- Http clients use trace transport
 
 ### Deprecated
 

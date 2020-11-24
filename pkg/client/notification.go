@@ -11,6 +11,7 @@ import (
 	uuid "github.com/satori/go.uuid"
 
 	"github.com/gesundheitscloud/go-svc/pkg/logging"
+	"github.com/gesundheitscloud/go-svc/pkg/middlewares"
 )
 
 // NotificationServiceRequest defines the payload (input) to be sent in 'SendTemplated'
@@ -180,7 +181,7 @@ func (c *NotificationService) sendTemplatedEmail(ctx context.Context, requestBod
 	request.Header.Set("User-Agent", "go-svc.client.NotificationService")
 	request.Close = true
 
-	client := &http.Client{}
+	client := &http.Client{Transport: &middlewares.TraceTransport{}}
 	response, err := client.Do(request)
 	if response != nil {
 		defer response.Body.Close()

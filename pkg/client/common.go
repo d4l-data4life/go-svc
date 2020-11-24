@@ -9,23 +9,10 @@ import (
 	"net/http"
 
 	"github.com/gesundheitscloud/go-svc/pkg/logging"
-	uuid "github.com/satori/go.uuid"
+	"github.com/gesundheitscloud/go-svc/pkg/middlewares"
 )
 
-type contextKey string
-
-// TraceIDContextKey is the key to store the trace ID in the context
-const TraceIDContextKey contextKey = "trace-id"
-
 func call(ctx context.Context, URL, method, secret, userAgent string, payload *bytes.Buffer, expectedCodes ...int) ([]byte, int, error) {
-	// assign a new traceID and place it into context when the original context was missing
-	trace, ok := ctx.Value(TraceIDContextKey).(string)
-	if !ok || uuid.FromStringOrNil(trace) == uuid.Nil {
-		traceID := uuid.NewV4()
-		logging.LogWarningf(fmt.Errorf("missing TraceID in context"), "generating new traceID = %s", traceID.String())
-		ctx = context.WithValue(ctx, TraceIDContextKey, traceID)
-	}
-
 	request, err := http.NewRequestWithContext(ctx, method, URL, payload)
 	if err != nil {
 		logging.LogErrorfCtx(ctx, err, "error creating HTTP request")
@@ -35,7 +22,7 @@ func call(ctx context.Context, URL, method, secret, userAgent string, payload *b
 	request.Header.Set("User-Agent", userAgent)
 	request.Close = true
 
-	client := &http.Client{}
+	client := &http.Client{Transport: &middlewares.TraceTransport{}}
 	response, err := client.Do(request)
 	if response != nil {
 		defer response.Body.Close()

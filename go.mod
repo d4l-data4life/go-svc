@@ -9,6 +9,7 @@ require (
 	github.com/gesundheitscloud/go-monitoring v0.4.0
 	github.com/go-chi/chi v4.1.2+incompatible
 	github.com/go-test/deep v1.0.7
+	github.com/gofrs/uuid v3.3.0+incompatible
 	github.com/jinzhu/gorm v1.9.16
 	github.com/jinzhu/now v1.1.1 // indirect
 	github.com/lib/pq v1.8.0
