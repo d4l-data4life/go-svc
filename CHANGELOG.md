@@ -9,12 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Trace transport client 
-- Trace middleware
-
 ### Changed
-
-- Http clients use trace transport
 
 ### Deprecated
 
@@ -23,6 +18,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Security
+
+## [v0.10.0] - 2020-11-24
+
+### Added
+
+- Trace transport client 
+- Trace middleware
+
+### Changed
+
+- Http clients use trace transport
 
 ## [v0.9.2] - 2020-11-19
 
@@ -118,7 +124,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial state: standards for Main, HTTP Server, DB access (gorm), Logging, Instrumented-Handler, and K8s Probe
 
-[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v0.9.2...HEAD
+[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v0.10.0...HEAD
+[v0.10.0]: https://github.com/gesundheitscloud/go-svc/compare/v0.9.2...v0.10.0
 [v0.9.2]: https://github.com/gesundheitscloud/go-svc/compare/v0.9.1...v0.9.2
 [v0.9.1]: https://github.com/gesundheitscloud/go-svc/compare/v0.9.0...v0.9.1
 [v0.9.0]: https://github.com/gesundheitscloud/go-svc/compare/v0.8.0...v0.9.0
