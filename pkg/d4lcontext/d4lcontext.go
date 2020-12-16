@@ -16,7 +16,13 @@ const (
 
 	// ClientIDContextKey is the key to store the client ID in the context
 	ClientIDContextKey contextKey = "client-id"
+
+	// TenantIDContextKey is the key to store the tenant ID in the context
+	TenantIDContextKey contextKey = "tenant-id"
 )
+
+// DefaultTenantID is the tenant id used if is missing in the JWT
+var DefaultTenantID = "d4l"
 
 // GetUserID is used by the logger to extract the user id from a request context
 func GetUserID() func(*http.Request) string {
@@ -35,6 +41,16 @@ func GetClientID() func(*http.Request) string {
 			return clientID
 		}
 		return ""
+	}
+}
+
+// GetTenantID is used by the logger to extract the tenant id from a request context
+func GetTenantID() func(*http.Request) string {
+	return func(r *http.Request) string {
+		if tenantID, ok := r.Context().Value(TenantIDContextKey).(string); ok && tenantID != "" {
+			return tenantID
+		}
+		return DefaultTenantID
 	}
 }
 

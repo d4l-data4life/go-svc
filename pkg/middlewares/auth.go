@@ -27,6 +27,8 @@ type claims struct {
 	ClientID string `json:"ghc:cid"`
 	// UserID is the claim that encodes the user who originally requested the JWT (gesundheitscloud private claim)
 	UserID uuid.UUID `json:"ghc:uid"`
+	// TenantID is the claim that encodes the tenant (e.g. d4l, charite)
+	TenantID string `json:"ghc:tid"`
 }
 
 // Auth is the handler responsible for auth
@@ -108,6 +110,7 @@ func (auth *Auth) JWT(next http.Handler) http.Handler {
 
 		ctx := context.WithValue(r.Context(), d4lcontext.ClientIDContextKey, tk.ClientID)
 		ctx = context.WithValue(ctx, d4lcontext.UserIDContextKey, tk.UserID)
+		ctx = context.WithValue(ctx, d4lcontext.TenantIDContextKey, tk.TenantID)
 		r = r.WithContext(ctx)
 
 		next.ServeHTTP(w, r)

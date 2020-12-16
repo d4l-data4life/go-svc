@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Tenant id is taken from JWT token (default is 'd4l')
+
 ### Changed
 
 ### Deprecated
@@ -23,7 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Trace transport client 
+- Trace transport client
 - Trace middleware
 
 ### Changed
