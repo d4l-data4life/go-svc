@@ -25,33 +25,27 @@ const (
 var DefaultTenantID = "d4l"
 
 // GetUserID is used by the logger to extract the user id from a request context
-func GetUserID() func(*http.Request) string {
-	return func(r *http.Request) string {
-		if userID, ok := r.Context().Value(UserIDContextKey).(uuid.UUID); ok {
-			return userID.String()
-		}
-		return ""
+func GetUserID(r *http.Request) string {
+	if userID, ok := r.Context().Value(UserIDContextKey).(uuid.UUID); ok {
+		return userID.String()
 	}
+	return ""
 }
 
 // GetClientID is used by the logger to extract the client id from a request context
-func GetClientID() func(*http.Request) string {
-	return func(r *http.Request) string {
-		if clientID, ok := r.Context().Value(ClientIDContextKey).(string); ok {
-			return clientID
-		}
-		return ""
+func GetClientID(r *http.Request) string {
+	if clientID, ok := r.Context().Value(ClientIDContextKey).(string); ok {
+		return clientID
 	}
+	return ""
 }
 
 // GetTenantID is used by the logger to extract the tenant id from a request context
-func GetTenantID() func(*http.Request) string {
-	return func(r *http.Request) string {
-		if tenantID, ok := r.Context().Value(TenantIDContextKey).(string); ok && tenantID != "" {
-			return tenantID
-		}
-		return DefaultTenantID
+func GetTenantID(r *http.Request) string {
+	if tenantID, ok := r.Context().Value(TenantIDContextKey).(string); ok && tenantID != "" {
+		return tenantID
 	}
+	return DefaultTenantID
 }
 
 // ParseRequesterID returns the requester account id from context (only for protected endpoints)
