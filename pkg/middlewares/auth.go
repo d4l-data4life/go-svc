@@ -13,7 +13,7 @@ import (
 	"github.com/gesundheitscloud/go-svc/pkg/d4lcontext"
 	"github.com/gesundheitscloud/go-svc/pkg/instrumented"
 	"github.com/gesundheitscloud/go-svc/pkg/logging"
-	uuid "github.com/satori/go.uuid"
+	uuid "github.com/gofrs/uuid"
 )
 
 const (

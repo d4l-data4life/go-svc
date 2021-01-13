@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"net/http"
 
-	uuid "github.com/satori/go.uuid"
+	uuid "github.com/gofrs/uuid"
 
 	"github.com/gesundheitscloud/go-svc/pkg/logging"
 )

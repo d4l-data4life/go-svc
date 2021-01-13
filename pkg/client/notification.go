@@ -8,7 +8,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	uuid "github.com/satori/go.uuid"
+	uuid "github.com/gofrs/uuid"
 
 	"github.com/gesundheitscloud/go-svc/pkg/logging"
 	"github.com/gesundheitscloud/go-svc/pkg/middlewares"
@@ -119,7 +119,7 @@ func (c *NotificationService) SendTemplated(ctx context.Context,
 	payload map[string]interface{},
 	subscribers ...uuid.UUID,
 ) (NotificationStatus, error) {
-	traceID := uuid.NewV4()
+	traceID := uuid.Must(uuid.NewV4())
 	requestBody := NotificationServiceRequest{
 		AccountIDs:                   subscribers,
 		TemplateKey:                  templateKey,

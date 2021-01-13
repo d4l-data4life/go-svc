@@ -8,8 +8,8 @@ import (
 	"net/http"
 
 	"github.com/gesundheitscloud/go-svc/pkg/logging"
+	uuid "github.com/gofrs/uuid"
 	"github.com/pkg/errors"
-	uuid "github.com/satori/go.uuid"
 )
 
 // Names of consent events as defined in models pkg of consent-management

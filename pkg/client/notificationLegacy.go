@@ -3,7 +3,7 @@ package client
 import (
 	"context"
 
-	uuid "github.com/satori/go.uuid"
+	uuid "github.com/gofrs/uuid"
 )
 
 var _ Notification = (*NotificationServiceLegacy)(nil)

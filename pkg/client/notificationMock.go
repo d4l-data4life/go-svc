@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/gesundheitscloud/go-log/v2/log"
-	uuid "github.com/satori/go.uuid"
+	uuid "github.com/gofrs/uuid"
 )
 
 var _ NotificationV4 = (*NotificationMock)(nil)
@@ -88,7 +88,7 @@ func (c *NotificationMock) SendTemplated(ctx context.Context,
 		}
 	}
 	ns := NotificationStatus{
-		JobIDs:          []uuid.UUID{uuid.NewV4()},
+		JobIDs:          []uuid.UUID{uuid.Must(uuid.NewV4())},
 		Error:           "",
 		Result:          "",
 		Caller:          caller,

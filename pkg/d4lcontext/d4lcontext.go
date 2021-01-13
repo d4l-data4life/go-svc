@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gesundheitscloud/go-svc/pkg/logging"
-	uuid "github.com/satori/go.uuid"
+	uuid "github.com/gofrs/uuid"
 )
 
 type contextKey string

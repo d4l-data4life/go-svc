@@ -7,7 +7,7 @@ import (
 
 	"github.com/gesundheitscloud/go-log/v2/log"
 	"github.com/go-test/deep"
-	uuid "github.com/satori/go.uuid"
+	uuid "github.com/gofrs/uuid"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -253,7 +253,7 @@ func TestNotificationMock_SendTemplated(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			c := NewNotificationMock()
-			genTraceID := uuid.NewV4()
+			genTraceID := uuid.Must(uuid.NewV4())
 			tt.args.ctx = context.WithValue(tt.args.ctx, log.TraceIDContextKey, genTraceID)
 			got, err := c.SendTemplated(tt.args.ctx, tt.args.templateKey, tt.args.language, tt.args.languageSettingKey, tt.args.consentGuardKey, tt.args.minConsentVersion, tt.args.payload, tt.args.subscribers...)
 			if tt.wantErr {

@@ -33,8 +33,8 @@ local-test:      ## Run tests natively
 	go vet ./... && \
 	go test -v -cover -covermode=atomic ./...
 
-twistlock-scan:
-	true
+scan-docker-images:
+	@echo ""
 
 docker-push:
 	true

@@ -3,7 +3,7 @@ package client
 import (
 	"sort"
 
-	uuid "github.com/satori/go.uuid"
+	uuid "github.com/gofrs/uuid"
 )
 
 // NotifiedUsers is a structured map that represents a tree: templateID->language->userID

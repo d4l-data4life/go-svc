@@ -8,7 +8,7 @@ import (
 
 	"github.com/gesundheitscloud/go-svc/pkg/d4lcontext"
 	"github.com/gesundheitscloud/go-svc/pkg/instrumented"
-	uuid "github.com/satori/go.uuid"
+	uuid "github.com/gofrs/uuid"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/net/xsrftoken"
 )

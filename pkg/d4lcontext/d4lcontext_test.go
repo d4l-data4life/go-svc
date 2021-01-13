@@ -6,7 +6,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	uuid "github.com/satori/go.uuid"
+	uuid "github.com/gofrs/uuid"
 	"github.com/stretchr/testify/assert"
 )
 
