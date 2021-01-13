@@ -9,8 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Add middleware to extract tenant id from X-Tenant-ID header (for non-JWT endpoints)
-
 ### Changed
 
 ### Deprecated
@@ -20,6 +18,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Security
+
+## [v0.13.0] - 2021-01-13
+
+### Added
+
+- Add middleware to extract tenant id from X-Tenant-ID header (for non-JWT endpoints)
 
 ## [v0.12.0] - 2021-01-13
 
@@ -144,7 +148,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial state: standards for Main, HTTP Server, DB access (gorm), Logging, Instrumented-Handler, and K8s Probe
 
-[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v0.12.0...HEAD
+[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v0.13.0...HEAD
+[v0.13.0]: https://github.com/gesundheitscloud/go-svc/compare/v0.12.0...v0.13.0
 [v0.12.0]: https://github.com/gesundheitscloud/go-svc/compare/v0.11.0...v0.12.0
 [v0.11.0]: https://github.com/gesundheitscloud/go-svc/compare/v0.10.1...v0.11.0
 [v0.10.1]: https://github.com/gesundheitscloud/go-svc/compare/v0.10.0...v0.10.1
