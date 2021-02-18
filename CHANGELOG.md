@@ -9,13 +9,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Add LogAuditSuccess(), LogAuditFailure() to audit log successful and failed accesses
+
 ### Changed
 
 ### Deprecated
 
 ### Removed
 
+- Remove deprecated LogAudit()
+
 ### Fixed
+
+- Add missing line breaks in error handlers
 
 ### Security
 

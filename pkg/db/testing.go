@@ -20,7 +20,7 @@ func InitializeTest(migFn MigrationFunc) {
 func InitializeTestSqlite3(migFn MigrationFunc) {
 	conn, err := gorm.Open("sqlite3", ":memory:")
 	if err != nil {
-		fmt.Printf("Test DB connection error: %s", err.Error())
+		fmt.Printf("Test DB connection error: %s\n", err.Error())
 	}
 
 	db = conn

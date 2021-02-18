@@ -150,7 +150,7 @@ func LogError(message string, err error) {
 func LogErrorf(err error, format string, fields ...interface{}) {
 	msg := fmt.Sprintf(format, fields...)
 	if err := Logger().ErrMessage(context.TODO(), strings.TrimRight(msg, "\n"), err); err != nil {
-		fmt.Printf("Logging error (LogErrorf): %s", err.Error())
+		fmt.Printf("Logging error (LogErrorf): %s\n", err.Error())
 	}
 }
 
@@ -158,7 +158,7 @@ func LogErrorf(err error, format string, fields ...interface{}) {
 func LogErrorfCtx(ctx context.Context, err error, format string, fields ...interface{}) {
 	msg := fmt.Sprintf(format, fields...)
 	if err := Logger().ErrMessage(ctx, strings.TrimRight(msg, "\n"), err); err != nil {
-		fmt.Printf("Logging error (LogErrorf): %s", err.Error())
+		fmt.Printf("Logging error (LogErrorf): %s\n", err.Error())
 	}
 }
 
@@ -171,7 +171,7 @@ func LogWarning(message string, err error) {
 func LogWarningf(err error, format string, fields ...interface{}) {
 	msg := fmt.Sprintf(format, fields...)
 	if err := Logger().WarnGeneric(context.TODO(), strings.TrimRight(msg, "\n"), err); err != nil {
-		fmt.Printf("Logging error (LogWarningf): %s", err.Error())
+		fmt.Printf("Logging error (LogWarningf): %s\n", err.Error())
 	}
 }
 
@@ -179,14 +179,21 @@ func LogWarningf(err error, format string, fields ...interface{}) {
 func LogWarningfCtx(ctx context.Context, err error, format string, fields ...interface{}) {
 	msg := fmt.Sprintf(format, fields...)
 	if err := Logger().WarnGeneric(ctx, strings.TrimRight(msg, "\n"), err); err != nil {
-		fmt.Printf("Logging error (LogWarningf): %s", err.Error())
+		fmt.Printf("Logging error (LogWarningf): %s\n", err.Error())
 	}
 }
 
-// LogAudit logs a warning with the singleton logger with message and error
-func LogAudit(ctx context.Context, message string, object ...interface{}) {
-	if err := Logger().Audit(ctx, strings.TrimRight(message, "\n"), object); err != nil {
-		fmt.Printf("Logging error (LogAudit): %s", err.Error())
+// LogAuditSecuritySuccess logs a successful access with the singleton logger with message and error
+func LogAuditSecuritySuccess(ctx context.Context, securityEvent string, extras ...golog.ExtraAuditInfoProvider) {
+	if err := Logger().AuditSecuritySuccess(ctx, newStringer(securityEvent), extras...); err != nil {
+		fmt.Printf("Logging error (LogAuditSecuritySuccess): %s\n", err.Error())
+	}
+}
+
+// LogAuditSecurityFailure logs a failed access with the singleton logger with message and error
+func LogAuditSecurityFailure(ctx context.Context, securityEvent string, extras ...golog.ExtraAuditInfoProvider) {
+	if err := Logger().AuditSecurityFailure(ctx, newStringer(securityEvent), extras...); err != nil {
+		fmt.Printf("Logging error (LogAuditSecurityFailure): %s\n", err.Error())
 	}
 }
 
@@ -194,7 +201,7 @@ func LogAudit(ctx context.Context, message string, object ...interface{}) {
 func LogAuditCreate(ctx context.Context, ownerID fmt.Stringer, resourceType string, resourceID interface{}, value interface{}) {
 	err := Logger().AuditCreate(ctx, ownerID, newStringer(resourceType), newStringer(resourceID), value)
 	if err != nil {
-		fmt.Printf("Logging error (LogAuditCreate): %s", err.Error())
+		fmt.Printf("Logging error (LogAuditCreate): %s\n", err.Error())
 	}
 }
 
@@ -202,7 +209,7 @@ func LogAuditCreate(ctx context.Context, ownerID fmt.Stringer, resourceType stri
 func LogAuditUpdate(ctx context.Context, ownerID fmt.Stringer, resourceType string, resourceID interface{}, value interface{}) {
 	err := Logger().AuditUpdate(ctx, ownerID, newStringer(resourceType), newStringer(resourceID), value)
 	if err != nil {
-		fmt.Printf("Logging error (LogAuditUpdate): %s", err.Error())
+		fmt.Printf("Logging error (LogAuditUpdate): %s\n", err.Error())
 	}
 }
 
@@ -210,7 +217,7 @@ func LogAuditUpdate(ctx context.Context, ownerID fmt.Stringer, resourceType stri
 func LogAuditDelete(ctx context.Context, ownerID fmt.Stringer, resourceType string, resourceID interface{}) {
 	err := Logger().AuditDelete(ctx, ownerID, newStringer(resourceType), newStringer(resourceID))
 	if err != nil {
-		fmt.Printf("Logging error (LogAuditDelete): %s", err.Error())
+		fmt.Printf("Logging error (LogAuditDelete): %s\n", err.Error())
 	}
 }
 
@@ -223,7 +230,7 @@ func LogInfo(message string) {
 func LogInfof(format string, fields ...interface{}) {
 	msg := fmt.Sprintf(format, fields...)
 	if err := Logger().InfoGeneric(context.TODO(), strings.TrimRight(msg, "\n")); err != nil {
-		fmt.Printf("Logging error (LogInfof): %s", err.Error())
+		fmt.Printf("Logging error (LogInfof): %s\n", err.Error())
 	}
 }
 
@@ -231,7 +238,7 @@ func LogInfof(format string, fields ...interface{}) {
 func LogInfofCtx(ctx context.Context, format string, fields ...interface{}) {
 	msg := fmt.Sprintf(format, fields...)
 	if err := Logger().InfoGeneric(ctx, strings.TrimRight(msg, "\n")); err != nil {
-		fmt.Printf("Logging error (LogInfof): %s", err.Error())
+		fmt.Printf("Logging error (LogInfof): %s\n", err.Error())
 	}
 }
 
@@ -240,7 +247,7 @@ func LogDebugf(format string, fields ...interface{}) {
 	if LoggerConfig().Debug {
 		msg := fmt.Sprintf(format, fields...)
 		if err := Logger().InfoGeneric(context.TODO(), "DEBUG: "+strings.TrimRight(msg, "\n")); err != nil {
-			fmt.Printf("Logging error (LogDebugf): %s", err.Error())
+			fmt.Printf("Logging error (LogDebugf): %s\n", err.Error())
 		}
 	}
 }
@@ -250,7 +257,7 @@ func LogDebugfCtx(ctx context.Context, format string, fields ...interface{}) {
 	if LoggerConfig().Debug {
 		msg := fmt.Sprintf(format, fields...)
 		if err := Logger().InfoGeneric(ctx, "DEBUG: "+strings.TrimRight(msg, "\n")); err != nil {
-			fmt.Printf("Logging error (LogDebugf): %s", err.Error())
+			fmt.Printf("Logging error (LogDebugf): %s\n", err.Error())
 		}
 	}
 }
