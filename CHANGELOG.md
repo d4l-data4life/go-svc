@@ -9,11 +9,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Add LogAuditSuccess(), LogAuditFailure() to audit log successful and failed accesses
-
 ### Changed
 
 ### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## [v0.14.0] - 2021-02-18
+
+### Added
+
+- Add LogAuditSuccess(), LogAuditFailure() to audit log successful and failed accesses
 
 ### Removed
 
@@ -22,8 +32,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Add missing line breaks in error handlers
-
-### Security
 
 ## [v0.13.0] - 2021-01-13
 
@@ -154,7 +162,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial state: standards for Main, HTTP Server, DB access (gorm), Logging, Instrumented-Handler, and K8s Probe
 
-[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v0.13.0...HEAD
+[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v0.14.0...HEAD
+[v0.14.0]: https://github.com/gesundheitscloud/go-svc/compare/v0.13.0...v0.14.0
 [v0.13.0]: https://github.com/gesundheitscloud/go-svc/compare/v0.12.0...v0.13.0
 [v0.12.0]: https://github.com/gesundheitscloud/go-svc/compare/v0.11.0...v0.12.0
 [v0.11.0]: https://github.com/gesundheitscloud/go-svc/compare/v0.10.1...v0.11.0
