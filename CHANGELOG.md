@@ -11,8 +11,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- DB instrumenter produces no unformatted log messages anymore
-
 ### Deprecated
 
 ### Removed
@@ -20,6 +18,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Security
+
+## [v0.14.1] - 2021-02-22
+
+### Changed
+
+- DB instrumenter produces no unformatted log messages anymore
 
 ## [v0.14.0] - 2021-02-18
 
@@ -164,7 +168,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial state: standards for Main, HTTP Server, DB access (gorm), Logging, Instrumented-Handler, and K8s Probe
 
-[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v0.14.0...HEAD
+[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v0.14.1...HEAD
+[v0.14.1]: https://github.com/gesundheitscloud/go-svc/compare/v0.14.0...v0.14.1
 [v0.14.0]: https://github.com/gesundheitscloud/go-svc/compare/v0.13.0...v0.14.0
 [v0.13.0]: https://github.com/gesundheitscloud/go-svc/compare/v0.12.0...v0.13.0
 [v0.12.0]: https://github.com/gesundheitscloud/go-svc/compare/v0.11.0...v0.12.0
