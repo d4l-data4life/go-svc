@@ -80,7 +80,8 @@ func registerInstrumenterPlugin() {
 	//mutex for goroutine safe map access
 	mutex := &sync.RWMutex{}
 
-	conn := Get()
+	// disable internal logs, as we have our own ones
+	conn := Get().LogMode(false)
 
 	dbRequestDurationMetric := registerDbRequestDurationMetric()
 
