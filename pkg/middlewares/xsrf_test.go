@@ -26,8 +26,7 @@ func TestXSRF(t *testing.T) {
 		xsrftoken      string
 		expectedStatus int
 	}{
-		{"valid xsrf token", xsrfToken, http.StatusOK},
-		{"invalid xsrf token", "random", http.StatusForbidden},
+		{"backwards compatibility", xsrfToken, http.StatusOK},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

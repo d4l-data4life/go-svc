@@ -13,6 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Deprecated
 
+- Deprecate XSRF middleware, it no longer denies access and should be removed from the services
+- Deprecate XSRF handler, it hands out a constant token and should be removed after all clients have been updated
+
 ### Removed
 
 ### Fixed

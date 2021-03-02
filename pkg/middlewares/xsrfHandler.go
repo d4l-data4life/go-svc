@@ -4,17 +4,15 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi"
-	"golang.org/x/net/xsrftoken"
 
-	"github.com/gesundheitscloud/go-svc/pkg/d4lcontext"
 	"github.com/gesundheitscloud/go-svc/pkg/instrumented"
 )
 
-//NewXSRFHandler initializes a new handler
+// NewXSRFHandler initializes a new handler
+// Deprecated: Please keep this XSRF handler for backwards-compatibility until all clients have been adapted.
 func NewXSRFHandler(xsrfSecret string, xsrfHeader string, handlerFactory *instrumented.HandlerFactory) *XSRFHandler {
 	return &XSRFHandler{
 		Handler:    handlerFactory.NewHandler("XSRFHandler"),
-		secret:     xsrfSecret,
 		HeaderName: xsrfHeader,
 	}
 }
@@ -22,7 +20,6 @@ func NewXSRFHandler(xsrfSecret string, xsrfHeader string, handlerFactory *instru
 //XSRFHandler is the handler responsible for Account operations
 type XSRFHandler struct {
 	*instrumented.Handler
-	secret     string
 	HeaderName string
 }
 
@@ -36,13 +33,5 @@ func (e *XSRFHandler) Routes() *chi.Mux {
 
 // XSRF performs XSRF for given account
 func (e *XSRFHandler) XSRF(w http.ResponseWriter, r *http.Request) {
-	// Get account id from the request
-	accountID, err := d4lcontext.ParseRequesterID(w, r)
-	if err != nil {
-		WriteHTTPErrorCode(w, err, http.StatusBadRequest)
-		return
-	}
-
-	xsrfToken := xsrftoken.Generate(e.secret, accountID.String(), "")
-	w.Header().Set(e.HeaderName, xsrfToken)
+	w.Header().Set(e.HeaderName, "deprecated")
 }
