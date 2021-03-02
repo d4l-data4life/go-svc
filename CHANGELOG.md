@@ -13,14 +13,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Deprecated
 
-- Deprecate XSRF middleware, it no longer denies access and should be removed from the services
-- Deprecate XSRF handler, it hands out a constant token and should be removed after all clients have been updated
-
 ### Removed
 
 ### Fixed
 
 ### Security
+
+## [v0.15.0] - 2021-03-02
+
+### Deprecated
+
+- Deprecate XSRF middleware, it no longer denies access and should be removed from the services
+- Deprecate XSRF handler, it hands out a constant token and should be removed after all clients have been updated
 
 ## [v0.14.1] - 2021-02-22
 
@@ -171,7 +175,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial state: standards for Main, HTTP Server, DB access (gorm), Logging, Instrumented-Handler, and K8s Probe
 
-[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v0.14.1...HEAD
+[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v0.15.0...HEAD
+[v0.15.0]: https://github.com/gesundheitscloud/go-svc/compare/v0.14.1...v0.15.0
 [v0.14.1]: https://github.com/gesundheitscloud/go-svc/compare/v0.14.0...v0.14.1
 [v0.14.0]: https://github.com/gesundheitscloud/go-svc/compare/v0.13.0...v0.14.0
 [v0.13.0]: https://github.com/gesundheitscloud/go-svc/compare/v0.12.0...v0.13.0
