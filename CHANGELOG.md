@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Encrypt connection to the Database and verify the server certificate (BSI)
+- Default value for DB connection parameter `SSLMode` is now `verify-full` (was `disable`)
+
 ### Deprecated
 
 ### Removed

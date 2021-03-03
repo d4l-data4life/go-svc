@@ -39,6 +39,9 @@ func ConnectString(opts *ConnectionOptions) string {
 	if opts.SSLMode != "" {
 		addons = fmt.Sprintf("%s sslmode=%s", addons, opts.SSLMode)
 	}
+	if (opts.SSLMode == "verify-ca" || opts.SSLMode == "verify-full") && opts.SSLRootCertPath != "" {
+		addons = fmt.Sprintf("%s sslrootcert=%s", addons, opts.SSLRootCertPath)
+	}
 	return core + addons
 }
 
