@@ -11,9 +11,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Encrypt connection to the Database and verify the server certificate (BSI)
-- Default value for DB connection parameter `SSLMode` is now `verify-full` (was `disable`)
-
 ### Deprecated
 
 ### Removed
@@ -21,6 +18,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Security
+
+## [v0.16.0] - 2021-03-03
+
+### Changed
+
+- Encrypt connection to the Database and verify the server certificate (BSI)
+- Default value for DB connection parameter `SSLMode` is now `verify-full` (was `disable`)
 
 ## [v0.15.0] - 2021-03-02
 
@@ -178,7 +182,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial state: standards for Main, HTTP Server, DB access (gorm), Logging, Instrumented-Handler, and K8s Probe
 
-[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v0.15.0...HEAD
+[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v0.16.0...HEAD
+[v0.16.0]: https://github.com/gesundheitscloud/go-svc/compare/v0.15.0...v0.16.0
 [v0.15.0]: https://github.com/gesundheitscloud/go-svc/compare/v0.14.1...v0.15.0
 [v0.14.1]: https://github.com/gesundheitscloud/go-svc/compare/v0.14.0...v0.14.1
 [v0.14.0]: https://github.com/gesundheitscloud/go-svc/compare/v0.13.0...v0.14.0
