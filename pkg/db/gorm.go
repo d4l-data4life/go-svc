@@ -94,11 +94,17 @@ func Close(conn *gorm.DB) {
 
 // connect reads environment variables for DB configuration and attempts to open the connection
 func connect(opts *ConnectionOptions) (*gorm.DB, error) {
-	connectString := fmt.Sprintf("host=%s port=%s dbname=%s user=%s password=%s sslmode=%s sslrootcert=%s",
-		opts.Host, opts.Port, opts.DatabaseName, opts.User, opts.Password, opts.SSLMode, opts.SSLRootCertPath)
-	logging.LogDebugf("Attempting to connect to DB: host = %s, port = %s, dbname = %s, ssl-mode = %s, sslrootcert = %s",
-		opts.Host, opts.Port, opts.DatabaseName, opts.SSLMode, opts.SSLRootCertPath)
-	return gorm.Open("postgres", connectString)
+	connectString := fmt.Sprintf("host=%s port=%s dbname=%s sslmode=%s",
+		opts.Host, opts.Port, opts.DatabaseName, opts.SSLMode)
+
+	if (opts.SSLMode == "verify-ca" || opts.SSLMode == "verify-full") && opts.SSLRootCertPath != "" {
+		connectString += fmt.Sprintf(" sslrootcert=%s", opts.SSLRootCertPath)
+	}
+
+	secretString := fmt.Sprintf(" user=%s password=%s", opts.User, opts.Password)
+
+	logging.LogDebugf("Attempting to connect to DB: %s", connectString)
+	return gorm.Open("postgres", connectString+secretString)
 }
 
 // retryExponential runc function fn() as long as fn() returns no error, but maximally 'attempts' times
