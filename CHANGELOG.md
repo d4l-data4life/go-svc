@@ -17,9 +17,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Make SSLRootCertPath optional
-
 ### Security
+
+## [v0.16.1] - 2021-03-05
+
+### Fixed
+
+- Make SSLRootCertPath optional
 
 ## [v0.16.0] - 2021-03-03
 
@@ -184,7 +188,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial state: standards for Main, HTTP Server, DB access (gorm), Logging, Instrumented-Handler, and K8s Probe
 
-[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v0.16.0...HEAD
+[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v0.16.1...HEAD
+[v0.16.1]: https://github.com/gesundheitscloud/go-svc/compare/v0.16.0...v0.16.1
 [v0.16.0]: https://github.com/gesundheitscloud/go-svc/compare/v0.15.0...v0.16.0
 [v0.15.0]: https://github.com/gesundheitscloud/go-svc/compare/v0.14.1...v0.15.0
 [v0.14.1]: https://github.com/gesundheitscloud/go-svc/compare/v0.14.0...v0.14.1
