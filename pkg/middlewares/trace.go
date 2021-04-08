@@ -7,7 +7,7 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/gesundheitscloud/go-log/v2/log"
+	"github.com/gesundheitscloud/go-svc/pkg/log"
 	"github.com/gesundheitscloud/go-svc/pkg/logging"
 )
 

@@ -4,8 +4,8 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/gesundheitscloud/go-monitoring/prom"
 	"github.com/gesundheitscloud/go-svc/pkg/logging"
+	"github.com/gesundheitscloud/go-svc/pkg/prom"
 )
 
 var (

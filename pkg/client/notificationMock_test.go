@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/gesundheitscloud/go-log/v2/log"
+	"github.com/gesundheitscloud/go-svc/pkg/log"
 	"github.com/go-test/deep"
 	uuid "github.com/gofrs/uuid"
 	"github.com/stretchr/testify/assert"

@@ -3,7 +3,7 @@ package client
 import (
 	"context"
 
-	"github.com/gesundheitscloud/go-log/v2/log"
+	"github.com/gesundheitscloud/go-svc/pkg/log"
 	uuid "github.com/gofrs/uuid"
 )
 

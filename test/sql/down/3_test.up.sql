@@ -1,0 +1,1 @@
+ALTER TABLE test.testtable ADD COLUMN created TIMESTAMP;

@@ -9,7 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- go-log, go-jwt, go-pg-migrate, go-cors, go-monitoring merged into this library
+
 ### Changed
+
+- Go version 1.15 -> 1.16
+- Linter version 1.30 -> 1.38
 
 ### Deprecated
 

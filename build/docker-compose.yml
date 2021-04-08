@@ -1,0 +1,31 @@
+version: '3.4'
+
+services:
+  postgres:
+    environment:
+      POSTGRES_PASSWORD: test
+      POSTGRES_USER: user
+      POSTGRES_DB: test
+    image: postgres:11
+    ports:
+      - "5555:5432"
+
+  migrate-test:
+    build:
+      context: ..
+      dockerfile: build/migrate.Dockerfile
+      args:
+        GO_VERSION: "${GO_VERSION:-1.16}"
+        APP_VERSION: "${APP_VERSION:-dirty}"
+      target: code
+    environment:
+      PG_HOST: postgres
+      PG_PORT: 5432
+      PG_NAME: test
+      PG_USER: user
+      PG_PASSWORD: test
+      PG_USE_SSL: "false"
+    volumes:
+      - ./test/sql:/sql
+    depends_on:
+      - postgres
