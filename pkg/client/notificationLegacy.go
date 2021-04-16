@@ -27,9 +27,11 @@ func (c *NotificationServiceLegacy) SendTemplated(templateKey, language string,
 	payload map[string]interface{},
 	subscribers ...uuid.UUID,
 ) error {
-	_, err := c.ns.SendTemplated(context.Background(), templateKey, language, "global.language", "", 0, payload, subscribers...)
+	_, err := c.ns.SendTemplated(context.Background(), templateKey, language, "global.language", "", 0, "", payload, subscribers...)
 	return err
 }
+
+var _ NotificationV3 = (*NotificationServiceLegacyV3)(nil)
 
 // NotificationServiceLegacyV3 is a client for the cds-notification
 // it implements NotificationV3 interface
@@ -50,6 +52,38 @@ func (c *NotificationServiceLegacyV3) SendTemplated(ctx context.Context,
 	payload map[string]interface{},
 	subscribers ...uuid.UUID,
 ) error {
-	_, err := c.ns.SendTemplated(context.Background(), templateKey, language, languageSettingKey, "", 0, payload, subscribers...)
+	_, err := c.ns.SendTemplated(context.Background(), templateKey, language, languageSettingKey, "", 0, "", payload, subscribers...)
 	return err
+}
+
+var _ NotificationV4 = (*NotificationServiceLegacyV4)(nil)
+
+// NotificationServiceLegacyV4 is a client for the cds-notification
+// it implements NotificationV4 interface
+type NotificationServiceLegacyV4 struct {
+	ns *NotificationService
+}
+
+func NewNotificationServiceLegacyV4(svcAddr, svcSecret, caller string) *NotificationServiceLegacyV4 {
+	return &NotificationServiceLegacyV4{NewNotificationService(svcAddr, svcSecret, caller)}
+}
+
+func (c *NotificationServiceLegacyV4) GetNotifiedUsers() NotifiedUsers {
+	return c.ns.GetNotifiedUsers()
+}
+
+func (c *NotificationServiceLegacyV4) SendTemplated(ctx context.Context,
+	templateKey, language, languageSettingKey string,
+	consentGuardKey string, minConsentVersion int,
+	payload map[string]interface{}, subscribers ...uuid.UUID,
+) (NotificationStatus, error) {
+	return c.ns.SendTemplated(context.Background(), templateKey, language, languageSettingKey, "", 0, "", payload, subscribers...)
+}
+
+func (c *NotificationServiceLegacyV4) DeleteJob(ctx context.Context, jobID uuid.UUID) error {
+	return c.ns.DeleteJob(ctx, jobID)
+}
+
+func (c *NotificationServiceLegacyV4) GetJobStatus(ctx context.Context, jobID uuid.UUID) (NotificationStatus, error) {
+	return c.ns.GetJobStatus(ctx, jobID)
 }

@@ -7,7 +7,7 @@ import (
 	uuid "github.com/gofrs/uuid"
 )
 
-var _ NotificationV4 = (*NotificationMock)(nil)
+var _ NotificationV5 = (*NotificationMock)(nil)
 
 // NotificationMock mimics notification service >= v0.6.0  - returns information about notified users
 type NotificationMock struct {
@@ -40,6 +40,7 @@ func (c *NotificationMock) SendTemplated(ctx context.Context,
 	templateKey, language, languageSettingKey string,
 	consentGuardKey string,
 	minConsentVersion int,
+	arbitraryEmailAddress string,
 	payload map[string]interface{},
 	subscribers ...uuid.UUID,
 ) (NotificationStatus, error) {

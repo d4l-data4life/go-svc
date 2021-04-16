@@ -14,19 +14,38 @@ import (
 	"github.com/gesundheitscloud/go-svc/pkg/middlewares"
 )
 
-// NotificationServiceRequest defines the payload (input) to be sent in 'SendTemplated'
+// NotificationServiceRequest is a copy of `NotificationRequest` from `cds-notification`
 type NotificationServiceRequest struct {
 	AccountIDs                   []uuid.UUID            `json:"accountIDs"`
+	ArbitraryEmailAddress        string                 `json:"arbitraryEmailAddress"`
+	FromName                     string                 `json:"fromName"`
+	FromAddress                  string                 `json:"fromAddress"`
+	Subject                      string                 `json:"subject"`
+	Message                      string                 `json:"message"`
 	TemplateKey                  string                 `json:"templateKey"`
-	TemplateLanguage             string                 `json:"templateLanguage"`
 	LanguageSettingKey           string                 `json:"languageSettingKey"`
 	ConsentGuardKey              string                 `json:"consentGuardKey"`             // optional parameter - default = ""
 	MinConsentVersion            int                    `json:"minConsentVersion,omitempty"` // optional parameter - default = "0"
-	Caller                       string                 `json:"caller"`
-	TraceID                      uuid.UUID              `json:"traceID"`
+	TemplateLanguage             string                 `json:"templateLanguage"`
 	UseMailJetTemplatingLanguage bool                   `json:"useMailJetTemplatingLanguage"`
-	TemplatePayload              map[string]interface{} `json:"templatePayload"`
 	TemplateErrorReportingEmail  string                 `json:"templateErrorReportingEmail"`
+	Caller                       string                 `json:"caller"`
+	TraceID                      uuid.UUID              `json:"traceID"` // ignored - kept here for backwards-compatibility of the client
+	TemplatePayload              map[string]interface{} `json:"templatePayload,omitempty"`
+	MailjetParams                MailjetParams          `json:"mailjetParams,omitempty"`
+}
+
+// MailjetParams holds fields that are directly pushed to MJ APIs without being processed in the notification-service
+// duplicated in NotificationServiceRequest for backwards-compatibility
+type MailjetParams struct {
+	UseMailJetTemplatingLanguage bool                   `json:"useMailJetTemplatingLanguage"`
+	TemplateErrorReportingEmail  string                 `json:"templateErrorReportingEmail"`
+	TemplatePayload              map[string]interface{} `json:"templatePayload,omitempty"`
+	// used in raw notifications
+	Message     string `json:"message"`
+	FromName    string `json:"fromName"`
+	FromAddress string `json:"fromAddress"`
+	Subject     string `json:"subject"`
 }
 
 // NotificationStatus object is returned by 'SendTemplated' and 'GetJobStatus' to the caller
@@ -83,7 +102,25 @@ type NotificationV4 interface {
 	GetNotifiedUsers() NotifiedUsers
 }
 
-var _ NotificationV4 = (*NotificationService)(nil)
+// NotificationV5 is an extension of Notification(V4) interface
+// It changes the signature of 'SendTemplated' and is not backwards-compatible with previous 'Notification' interfaces
+// However, NotificationV4 can still be used if sending emails to arbitrary address is not required
+type NotificationV5 interface {
+	// SendTemplated sends a templated email and returns error
+	SendTemplated(ctx context.Context,
+		templateKey, language, languageSettingKey string,
+		consentGuardKey string, minConsentVersion int,
+		arbitraryEmailAddress string,
+		payload map[string]interface{}, subscribers ...uuid.UUID) (NotificationStatus, error)
+	// GetJobStatus returns the status of a notification job submitted asynchronously before
+	GetJobStatus(ctx context.Context, jobID uuid.UUID) (NotificationStatus, error)
+	// DeleteJob cancels job processing
+	DeleteJob(ctx context.Context, jobID uuid.UUID) error
+	// GetNotifiedUsers returns basic info about notified users and error
+	GetNotifiedUsers() NotifiedUsers
+}
+
+var _ NotificationV5 = (*NotificationService)(nil)
 var userAgentNotification = "go-svc.client.NotificationService"
 
 // NotificationService is a client for the cds-notification
@@ -116,12 +153,14 @@ func (c *NotificationService) SendTemplated(ctx context.Context,
 	templateKey, language, languageSettingKey string,
 	consentGuardKey string,
 	minConsentVersion int,
+	arbitraryEmailAddress string,
 	payload map[string]interface{},
 	subscribers ...uuid.UUID,
 ) (NotificationStatus, error) {
 	traceID := uuid.Must(uuid.NewV4())
 	requestBody := NotificationServiceRequest{
 		AccountIDs:                   subscribers,
+		ArbitraryEmailAddress:        arbitraryEmailAddress,
 		TemplateKey:                  templateKey,
 		TemplateLanguage:             language,
 		LanguageSettingKey:           languageSettingKey,

@@ -96,6 +96,7 @@ func TestTestNotfifcationMock_GetNotifiedUsers(t *testing.T) {
 					tt.calls[i].languageSettingKey,
 					tt.calls[i].consentGuardKey,
 					0,
+					"",
 					nil,
 					tt.calls[i].subscribers...)
 				assert.NoError(t, err)
@@ -255,7 +256,7 @@ func TestNotificationMock_SendTemplated(t *testing.T) {
 			c := NewNotificationMock()
 			genTraceID := uuid.Must(uuid.NewV4())
 			tt.args.ctx = context.WithValue(tt.args.ctx, log.TraceIDContextKey, genTraceID)
-			got, err := c.SendTemplated(tt.args.ctx, tt.args.templateKey, tt.args.language, tt.args.languageSettingKey, tt.args.consentGuardKey, tt.args.minConsentVersion, tt.args.payload, tt.args.subscribers...)
+			got, err := c.SendTemplated(tt.args.ctx, tt.args.templateKey, tt.args.language, tt.args.languageSettingKey, tt.args.consentGuardKey, tt.args.minConsentVersion, "", tt.args.payload, tt.args.subscribers...)
 			if tt.wantErr {
 				assert.Error(t, err)
 			} else {
