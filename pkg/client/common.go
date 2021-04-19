@@ -28,7 +28,7 @@ func call(ctx context.Context, URL, method, secret, userAgent string, payload *b
 		defer response.Body.Close()
 	}
 	if err != nil {
-		logging.LogErrorfCtx(ctx, err, "error sending %s request to user-preferences service", method)
+		logging.LogErrorfCtx(ctx, err, "error sending '%s' request to '%s'", method, URL)
 		return nil, 0, err
 	}
 

@@ -5,13 +5,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 
 	uuid "github.com/gofrs/uuid"
 
 	"github.com/gesundheitscloud/go-svc/pkg/logging"
-	"github.com/gesundheitscloud/go-svc/pkg/middlewares"
 )
 
 // NotificationServiceRequest is a copy of `NotificationRequest` from `cds-notification`
@@ -202,47 +200,22 @@ func (c *NotificationService) DeleteJob(ctx context.Context, jobID uuid.UUID) er
 }
 
 func (c *NotificationService) sendTemplatedEmail(ctx context.Context, requestBody NotificationServiceRequest) (NotificationStatus, error) {
-	ns := NotificationStatus{}
+	contentURL := fmt.Sprintf("%s/api/v1/notifications/template", c.svcAddr)
+	reply := NotificationStatus{}
 	jsonBytes, err := json.Marshal(requestBody)
 	if err != nil {
 		logging.LogErrorfCtx(ctx, err, "error transforming notification request to JSON")
-		return ns, err
+		return reply, err
 	}
 
-	contentURL := fmt.Sprintf("%s/api/v1/notifications/template", c.svcAddr)
-	request, err := http.NewRequestWithContext(ctx, "POST", contentURL, bytes.NewBuffer(jsonBytes))
+	body, code, err := call(ctx, contentURL, "POST", c.svcSecret, userAgentNotification, bytes.NewBuffer(jsonBytes), http.StatusOK, http.StatusAccepted)
 	if err != nil {
-		logging.LogErrorfCtx(ctx, err, "error creating HTTP request")
-		return ns, err
+		logging.LogErrorfCtx(ctx, err, "sendTemplatedEmail failed, code: %d", code)
 	}
-	request.Header.Add("Authorization", c.svcSecret)
-	request.Header.Set("Content-Type", "application/json")
-	request.Header.Set("User-Agent", "go-svc.client.NotificationService")
-	request.Close = true
 
-	client := &http.Client{Transport: &middlewares.TraceTransport{}}
-	response, err := client.Do(request)
-	if response != nil {
-		defer response.Body.Close()
-	}
+	err = json.Unmarshal(body, &reply)
 	if err != nil {
-		logging.LogErrorfCtx(ctx, err, "error sending request to notification service")
-		return ns, err
+		logging.LogErrorfCtx(ctx, err, "error unmarshalling reply from notification service. Reply: %s", string(body))
 	}
-
-	body, err := ioutil.ReadAll(response.Body)
-	if response.StatusCode != http.StatusAccepted {
-		if err == nil {
-			err = fmt.Errorf("notification-svc error: %s", string(body))
-		}
-		logging.LogErrorfCtx(ctx, err, "error sending request to notification service. Status: %s", http.StatusText(response.StatusCode))
-		return ns, err
-	}
-
-	err = json.Unmarshal(body, &ns)
-	if err != nil {
-		logging.LogErrorfCtx(ctx, err, "error processing reply from notification service")
-		return ns, err
-	}
-	return ns, nil
+	return reply, err
 }

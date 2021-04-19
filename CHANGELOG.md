@@ -23,6 +23,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Notification client no longer considers reply code 200 as error
+
 ### Security
 
 ## [v1.0.0] - 2021-04-08
