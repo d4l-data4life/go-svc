@@ -11,6 +11,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## [v1.1.0] - 2021-04-20
+
+### Changed
+
 - Update client for `cds-notification` service to support `arbitraryEmailAddress` parameter used in `>= v0.13.0`
 - Client `NotificationService` implementing the previous version of the interface (`NotificationV4`) is renamed to `NotificationServiceLegacyV4`.
 
@@ -19,13 +31,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Deprecate client interface `NotificationV4`.
     Migrate from `NotificationV4` to `NotificationV5` by setting both `Arbitrary...` fields to empty strings or switch to `NotificationServiceLegacyV4`.
 
-### Removed
-
 ### Fixed
 
 - Notification client no longer considers reply code 200 as error
-
-### Security
 
 ## [v1.0.0] - 2021-04-08
 
@@ -207,7 +215,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial state: standards for Main, HTTP Server, DB access (gorm), Logging, Instrumented-Handler, and K8s Probe
 
-[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.1.0...HEAD
+[v1.1.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.0.0...v1.1.0
 [v1.0.0]: https://github.com/gesundheitscloud/go-svc/compare/v0.16.1...v1.0.0
 [v0.16.1]: https://github.com/gesundheitscloud/go-svc/compare/v0.16.0...v0.16.1
 [v0.16.0]: https://github.com/gesundheitscloud/go-svc/compare/v0.15.0...v0.16.0
