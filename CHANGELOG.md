@@ -17,9 +17,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Notification client encoding of request body as JSON
-
 ### Security
+
+## [v1.1.1] - 2021-04-21
+
+### Fixed
+
+- Notification client encoding of request body as JSON
 
 ## [v1.1.0] - 2021-04-20
 
@@ -217,7 +221,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial state: standards for Main, HTTP Server, DB access (gorm), Logging, Instrumented-Handler, and K8s Probe
 
-[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.1.1...HEAD
+[v1.1.1]: https://github.com/gesundheitscloud/go-svc/compare/v1.1.0...v1.1.1
 [v1.1.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.0.0...v1.1.0
 [v1.0.0]: https://github.com/gesundheitscloud/go-svc/compare/v0.16.1...v1.0.0
 [v0.16.1]: https://github.com/gesundheitscloud/go-svc/compare/v0.16.0...v0.16.1
