@@ -155,7 +155,6 @@ func (c *NotificationService) SendTemplated(ctx context.Context,
 	payload map[string]interface{},
 	subscribers ...uuid.UUID,
 ) (NotificationStatus, error) {
-	traceID := uuid.Must(uuid.NewV4())
 	requestBody := NotificationServiceRequest{
 		AccountIDs:                   subscribers,
 		ArbitraryEmailAddress:        arbitraryEmailAddress,
@@ -165,7 +164,6 @@ func (c *NotificationService) SendTemplated(ctx context.Context,
 		ConsentGuardKey:              consentGuardKey,
 		MinConsentVersion:            minConsentVersion,
 		Caller:                       c.caller,
-		TraceID:                      traceID,
 		UseMailJetTemplatingLanguage: payload != nil,
 		TemplatePayload:              payload,
 		TemplateErrorReportingEmail:  "",
@@ -207,7 +205,6 @@ func (c *NotificationService) sendTemplatedEmail(ctx context.Context, requestBod
 		logging.LogErrorfCtx(ctx, err, "error transforming notification request to JSON")
 		return reply, err
 	}
-
 	body, code, err := call(ctx, contentURL, "POST", c.svcSecret, userAgentNotification, bytes.NewBuffer(jsonBytes), http.StatusOK, http.StatusAccepted)
 	if err != nil {
 		logging.LogErrorfCtx(ctx, err, "sendTemplatedEmail failed, code: %d", code)

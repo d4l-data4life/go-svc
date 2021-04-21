@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Notification client encoding of request body as JSON
+
 ### Security
 
 ## [v1.1.0] - 2021-04-20

@@ -19,6 +19,7 @@ func call(ctx context.Context, URL, method, secret, userAgent string, payload *b
 		return nil, 0, err
 	}
 	request.Header.Add("Authorization", secret)
+	request.Header.Set("Content-Type", "application/json")
 	request.Header.Set("User-Agent", userAgent)
 	request.Close = true
 
