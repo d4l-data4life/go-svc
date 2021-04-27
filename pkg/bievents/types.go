@@ -17,10 +17,11 @@ type BaseEvent struct {
 
 // Event is the info passed on specific to event.
 type Event struct {
-	ActivityType string      `json:"activity-type"`
-	UserID       string      `json:"user-id"`
-	Data         interface{} `json:"data"`
-	TenantID     string      `json:"tenant-id"`
+	ActivityType       string      `json:"activity-type"`
+	UserID             string      `json:"user-id"`
+	Data               interface{} `json:"data"`
+	TenantID           string      `json:"tenant-id"`
+	ConsentDocumentKey string      `json:"consent-document-key"`
 }
 
 // OnboardingData is used to define details about onboarding data.

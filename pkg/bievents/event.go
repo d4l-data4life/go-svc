@@ -62,10 +62,11 @@ func (e *Emitter) emit(event Event) BaseEvent {
 		EventType:      "bi-event",
 		Timestamp:      time.Now(),
 		Event: Event{
-			ActivityType: event.ActivityType,
-			UserID:       event.UserID,
-			TenantID:     event.TenantID,
-			Data:         event.Data,
+			ActivityType:       event.ActivityType,
+			UserID:             event.UserID,
+			TenantID:           event.TenantID,
+			ConsentDocumentKey: event.ConsentDocumentKey,
+			Data:               event.Data,
 		},
 	}
 }
