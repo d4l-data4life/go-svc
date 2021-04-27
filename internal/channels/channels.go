@@ -29,25 +29,32 @@ func OrDone(done, c <-chan struct{}) <-chan struct{} {
 	return valStream
 }
 
-// OrDoneTimeout iterates over channhel c until: (1) c closes, (2) timeout happens, (3) done receives a message
-func OrDoneTimeout(done <-chan struct{}, timeout <-chan time.Time, c <-chan struct{}) <-chan struct{} {
+// OrDoneTimeout iterates over channels c0 and c1 until: (1) c0 AND c1 closes, (2) timeout happens, (3) done receives a message
+// values returned from c0 and c1 (while channel is open) mean that the respective DB connection is up
+// closing c0 and c1 means that their initialisation procedures have finished
+func OrDoneTimeout(done <-chan struct{}, timeout <-chan time.Time, c0 <-chan struct{}, c1 <-chan struct{}) <-chan struct{} {
 	valStream := make(chan struct{})
 	go func() {
 		defer close(valStream)
+		channelOpen0 := true
+		channelOpen1 := true
 		for {
 			select {
 			case <-timeout:
 				return
 			case <-done:
 				return
-			case v, ok := <-c:
-				if !ok {
+			case _, ok := <-c0:
+				channelOpen0 = ok
+				if !channelOpen0 && !channelOpen1 {
+					valStream <- struct{}{}
 					return
 				}
-				select {
-				case valStream <- v:
-				case <-timeout:
-				case <-done:
+			case _, ok := <-c1:
+				channelOpen1 = ok
+				if !channelOpen0 && !channelOpen1 {
+					valStream <- struct{}{}
+					return
 				}
 			}
 		}

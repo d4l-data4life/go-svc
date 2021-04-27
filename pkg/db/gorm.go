@@ -36,7 +36,9 @@ func Initialize(runCtx context.Context, opts *ConnectionOptions) <-chan struct{}
 	// goroutine to establish connection including retries
 	go func() {
 		defer close(dbUp)
-
+		if opts == nil {
+			return
+		}
 		connectFn := func() (*gorm.DB, error) { return connect(opts) }
 
 		// retries as long as err != nil

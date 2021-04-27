@@ -9,9 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Optional redis client used for caching
 - Extended BI Events by consent document key
 
 ### Changed
+
+- The main wrapper supports now opening connections to Postgres and Redis using functional options.
 
 ### Deprecated
 

@@ -7,6 +7,8 @@ require (
 	github.com/caarlos0/env v3.5.0+incompatible
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/go-chi/chi v4.1.2+incompatible
+	github.com/go-redis/redis/v8 v8.7.1
+	github.com/go-redis/redismock/v8 v8.0.5
 	github.com/go-test/deep v1.0.7
 	github.com/gofrs/uuid v4.0.0+incompatible
 	github.com/golang-migrate/migrate/v4 v4.14.1

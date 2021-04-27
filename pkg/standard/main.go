@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/gesundheitscloud/go-svc/internal/channels"
+	"github.com/gesundheitscloud/go-svc/pkg/cache"
 	"github.com/gesundheitscloud/go-svc/pkg/db"
 	"github.com/gesundheitscloud/go-svc/pkg/logging"
 	"github.com/gesundheitscloud/go-svc/pkg/probe"
@@ -32,25 +33,46 @@ func setupSingals(runCtx context.Context, stopService context.CancelFunc) {
 
 type MainFunction func(context.Context, string) <-chan struct{}
 
+type MainOption func(context.Context)
+
+func WithPostgres(opts *db.ConnectionOptions) MainOption {
+	return func(runCtx context.Context) {
+		dboptions = opts
+	}
+}
+
+func WithRedis(opts *cache.RedisConnectionOptions) MainOption {
+	return func(runCtx context.Context) {
+		redisoptions = opts
+	}
+}
+
+var dboptions *db.ConnectionOptions
+var redisoptions *cache.RedisConnectionOptions
+
 // Main is a wrapper function over main - it handles the typical tasks like starting DB connection, handling OS singnals, etc.
-func Main(serviceMain MainFunction, svcName string, opts *db.ConnectionOptions) {
+func Main(serviceMain MainFunction, svcName string, options ...MainOption) {
 	probe.Liveness().SetLive()
 	// runCtx is a running context. Canceling this contexs means that the service should stop running asap
 	runCtx, stopService := context.WithCancel(context.Background())
 	defer stopService()
 	go setupSingals(runCtx, stopService)
 
-	dbUp := db.Initialize(runCtx, opts)
+	for _, option := range options {
+		option(runCtx)
+	}
 
-	// blocks until DB is open (returns true) or the runCtx contex is canceled (returns false)
-	var mainStopped <-chan struct{}
-	if waitForDB(runCtx, dbUp) {
-		logging.LogInfof("%s: database connected", svcName)
-		mainStopped = serviceMain(runCtx, svcName)
-		logging.LogInfof("service is up and running!")
+	redisUp := cache.Initialize(runCtx, redisoptions)
+	dbUp := db.Initialize(runCtx, dboptions)
+
+	if waitForDB(runCtx, dbUp, redisUp) {
+		logging.LogInfof("dbs connected")
 	} else {
 		stopService()
 	}
+
+	mainStopped := serviceMain(runCtx, svcName)
+	logging.LogInfof("service is up and running!")
 
 	logging.LogInfof("%s: waiting for: (1) error, (2) HTTP server to stop, (3) run context canceled by the user", svcName)
 
@@ -61,10 +83,10 @@ func Main(serviceMain MainFunction, svcName string, opts *db.ConnectionOptions) 
 	logging.LogInfof("%s exits - run context canceled", svcName)
 }
 
-// waitForDB returns true when DB is up and connected, false when DB connection failed and the service should be shutdown
-func waitForDB(ctx context.Context, dbUp <-chan struct{}) bool {
+// waitForDB returns true when DB and/or Redis is up and connected, false when DB connection failed and the service should be shutdown
+func waitForDB(ctx context.Context, dbUp <-chan struct{}, redisUp <-chan struct{}) bool {
 	logging.LogInfof("Waiting up to 2 minutes for DB connection...")
-	for range channels.OrDoneTimeout(ctx.Done(), time.After(120*time.Second), dbUp) {
+	for range channels.OrDoneTimeout(ctx.Done(), time.After(10*time.Second), dbUp, redisUp) {
 		// a message on dbUp = database is ready
 		return true
 	}
