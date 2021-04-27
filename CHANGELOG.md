@@ -9,12 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Optional redis client used for caching
-- Extended BI Events by consent document key
-
 ### Changed
-
-- The main wrapper supports now opening connections to Postgres and Redis using functional options.
 
 ### Deprecated
 
@@ -23,6 +18,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Security
+
+## [v1.2.0] - 2021-04-27
+
+### Added
+
+- Optional redis client used for caching
+- Extended BI Events by consent document key
+
+### Changed
+
+- The main wrapper supports now opening connections to Postgres and Redis using functional options.
 
 ## [v1.1.1] - 2021-04-21
 
@@ -226,7 +232,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial state: standards for Main, HTTP Server, DB access (gorm), Logging, Instrumented-Handler, and K8s Probe
 
-[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.1.1...HEAD
+[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.2.0...HEAD
+[v1.2.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.1.1...v1.2.0
 [v1.1.1]: https://github.com/gesundheitscloud/go-svc/compare/v1.1.0...v1.1.1
 [v1.1.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.0.0...v1.1.0
 [v1.0.0]: https://github.com/gesundheitscloud/go-svc/compare/v0.16.1...v1.0.0
