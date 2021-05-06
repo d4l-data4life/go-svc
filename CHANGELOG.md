@@ -9,8 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- UrlValidator middleware to early detect and reject malformed queries
-
 ### Changed
 
 ### Deprecated
@@ -20,6 +18,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Security
+
+## [v1.3.0] - 2021-05-06
+
+### Added
+
+- UrlValidator middleware to early detect and reject malformed queries
 
 ## [v1.2.0] - 2021-04-27
 
@@ -234,7 +238,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial state: standards for Main, HTTP Server, DB access (gorm), Logging, Instrumented-Handler, and K8s Probe
 
-[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.2.0...HEAD
+[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.3.0...HEAD
+[v1.3.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.2.0...v1.3.0
 [v1.2.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.1.1...v1.2.0
 [v1.1.1]: https://github.com/gesundheitscloud/go-svc/compare/v1.1.0...v1.1.1
 [v1.1.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.0.0...v1.1.0
