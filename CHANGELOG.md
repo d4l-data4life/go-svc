@@ -9,9 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- JWT pkg - ability to run `Verify` against multiple JWT public keys
+- Package `dynamic` to dynamically load and update config/secrets using `viper` without restarting a service
+
 ### Changed
 
 ### Deprecated
+
+- Constructor for auth middleware `jwt.New()` in favor of `jwt.NewAuthenticator()`
 
 ### Removed
 

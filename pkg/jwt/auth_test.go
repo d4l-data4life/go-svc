@@ -1,15 +1,21 @@
 package jwt
 
 import (
+	"bytes"
 	"crypto/rsa"
+	"crypto/x509"
+	"encoding/pem"
 	"math/rand"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
+	"github.com/gesundheitscloud/go-svc/pkg/dynamic"
 	"github.com/gofrs/uuid"
 	"github.com/gorilla/mux"
+	"github.com/stretchr/testify/assert"
 )
 
 const (
@@ -165,6 +171,7 @@ func TestAuthenticator(t *testing.T) {
 					TokenAttachmentsWrite,
 				),
 			),
+			endHandler: okHandler,
 			checks: checks(
 				hasStatusCode(http.StatusOK),
 			),
@@ -189,6 +196,7 @@ func TestAuthenticator(t *testing.T) {
 					TokenAttachmentsWrite,
 				),
 			),
+			endHandler: okHandler,
 			checks: checks(
 				hasStatusCode(http.StatusOK),
 			),
@@ -212,6 +220,7 @@ func TestAuthenticator(t *testing.T) {
 					TokenAttachmentsWrite,
 				),
 			),
+			endHandler: okHandler,
 			checks: checks(
 				hasStatusCode(http.StatusUnauthorized),
 			),
@@ -235,6 +244,7 @@ func TestAuthenticator(t *testing.T) {
 					TokenAttachmentsRead,
 				),
 			),
+			endHandler: okHandler,
 			checks: checks(
 				hasStatusCode(http.StatusUnauthorized),
 			),
@@ -257,6 +267,7 @@ func TestAuthenticator(t *testing.T) {
 					return nil
 				},
 			),
+			endHandler: okHandler,
 			checks: checks(
 				hasStatusCode(http.StatusUnauthorized),
 			),
@@ -272,16 +283,226 @@ func TestAuthenticator(t *testing.T) {
 					TokenAttachmentsWrite,
 				),
 			),
-			request: &http.Request{},
+			request:    &http.Request{},
+			endHandler: okHandler,
 			checks: checks(
 				hasStatusCode(http.StatusUnauthorized),
+			),
+		},
+
+		{
+			name: "end handler should receive a request with JWT claims in the context",
+			middleware: auth.Verify(
+				WithOwner(func(r *http.Request) uuid.UUID {
+					return uuid.Must(uuid.FromString(ownerUUID))
+				}),
+				WithScopes(
+					TokenAttachmentsWrite,
+				),
+			),
+			request: buildRequest(
+				withOwnerURL(ownerUUID),
+				withAuthHeader(
+					priv,
+					uuid.Must(uuid.FromString(ownerUUID)),
+					TokenAttachmentsWrite,
+				),
+			),
+			endHandler: func(w http.ResponseWriter, r *http.Request) {
+				claims, ok := r.Context().Value(jwtClaimsContextKey).(*Claims)
+				if !ok {
+					httpClientError(w, 591) // error - custom codes just for the test to find it easily
+					return
+				}
+				if claims == nil {
+					httpClientError(w, 592) // error - custom codes just for the test to find it easily
+					return
+				}
+				httpClientError(w, 299) // success - using 299 to be sure that some other handler won't interfere with standard codes
+			},
+			checks: checks(
+				hasStatusCode(299),
 			),
 		},
 	} {
 		tc := tc // Pin Variable
 
 		t.Run(tc.name, func(t *testing.T) {
-			handler := tc.middleware(http.HandlerFunc(okHandler))
+			handler := tc.middleware(http.HandlerFunc(tc.endHandler))
+			res := httptest.NewRecorder()
+
+			handler.ServeHTTP(res, tc.request)
+
+			for _, check := range tc.checks {
+				if err := check(res); err != nil {
+					t.Error(err)
+					return
+				}
+			}
+		})
+	}
+}
+
+func generatePEMPublicKey(t *testing.T, pk *rsa.PublicKey, indent int) []byte {
+	pKey, err := x509.MarshalPKIXPublicKey(pk)
+	assert.NoError(t, err)
+	pubkeyPEM := pem.EncodeToMemory(
+		&pem.Block{
+			Type:  "PUBLIC KEY",
+			Bytes: pKey,
+		},
+	)
+	if indent > 0 {
+		pubkeyPEM = bytes.ReplaceAll(pubkeyPEM, []byte("\n"), []byte("\n"+strings.Repeat(" ", indent))) // magic to match the yaml indent
+	}
+	return pubkeyPEM
+}
+
+func TestNewAuthenticator_MultiplePubKeys(t *testing.T) {
+	read := rand.New(rand.NewSource(time.Now().Unix()))
+	priv1, err := rsa.GenerateKey(read, 1024)
+	assert.NoError(t, err)
+	priv2, err := rsa.GenerateKey(read, 1024)
+	assert.NoError(t, err)
+	priv3, err := rsa.GenerateKey(read, 1024)
+	assert.NoError(t, err)
+	priv4, err := rsa.GenerateKey(read, 1024)
+	assert.NoError(t, err)
+
+	// use 2-space indent inside this string
+	configYaml := []byte(`
+JWTPublicKey:
+- name: "key1"
+  comment: "valid test key1"
+  not_before: 1410-01-01
+  not_after: 2099-01-01
+  key: |
+    ` + string(generatePEMPublicKey(t, &priv1.PublicKey, 4)) + `
+- name: "key2"
+  comment: "valid test key2"
+  not_before: 1410-01-01
+  not_after: 2099-01-01
+  key: |
+    ` + string(generatePEMPublicKey(t, &priv2.PublicKey, 4)) + `
+- name: "expiredKey3"
+  comment: "valid key but metadata says it should not be used"
+  not_before: 1999-01-01
+  not_after: 1999-01-02
+  key: |
+    ` + string(generatePEMPublicKey(t, &priv3.PublicKey, 4)) + `
+`)
+	t.Logf("using config:\n%s", configYaml)
+
+	kp := dynamic.NewViperConfig(
+		dynamic.ConfigSource(bytes.NewBuffer(configYaml)),
+		dynamic.ConfigFormat("yaml"),
+	)
+	err = kp.Bootstrap()
+	assert.NoError(t, err)
+
+	keys, err := kp.PublicKeys()
+	assert.NoError(t, err)
+	assert.Equal(t, 3, len(keys))
+
+	auth := NewAuthenticator(kp, &testLogger{})
+
+	for _, tc := range [...]testData{
+		{
+			name: "should succeed with key1",
+			middleware: auth.Verify(
+				WithOwner(func(r *http.Request) uuid.UUID {
+					return uuid.Must(uuid.FromString(ownerUUID))
+				}),
+				WithScopes(
+					TokenAttachmentsWrite,
+				),
+			),
+			request: buildRequest(
+				withOwnerURL(ownerUUID),
+				withAuthHeader(
+					priv1,
+					uuid.Must(uuid.FromString(ownerUUID)),
+					TokenAttachmentsWrite,
+				),
+			),
+			endHandler: okHandler,
+			checks: checks(
+				hasStatusCode(http.StatusOK),
+			),
+		},
+		{
+			name: "should succeed with key2",
+			middleware: auth.Verify(
+				WithOwner(func(r *http.Request) uuid.UUID {
+					return uuid.Must(uuid.FromString(ownerUUID))
+				}),
+				WithScopes(
+					TokenAttachmentsWrite,
+				),
+			),
+			request: buildRequest(
+				withOwnerURL(ownerUUID),
+				withAuthHeader(
+					priv2,
+					uuid.Must(uuid.FromString(ownerUUID)),
+					TokenAttachmentsWrite,
+				),
+			),
+			endHandler: okHandler,
+			checks: checks(
+				hasStatusCode(http.StatusOK),
+			),
+		},
+		{
+			name: "should ignore metadata and work with key3", // TODO-PR: Change this case when handling of metadata will be implemented
+			middleware: auth.Verify(
+				WithOwner(func(r *http.Request) uuid.UUID {
+					return uuid.Must(uuid.FromString(ownerUUID))
+				}),
+				WithScopes(
+					TokenAttachmentsWrite,
+				),
+			),
+			request: buildRequest(
+				withOwnerURL(ownerUUID),
+				withAuthHeader(
+					priv3,
+					uuid.Must(uuid.FromString(ownerUUID)),
+					TokenAttachmentsWrite,
+				),
+			),
+			endHandler: okHandler,
+			checks: checks(
+				hasStatusCode(http.StatusOK),
+			),
+		},
+		{
+			name: "should fail with all 3 keys not matching the private key",
+			middleware: auth.Verify(
+				WithOwner(func(r *http.Request) uuid.UUID {
+					return uuid.Must(uuid.FromString(ownerUUID))
+				}),
+				WithScopes(
+					TokenAttachmentsWrite,
+				),
+			),
+			request: buildRequest(
+				withOwnerURL(ownerUUID),
+				withAuthHeader(
+					priv4,
+					uuid.Must(uuid.FromString(ownerUUID)),
+					TokenAttachmentsWrite,
+				),
+			),
+			endHandler: okHandler,
+			checks: checks(
+				hasStatusCode(http.StatusUnauthorized),
+			),
+		},
+	} {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			handler := tc.middleware(http.HandlerFunc(tc.endHandler))
 			res := httptest.NewRecorder()
 
 			handler.ServeHTTP(res, tc.request)

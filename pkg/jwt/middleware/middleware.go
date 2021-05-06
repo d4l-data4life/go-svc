@@ -12,6 +12,7 @@ import (
 
 type logger interface {
 	ErrUserAuth(context.Context, error) error
+	InfoGeneric(context.Context, string) error
 }
 
 // Middleware is the default middleware type used everywhere.

@@ -32,6 +32,7 @@ type testData struct {
 	request    *http.Request
 	middleware func(http.Handler) http.Handler
 	checks     []checkFunc
+	endHandler func(http.ResponseWriter, *http.Request)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -114,7 +115,10 @@ type testLogger struct{}
 
 func (testLogger) ErrUserAuth(ctx context.Context, err error) error {
 	fmt.Println(err)
-
+	return nil
+}
+func (testLogger) InfoGeneric(ctx context.Context, msg string) error {
+	fmt.Println(msg)
 	return nil
 }
 

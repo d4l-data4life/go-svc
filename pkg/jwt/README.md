@@ -1,10 +1,11 @@
 # go-jwt
 
-Middleware for verifying jwt's.
+Middleware for verifying JWTs.
 
 ## Description
 
-The middleware package has a middleware for [gorilla mux](https://github.com/gorilla/mux) that should be used for authentication and authorization of gorilla mux handlers.
+The middleware package has a middleware for [gorilla mux](https://github.com/gorilla/mux).
+It should be used for authentication and authorization of Gorilla mux handlers.
 
 If you use a different multiplexer, feel free to create a PR for this library here.
 
@@ -20,35 +21,37 @@ The verification of a valid Scope for performing a certain action needs to be ve
 
 A list of Tokens that are currently in use:
 
-```
-	TokenPermissionsRead   = "perm:r"
-	TokenPermissionsWrite  = "perm:w"
-	TokenRecordsRead       = "rec:r"
-	TokenRecordsWrite      = "rec:w"
-	TokenRecordsAppend     = "rec:a"
-	TokenAttachmentsRead   = "attachment:r"
-	TokenAttachmentsWrite  = "attachment:w"
-	TokenAttachmentsAppend = "attachment:a"
-	TokenUserRead          = "user:r"
-	TokenUserWrite         = "user:w"
-	TokenUserQuery         = "user:q"
-	TokenTerraDB           = "terradb"
-	TokenTags              = "tag:*"
+```txt
+    TokenPermissionsRead   = "perm:r"
+    TokenPermissionsWrite  = "perm:w"
+    TokenRecordsRead       = "rec:r"
+    TokenRecordsWrite      = "rec:w"
+    TokenRecordsAppend     = "rec:a"
+    TokenAttachmentsRead   = "attachment:r"
+    TokenAttachmentsWrite  = "attachment:w"
+    TokenAttachmentsAppend = "attachment:a"
+    TokenUserRead          = "user:r"
+    TokenUserWrite         = "user:w"
+    TokenUserQuery         = "user:q"
+    TokenTerraDB           = "terradb"
+    TokenTags              = "tag:*"
 ```
 
 #### Tag
 
 A Tag is a dynamic Token. Its prefix starts with `tag:` and its postfix is a base64 encrypted Tag. The Tag is defined by the client to help it identify, search and share records and blobs. In order to enable a client to use the Tag Token, it needs to have a `tag:*` Token in its Scope.
 
-It is very important that the content is validated as it is a potential loophole for reflectd what nots.
+It is very important that the content is validated as it is a potential loophole for reflected what nots.
 
 #### Extended Token
 
-An Extended Token is an unmanaged Token. It is not verified by the go-jwt library as a `KnownToken`. It is meant to be used by implementors within d4l Data4Life gGmbH to enable them to create new tags without deploying new versions of go-jwt to phdp-vega.
+An Extended Token is an unmanaged Token.
+It is not verified by the package as a `KnownToken`.
+It is meant to be used by implementors within d4l Data4Life gGmbH to enable them to create new tags without deploying new versions of `jwt` pkg to phdp-vega.
 
-It has `ext:` as prefix and can have any alphabetical characters or a colon as postfix (in regex: `ext:[a-zA-Z:]+`). The limitation in special signs is to avoid the usage of reflected XSS or other security vulnarbilities. Example for a valid Extended Token would be `ext:labOrder:r`.
+It has `ext:` as prefix and can have any alphabetical characters or a colon as postfix (in regex: `ext:[a-zA-Z:]+`). The limitation in special signs is to avoid the usage of reflected XSS or other security vulnerabilities. Example for a valid Extended Token would be `ext:labOrder:r`.
 
-It is of utmost importance, that the values for an Extended Token are picked carefully and not missused to create dozens of new Tokens.
+It is of utmost importance, that the values for an Extended Token are picked carefully and not misused to create dozens of new Tokens.
 
 ## How to use the middleware
 
