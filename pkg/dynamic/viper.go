@@ -129,7 +129,9 @@ func NewViperConfig(opts ...ViperConfigOpt) *ViperConfig {
 		opt(vp)
 	}
 	if vp.autoBootstrap {
-		vp.Error = fmt.Errorf("bootstrap error: %w", vp.Bootstrap())
+		if err := vp.Bootstrap(); err != nil {
+			vp.Error = fmt.Errorf("bootstrap error: %w", err)
+		}
 	}
 	if vp.watchChanges {
 		vp.WatchConfig()

@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Boostrapping error was not nil even if `dynamic.NewViperConfig` succeeded
+
 ### Security
 
 ## [v1.4.0] - 2021-05-06
