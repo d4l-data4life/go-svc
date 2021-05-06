@@ -9,20 +9,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- JWT pkg - ability to run `Verify` against multiple JWT public keys
-- Package `dynamic` to dynamically load and update config/secrets using `viper` without restarting a service
-
 ### Changed
 
 ### Deprecated
-
-- Constructor for auth middleware `jwt.New()` in favor of `jwt.NewAuthenticator()`
 
 ### Removed
 
 ### Fixed
 
 ### Security
+
+## [v1.4.0] - 2021-05-06
+
+### Added
+
+- JWT pkg - ability to run `Verify` against multiple JWT public keys
+- Package `dynamic` to dynamically load and update config/secrets using `viper` without restarting a service
+
+### Deprecated
+
+- Constructor for auth middleware `jwt.New()` in favor of `jwt.NewAuthenticator()`
 
 ## [v1.3.0] - 2021-05-06
 
@@ -243,7 +249,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial state: standards for Main, HTTP Server, DB access (gorm), Logging, Instrumented-Handler, and K8s Probe
 
-[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.3.0...HEAD
+[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.4.0...HEAD
+[v1.4.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.3.0...v1.4.0
 [v1.3.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.2.0...v1.3.0
 [v1.2.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.1.1...v1.2.0
 [v1.1.1]: https://github.com/gesundheitscloud/go-svc/compare/v1.1.0...v1.1.1
