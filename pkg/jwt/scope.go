@@ -21,6 +21,15 @@ const (
 	TokenUserRead          = "user:r"
 	TokenUserWrite         = "user:w"
 	TokenUserQuery         = "user:q"
+	TokenUserKeysRead      = "ku:r"
+	TokenUserKeysWrite     = "ku:w"
+	TokenUserKeysAppend    = "ku:a"
+	TokenAppKeysRead       = "ka:r"
+	TokenAppKeysWrite      = "ka:w"
+	TokenAppKeysAppend     = "ka:a"
+	TokenDeviceRead        = "dev:r"
+	TokenDeviceWrite       = "dev:w"
+	TokenDeviceAppend      = "dev:a"
 	TokenTerraDB           = "terradb"
 	TokenTags              = "tag:*"
 	TokenExtended          = "ext:*"
@@ -60,6 +69,18 @@ var (
 		TokenUserWrite: exists,
 		TokenUserQuery: exists,
 
+		TokenUserKeysRead:   exists,
+		TokenUserKeysWrite:  exists,
+		TokenUserKeysAppend: exists,
+
+		TokenAppKeysRead:   exists,
+		TokenAppKeysWrite:  exists,
+		TokenAppKeysAppend: exists,
+
+		TokenDeviceRead:   exists,
+		TokenDeviceWrite:  exists,
+		TokenDeviceAppend: exists,
+
 		TokenTerraDB:  exists,
 		TokenTags:     exists,
 		TokenExtended: exists,
@@ -78,6 +99,15 @@ var (
 			TokenUserRead,
 			TokenUserWrite,
 			TokenUserQuery,
+			TokenUserKeysRead,
+			TokenUserKeysWrite,
+			TokenUserKeysAppend,
+			TokenAppKeysRead,
+			TokenAppKeysWrite,
+			TokenAppKeysAppend,
+			TokenDeviceRead,
+			TokenDeviceWrite,
+			TokenDeviceAppend,
 			TokenTerraDB,
 		},
 	}

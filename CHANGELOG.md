@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- JWT pkg - tokens for user keys, app keys and devices scopes
+
 ### Changed
 
 ### Deprecated
