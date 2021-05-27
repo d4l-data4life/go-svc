@@ -57,6 +57,9 @@ type Claims struct {
 
 	// Scope is the claim that encodes granted permissions, aka the "scope" of this JWT (gesundheitscloud private claim)
 	Scope Scope `json:"ghc:scope"`
+
+	// Email is the email of the subject
+	Email string `json:"email"`
 }
 
 func (c *Claims) valid(now time.Time) error {
