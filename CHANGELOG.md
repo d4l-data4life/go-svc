@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- [breaking] Move `ParseRequesterID` function from `d4lcontext` to `d4lhandler` package
+
 ### Deprecated
 
 ### Removed

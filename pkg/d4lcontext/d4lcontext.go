@@ -1,10 +1,8 @@
 package d4lcontext
 
 import (
-	"errors"
 	"net/http"
 
-	"github.com/gesundheitscloud/go-svc/pkg/logging"
 	uuid "github.com/gofrs/uuid"
 )
 
@@ -46,30 +44,4 @@ func GetTenantID(r *http.Request) string {
 		return tenantID
 	}
 	return DefaultTenantID
-}
-
-// ParseRequesterID returns the requester account id from context (only for protected endpoints)
-func ParseRequesterID(w http.ResponseWriter, r *http.Request) (requesterID uuid.UUID, err error) {
-	requester := r.Context().Value(UserIDContextKey)
-	if requester == nil {
-		err := errors.New("missing account id")
-		logging.LogErrorfCtx(r.Context(), err, "error parsing Requester UUID")
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return uuid.Nil, err
-	}
-
-	switch id := requester.(type) {
-	case string:
-		requesterID, err = uuid.FromString(id)
-		if err != nil || requesterID == uuid.Nil {
-			err := errors.New("malformed Account ID")
-			logging.LogErrorfCtx(r.Context(), err, "error parsing Requester UUID")
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return uuid.Nil, err
-		}
-	case uuid.UUID:
-		requesterID = id
-	}
-
-	return requesterID, nil
 }
