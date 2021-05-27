@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - JWT pkg - function for creating a signed access token
+- JWT pkg - token for mail verification
 
 ### Changed
 

@@ -30,6 +30,7 @@ const (
 	TokenDeviceRead        = "dev:r"
 	TokenDeviceWrite       = "dev:w"
 	TokenDeviceAppend      = "dev:a"
+	TokenUserMailVerify    = "mail:v"
 	TokenTerraDB           = "terradb"
 	TokenTags              = "tag:*"
 	TokenExtended          = "ext:*"
@@ -81,6 +82,8 @@ var (
 		TokenDeviceWrite:  exists,
 		TokenDeviceAppend: exists,
 
+		TokenUserMailVerify: exists,
+
 		TokenTerraDB:  exists,
 		TokenTags:     exists,
 		TokenExtended: exists,
@@ -108,6 +111,7 @@ var (
 			TokenDeviceRead,
 			TokenDeviceWrite,
 			TokenDeviceAppend,
+			TokenUserMailVerify,
 			TokenTerraDB,
 		},
 	}

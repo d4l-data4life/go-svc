@@ -42,6 +42,7 @@ A list of Tokens that are currently in use:
     TokenDeviceRead        = "dev:r"
     TokenDeviceWrite       = "dev:w"
     TokenDeviceAppend      = "dev:a"
+    TokenUserMailVerify    = "mail:v"
     TokenTerraDB           = "terradb"
     TokenTags              = "tag:*"
 ```
