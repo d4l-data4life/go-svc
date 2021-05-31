@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## [v1.6.0] - 2021-05-27
+
+### Added
+
 - JWT pkg - `Extract` middleware that extracts the JWT information without doing any access control
 - JWT pkg - function for creating a signed access token
 - JWT pkg - token for mail verification
@@ -20,14 +34,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [breaking] Move `ParseRequesterID` function from `d4lcontext` to `d4lhandler` package
 - Log pkg - support the `d4lcontext` keys as a fallback for user ID, client ID and tenant ID
 - d4lcontext pkg - GetTenantID doesn't fall back to 'd4l' if the tenant ID is missing in the context
-
-### Deprecated
-
-### Removed
-
-### Fixed
-
-### Security
 
 ## [v1.5.0] - 2021-05-21
 
@@ -271,7 +277,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial state: standards for Main, HTTP Server, DB access (gorm), Logging, Instrumented-Handler, and K8s Probe
 
-[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.5.0...HEAD
+[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.6.0...HEAD
+[v1.6.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.5.0...v1.6.0
 [v1.5.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.4.1...v1.5.0
 [v1.4.1]: https://github.com/gesundheitscloud/go-svc/compare/v1.4.0...v1.4.1
 [v1.4.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.3.0...v1.4.0
