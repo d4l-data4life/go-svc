@@ -27,7 +27,7 @@ func InitializeTestSqlite3(migFn MigrationFunc) {
 	// 'foreign_keys = off' is default setting in SQLite.
 	db.Exec("PRAGMA foreign_keys = ON")
 	if migFn != nil {
-		if err = migrate(conn, migFn); err != nil {
+		if err = runMigration(conn, migFn, 0); err != nil {
 			logging.LogErrorf(err, "test DB migration error")
 		}
 	}
@@ -64,7 +64,7 @@ func InitializeTestPostgres(opts *ConnectionOptions) {
 		db = nil
 	}
 	if opts.MigrationFunc != nil {
-		if err = migrate(conn, opts.MigrationFunc); err != nil {
+		if err = runMigration(conn, opts.MigrationFunc, opts.MigrationVersion); err != nil {
 			logging.LogErrorf(err, "test DB migration error")
 		}
 	}

@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - JWT pkg - function for creating a signed access token
 - JWT pkg - token for mail verification
+- DB pkg - use migrate pkg after the execution of the gorm migrations
 
 ### Changed
 

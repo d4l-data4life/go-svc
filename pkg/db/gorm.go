@@ -9,6 +9,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/gesundheitscloud/go-svc/pkg/logging"
+	"github.com/gesundheitscloud/go-svc/pkg/migrate"
 	"github.com/gesundheitscloud/go-svc/pkg/probe"
 
 	// Blank import required by gorm
@@ -20,7 +21,9 @@ var (
 )
 
 const (
-	numConnectAttempts uint = 7 // with expTimeBackoff 2^7 = 2 minutes + eps
+	numConnectAttempts uint   = 7 // with expTimeBackoff 2^7 = 2 minutes + eps
+	migrationsTable    string = "migrations"
+	migrationsSource   string = "sql"
 )
 
 // define general error messages
@@ -48,7 +51,7 @@ func Initialize(runCtx context.Context, opts *ConnectionOptions) <-chan struct{}
 			return
 		}
 		logging.LogInfof("connection to the database succeeded")
-		err = migrate(conn, opts.MigrationFunc)
+		err = runMigration(conn, opts.MigrationFunc, opts.MigrationVersion)
 		if err != nil {
 			logging.LogWarningf(err, "database migration failed - continuing")
 		}
@@ -129,11 +132,23 @@ func retryExponential(runCtx context.Context, attempts uint, waitPeriod time.Dur
 	return conn, nil
 }
 
-// migrate Executes Migrations on the database
-func migrate(conn *gorm.DB, migFn MigrationFunc) error {
+// runMigration Executes Migrations on the database
+func runMigration(conn *gorm.DB, migFn MigrationFunc, migrationVersion uint) error {
 	if conn == nil {
 		logging.LogErrorf(ErrDBConnection, "MigrateDB() - db handle is nil")
 		return ErrDBConnection
 	}
-	return migFn(conn)
+	// Run GORM automigrations as supplied by service
+	err := migFn(conn)
+	if err != nil {
+		return err
+	}
+
+	// Run manual migrations defined in sql scripts if needed
+	if migrationVersion > 0 {
+		migration := migrate.NewMigration(conn.DB(), migrationsSource, migrationsTable, logging.Logger())
+		err = migration.MigrateDB(context.Background(), migrationVersion)
+	}
+
+	return err
 }

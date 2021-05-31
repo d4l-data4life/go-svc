@@ -15,7 +15,7 @@ func handlePostgresError(pqErr *pq.Error, migFn MigrationFunc) {
 		probe.Liveness().SetDead()
 	case pqErr.Code == "42P01": // relation does not exist (observed by DB restart)
 		// DB has crashed and a new instance was brought up - autoconnect will connect, but migration may be necessary
-		_ = migrate(Get(), migFn)
+		_ = runMigration(Get(), migFn, 0)
 	case pqErr.Code == "53300": // sorry, too many clients already
 		// the service managed to exhaust all DB connections - should restart
 		probe.Liveness().SetDead()
