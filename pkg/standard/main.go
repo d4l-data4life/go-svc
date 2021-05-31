@@ -9,7 +9,7 @@ import (
 
 	"github.com/gesundheitscloud/go-svc/internal/channels"
 	"github.com/gesundheitscloud/go-svc/pkg/cache"
-	"github.com/gesundheitscloud/go-svc/pkg/db"
+	"github.com/gesundheitscloud/go-svc/pkg/db/v2"
 	"github.com/gesundheitscloud/go-svc/pkg/logging"
 	"github.com/gesundheitscloud/go-svc/pkg/probe"
 )

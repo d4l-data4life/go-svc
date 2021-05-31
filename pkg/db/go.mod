@@ -1,4 +1,4 @@
-module github.com/gesundheitscloud/go-svc/db
+module github.com/gesundheitscloud/go-svc/pkg/db
 
 go 1.16
 
