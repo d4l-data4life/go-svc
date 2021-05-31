@@ -6,25 +6,9 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"reflect"
 	"strings"
 	"time"
-
-	jwt "github.com/dgrijalva/jwt-go"
-
-	"github.com/gofrs/uuid"
-)
-
-const (
-	// Time diff tolerance.
-	skew = time.Second
-
-	testIssuer = "urn:ghc"
-
-	testUserID   = "11111111-1111-1111-1111-111111111111"
-	testClientID = "22222222-2222-2222-2222-222222222222#web"
-	testAppID    = "33333333-3333-3333-3333-333333333333"
-	testJWTID    = "44444444-4444-4444-4444-444444444444"
-	testTenantID = "tenant_1"
 )
 
 type testData struct {
@@ -54,6 +38,49 @@ func hasStatusCode(want int) checkFunc {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+// Check Request Funcs
+////////////////////////////////////////////////////////////////////////////////
+
+type checkReqFunc func(w *http.Request) error
+
+func checkReqAll(fns ...checkReqFunc) checkReqFunc {
+	return func(r *http.Request) error {
+		for _, check := range fns {
+			if err := check(r); err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+}
+
+// hasInContext returns a function that checks that the context of the request contains
+// the expected value associated to the expected key.
+func hasInContext(wantKey interface{}, wantValue interface{}) checkReqFunc {
+	return func(r *http.Request) error {
+		haveValue := r.Context().Value(wantKey)
+		if !reflect.DeepEqual(wantValue, haveValue) {
+			return fmt.Errorf("unexpected context value for key %v; want: %v, have: %v", wantKey, wantValue, haveValue)
+		}
+
+		return nil
+	}
+}
+
+// hasKeyInContext returns a function that checks that the context of the request contains
+// the expected key with a non-nil value.
+func hasKeyInContext(wantKey interface{}) checkReqFunc {
+	return func(r *http.Request) error {
+		haveValue := r.Context().Value(wantKey)
+		if haveValue == nil {
+			return fmt.Errorf("expected to find key %v; have nil", wantKey)
+		}
+
+		return nil
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////
 // HTTP Request Builder and OKHandler
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -69,18 +96,19 @@ func buildRequest(url string, fns ...requestBuilder) *http.Request {
 	return r
 }
 
-func withAuthHeader(key *rsa.PrivateKey, owner uuid.UUID, scopes ...string) requestBuilder {
-	scope := strings.Join(scopes, " ")
-
+func withAuthHeader(key *rsa.PrivateKey, options ...TokenOption) requestBuilder {
 	return func(r *http.Request) error {
-		bt, err := bearerToken(
-			key, owner, scope,
+		options = append(
+			// add a default expiration time as the token is not valid without one
+			[]TokenOption{WithExpirationTime(time.Now().Add(1 * time.Minute))},
+			options...,
 		)
+		t, err := CreateAccessToken(key, options...)
 		if err != nil {
 			return err
 		}
 
-		r.Header.Add("Authorization", bt)
+		r.Header.Add("Authorization", "Bearer "+t.AccessToken)
 
 		return nil
 	}
@@ -121,67 +149,7 @@ func (testLogger) InfoGeneric(ctx context.Context, msg string) error {
 	fmt.Println(msg)
 	return nil
 }
-
-////////////////////////////////////////////////////////////////////////////////
-// JWT Token generaration
-////////////////////////////////////////////////////////////////////////////////
-
-// bearerToken creates an Authorization Bearer header.
-// Only owner and scopes are under test.
-func bearerToken(
-	key *rsa.PrivateKey,
-	ownerID uuid.UUID,
-	scope string,
-) (string, error) {
-	appUUID := uuid.Must(uuid.FromString(testAppID))
-	jwtUUID := uuid.Must(uuid.FromString(testJWTID))
-	userUUID := uuid.Must(uuid.FromString(testUserID))
-	scp, err := NewScope(scope)
-	if err != nil {
-		return "", err
-	}
-
-	token, err := generateToken(
-		key, time.Now(),
-		ownerID, appUUID, jwtUUID, userUUID,
-		testTenantID, testClientID, testIssuer,
-		scp,
-	)
-	if err != nil {
-		return "", err
-	}
-
-	var builder strings.Builder
-
-	builder.WriteString("Bearer ")
-	builder.WriteString(token)
-
-	return builder.String(), nil
-}
-
-// generateToken creates a new JWT with the given claims and signed with the given private key.
-// In case of errors, it panics.
-func generateToken(
-	privateKey *rsa.PrivateKey,
-	tm time.Time,
-	ownerID, appID, jwtID, userID uuid.UUID,
-	tenantID, clientID, issuer string,
-	scope Scope,
-) (string, error) {
-
-	t := jwt.NewWithClaims(jwt.SigningMethodRS256, &Claims{
-		Issuer:     issuer,
-		Subject:    Owner{ownerID},
-		Expiration: Time(tm.Add(time.Minute)),
-		NotBefore:  Time(tm.Add(-skew)),
-		IssuedAt:   Time(tm),
-		JWTID:      jwtID,
-		AppID:      appID,
-		ClientID:   clientID,
-		TenantID:   tenantID,
-		UserID:     userID,
-		Scope:      scope,
-	})
-
-	return t.SignedString(privateKey)
+func (testLogger) ErrGeneric(ctx context.Context, err error) error {
+	fmt.Println(err)
+	return nil
 }

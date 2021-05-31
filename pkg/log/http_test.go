@@ -12,6 +12,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/gesundheitscloud/go-svc/pkg/d4lcontext"
 	"github.com/gesundheitscloud/go-svc/pkg/log"
 )
 
@@ -550,6 +551,103 @@ func TestTenantIDOverriding(t *testing.T) {
 			if _, err := srv.Client().Do(req); err != nil {
 				t.Fatalf("request failed: %v", err)
 			}
+
+			logs := json.NewDecoder(buf)
+
+			requestLog := make(map[string]json.RawMessage)
+			if err := logs.Decode(&requestLog); err != nil {
+				t.Fatalf("unmarshaling the request log: %v", err)
+			}
+			for key, wantValue := range tc.expectedKeyValues {
+				if want, have := []byte(wantValue), requestLog[key]; !bytes.Equal(want, have) {
+					t.Errorf("expected %q to be %q, found %q", key, want, have)
+				}
+			}
+
+			buf.Reset()
+		})
+	}
+}
+
+func buildContext(options ...func(context.Context) context.Context) context.Context {
+	ctx := context.Background()
+	for _, f := range options {
+		ctx = f(ctx)
+	}
+
+	return ctx
+}
+
+func withValue(key interface{}, val interface{}) func(context.Context) context.Context {
+	return func(ctx context.Context) context.Context {
+		return context.WithValue(ctx, key, val)
+	}
+}
+
+func TestContextOverriding(t *testing.T) {
+	buf := new(bytes.Buffer)
+
+	baseReq, err := http.NewRequest("POST", "/path", strings.NewReader("你好，世界"))
+	if err != nil {
+		t.Fatalf("request creation failed: %v", err)
+	}
+
+	for _, tc := range [...]struct {
+		name              string
+		logger            *log.Logger
+		req               *http.Request
+		httpWrapers       []func(*log.HTTPLogger)
+		expectedKeyValues map[string]string
+	}{
+		{
+			name:   "should work with context keys from the d4lcontext package",
+			logger: log.NewLogger("name", "version", "hostname", log.WithWriter(buf)),
+			req: baseReq.WithContext(buildContext(
+				withValue(d4lcontext.UserIDContextKey, "ctx-user-id"),
+				withValue(d4lcontext.ClientIDContextKey, "ctx-client-id"),
+				withValue(d4lcontext.TenantIDContextKey, "ctx-tenant-id"),
+			)),
+			httpWrapers: []func(*log.HTTPLogger){},
+			expectedKeyValues: map[string]string{
+				"user-id":   `"ctx-user-id"`,
+				"client-id": `"ctx-client-id"`,
+				"tenant-id": `"ctx-tenant-id"`,
+			},
+		},
+		{
+			name:   "explicit values extractors should override the values from the d4lcontext",
+			logger: log.NewLogger("name", "version", "hostname", log.WithWriter(buf)),
+			req: baseReq.WithContext(buildContext(
+				withValue(d4lcontext.UserIDContextKey, "ctx-user-id"),
+				withValue(d4lcontext.ClientIDContextKey, "ctx-client-id"),
+				withValue(d4lcontext.TenantIDContextKey, "ctx-tenant-id"),
+			)),
+			httpWrapers: []func(*log.HTTPLogger){
+				log.WithTenantIDParser(func(_ *http.Request) string {
+					return "tenant-1-req"
+				}),
+				log.WithClientIDParser(func(_ *http.Request) string {
+					return "client-1-req"
+				}),
+				log.WithUserParser(func(_ *http.Request) string {
+					return "user-1-req"
+				}),
+			},
+			expectedKeyValues: map[string]string{
+				"tenant-id": `"tenant-1-req"`,
+				"user-id":   `"user-1-req"`,
+				"client-id": `"client-1-req"`,
+			},
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			handler := http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {})
+
+			wrapper := tc.logger.HTTPMiddleware(
+				tc.httpWrapers...,
+			)
+
+			wrapper(handler).ServeHTTP(httptest.NewRecorder(), tc.req)
 
 			logs := json.NewDecoder(buf)
 

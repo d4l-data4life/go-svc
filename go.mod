@@ -21,6 +21,7 @@ require (
 	github.com/jinzhu/now v1.1.1 // indirect
 	github.com/lib/pq v1.10.0
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible // indirect
+	github.com/nats-io/jwt v0.3.2
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.10.0
 	github.com/prometheus/common v0.20.0 // indirect

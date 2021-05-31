@@ -5,6 +5,7 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
+	"errors"
 	"math/rand"
 	"net/http"
 	"net/http/httptest"
@@ -12,6 +13,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/gesundheitscloud/go-svc/pkg/d4lcontext"
 	"github.com/gesundheitscloud/go-svc/pkg/dynamic"
 	"github.com/gofrs/uuid"
 	"github.com/gorilla/mux"
@@ -46,8 +48,8 @@ func TestGorillaAuthenticator(t *testing.T) {
 				withOwnerURL(ownerUUID),
 				withAuthHeader(
 					priv,
-					uuid.Must(uuid.FromString(ownerUUID)),
-					TokenAttachmentsWrite,
+					WithUserID(uuid.Must(uuid.FromString(ownerUUID))),
+					WithScopeStrings(TokenAttachmentsWrite),
 				),
 			),
 			checks: checks(
@@ -67,8 +69,8 @@ func TestGorillaAuthenticator(t *testing.T) {
 				withOwnerURL(ownerUUID),
 				withAuthHeader(
 					priv,
-					uuid.Must(uuid.FromString(ownerUUID)),
-					TokenAttachmentsWrite,
+					WithUserID(uuid.Must(uuid.FromString(ownerUUID))),
+					WithScopeStrings(TokenAttachmentsWrite),
 				),
 			),
 			checks: checks(
@@ -88,8 +90,8 @@ func TestGorillaAuthenticator(t *testing.T) {
 				withOwnerURL(uuid.Nil.String()),
 				withAuthHeader(
 					priv,
-					uuid.Must(uuid.FromString(ownerUUID)),
-					TokenAttachmentsWrite,
+					WithUserID(uuid.Must(uuid.FromString(ownerUUID))),
+					WithScopeStrings(TokenAttachmentsWrite),
 				),
 			),
 			checks: checks(
@@ -109,8 +111,8 @@ func TestGorillaAuthenticator(t *testing.T) {
 				withOwnerURL(otherUUID),
 				withAuthHeader(
 					priv,
-					uuid.Must(uuid.FromString(ownerUUID)),
-					TokenAttachmentsWrite,
+					WithUserID(uuid.Must(uuid.FromString(ownerUUID))),
+					WithScopeStrings(TokenAttachmentsWrite),
 				),
 			),
 			checks: checks(
@@ -167,8 +169,8 @@ func TestAuthenticator(t *testing.T) {
 				withOwnerURL(ownerUUID),
 				withAuthHeader(
 					priv,
-					uuid.Must(uuid.FromString(ownerUUID)),
-					TokenAttachmentsWrite,
+					WithUserID(uuid.Must(uuid.FromString(ownerUUID))),
+					WithScopeStrings(TokenAttachmentsWrite),
 				),
 			),
 			endHandler: okHandler,
@@ -192,8 +194,8 @@ func TestAuthenticator(t *testing.T) {
 				withOwnerURL(ownerUUID),
 				withAuthHeader(
 					priv,
-					uuid.Must(uuid.FromString(ownerUUID)),
-					TokenAttachmentsWrite,
+					WithUserID(uuid.Must(uuid.FromString(ownerUUID))),
+					WithScopeStrings(TokenAttachmentsWrite),
 				),
 			),
 			endHandler: okHandler,
@@ -216,8 +218,8 @@ func TestAuthenticator(t *testing.T) {
 				withOwnerURL(ownerUUID),
 				withAuthHeader(
 					priv,
-					uuid.Must(uuid.FromString(otherUUID)),
-					TokenAttachmentsWrite,
+					WithUserID(uuid.Must(uuid.FromString(otherUUID))),
+					WithScopeStrings(TokenAttachmentsWrite),
 				),
 			),
 			endHandler: okHandler,
@@ -240,8 +242,8 @@ func TestAuthenticator(t *testing.T) {
 				withOwnerURL(ownerUUID),
 				withAuthHeader(
 					priv,
-					uuid.Must(uuid.FromString(ownerUUID)),
-					TokenAttachmentsRead,
+					WithUserID(uuid.Must(uuid.FromString(ownerUUID))),
+					WithScopeStrings(TokenAttachmentsRead),
 				),
 			),
 			endHandler: okHandler,
@@ -304,8 +306,8 @@ func TestAuthenticator(t *testing.T) {
 				withOwnerURL(ownerUUID),
 				withAuthHeader(
 					priv,
-					uuid.Must(uuid.FromString(ownerUUID)),
-					TokenAttachmentsWrite,
+					WithUserID(uuid.Must(uuid.FromString(ownerUUID))),
+					WithScopeStrings(TokenAttachmentsWrite),
 				),
 			),
 			endHandler: func(w http.ResponseWriter, r *http.Request) {
@@ -421,8 +423,8 @@ JWTPublicKey:
 				withOwnerURL(ownerUUID),
 				withAuthHeader(
 					priv1,
-					uuid.Must(uuid.FromString(ownerUUID)),
-					TokenAttachmentsWrite,
+					WithUserID(uuid.Must(uuid.FromString(ownerUUID))),
+					WithScopeStrings(TokenAttachmentsWrite),
 				),
 			),
 			endHandler: okHandler,
@@ -444,8 +446,8 @@ JWTPublicKey:
 				withOwnerURL(ownerUUID),
 				withAuthHeader(
 					priv2,
-					uuid.Must(uuid.FromString(ownerUUID)),
-					TokenAttachmentsWrite,
+					WithUserID(uuid.Must(uuid.FromString(ownerUUID))),
+					WithScopeStrings(TokenAttachmentsWrite),
 				),
 			),
 			endHandler: okHandler,
@@ -467,8 +469,8 @@ JWTPublicKey:
 				withOwnerURL(ownerUUID),
 				withAuthHeader(
 					priv3,
-					uuid.Must(uuid.FromString(ownerUUID)),
-					TokenAttachmentsWrite,
+					WithUserID(uuid.Must(uuid.FromString(ownerUUID))),
+					WithScopeStrings(TokenAttachmentsWrite),
 				),
 			),
 			endHandler: okHandler,
@@ -490,8 +492,8 @@ JWTPublicKey:
 				withOwnerURL(ownerUUID),
 				withAuthHeader(
 					priv4,
-					uuid.Must(uuid.FromString(ownerUUID)),
-					TokenAttachmentsWrite,
+					WithUserID(uuid.Must(uuid.FromString(ownerUUID))),
+					WithScopeStrings(TokenAttachmentsWrite),
 				),
 			),
 			endHandler: okHandler,
@@ -512,6 +514,75 @@ JWTPublicKey:
 					t.Error(err)
 					return
 				}
+			}
+		})
+	}
+}
+
+func TestExtract(t *testing.T) {
+	read := rand.New(rand.NewSource(time.Now().Unix()))
+	priv, err := rsa.GenerateKey(read, 1024)
+	if err != nil {
+		t.Fatal(err)
+	}
+	auth := New(&priv.PublicKey, &testLogger{})
+
+	userID := uuid.Must(uuid.NewV4())
+	clientID := uuid.Must(uuid.NewV4())
+	tenantID := "some-tenant"
+
+	for _, tc := range [...]struct {
+		name       string
+		middleware func(http.Handler) http.Handler
+		request    *http.Request
+		reqChecks  checkReqFunc
+	}{
+		{
+			name:       "should succeed with request with valid JWT",
+			middleware: auth.Extract,
+			request: buildRequest(
+				withOwnerURL(ownerUUID),
+				withAuthHeader(
+					priv,
+					WithUserID(userID),
+					WithScopeStrings(TokenAttachmentsWrite),
+					WithClientID(clientID.String()),
+					WithTenantID(tenantID),
+				),
+			),
+			reqChecks: checkReqAll(
+				hasInContext(d4lcontext.ClientIDContextKey, clientID.String()),
+				hasInContext(d4lcontext.UserIDContextKey, userID.String()),
+				hasInContext(d4lcontext.TenantIDContextKey, tenantID),
+				hasKeyInContext(jwtClaimsContextKey),
+			),
+		},
+		{
+			name:       "should not break the middleware chain with a request without a JWT",
+			middleware: auth.Extract,
+			request: buildRequest(
+				withOwnerURL(ownerUUID),
+			),
+			reqChecks: checkReqAll(),
+		},
+	} {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			var haveReq *http.Request
+			hasBeenCalled := false
+
+			handler := tc.middleware(http.HandlerFunc(func(_ http.ResponseWriter, req *http.Request) {
+				haveReq = req
+				hasBeenCalled = true
+			}))
+
+			handler.ServeHTTP(httptest.NewRecorder(), tc.request)
+
+			if !hasBeenCalled {
+				t.Fatal(errors.New("handler should have been called, was not."))
+			}
+			if err := tc.reqChecks(haveReq); err != nil {
+				t.Error(err)
 			}
 		})
 	}

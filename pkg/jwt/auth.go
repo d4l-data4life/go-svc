@@ -7,6 +7,7 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 	jwtReq "github.com/dgrijalva/jwt-go/request"
+	"github.com/gesundheitscloud/go-svc/pkg/d4lcontext"
 	"github.com/gesundheitscloud/go-svc/pkg/dynamic"
 	"github.com/go-chi/chi"
 	"github.com/gofrs/uuid"
@@ -63,6 +64,40 @@ type rule func(*http.Request) error
 // Verify checks if JWT satisfies the given rules for at least one of public keys provided by the KeyProvider
 func (auth *Authenticator) Verify(rules ...rule) func(handler http.Handler) http.Handler {
 	return auth.VerifyAny(rules...)
+}
+
+// Extract extracts the claims from the JWT and puts it into the context.
+// It checks if any of the many JWT keys work for verifying the claims.
+// It never fails, so it is not intended to be used for access control, just for
+// making the information in the JWT available to other middlewares.
+// It sets 1. the d4lcontext keys (currently client ID, user ID, tenant ID) and 2. its own
+// internal context keys such that a downstream middleware has access to any of these.
+func (auth *Authenticator) Extract(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		candidateKeys, err := auth.keyProvider.PublicKeys()
+		if err != nil {
+			_ = auth.logger.ErrGeneric(r.Context(), fmt.Errorf("jwt.Extract: keyProvider.PublicKeys() failed: %w", err))
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		for _, key := range candidateKeys {
+			_, claims, err := auth.verifyPubKey(r, key.Key, key.Name)
+			if err == nil {
+				// add values to d4lcontext
+				r = d4lcontext.WithClientID(r, claims.ClientID)
+				r = d4lcontext.WithUserID(r, claims.Subject.ID.String())
+				r = d4lcontext.WithTenantID(r, claims.TenantID)
+
+				// also write the claims into the context for services using this package's context keys
+				r = r.WithContext(NewContext(r.Context(), claims))
+
+				break
+			}
+		}
+
+		next.ServeHTTP(w, r)
+	})
 }
 
 // VerifyAny checks if any of the many JWT keys satisfies given rules

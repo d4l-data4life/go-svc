@@ -1,6 +1,7 @@
 package d4lcontext
 
 import (
+	"context"
 	"net/http"
 
 	uuid "github.com/gofrs/uuid"
@@ -19,18 +20,19 @@ const (
 	TenantIDContextKey contextKey = "tenant-id"
 )
 
-// DefaultTenantID is the tenant id used if is missing in the JWT
-var DefaultTenantID = "d4l"
-
-// GetUserID is used by the logger to extract the user id from a request context
+// GetUserID extracts the user id from a request context
 func GetUserID(r *http.Request) string {
-	if userID, ok := r.Context().Value(UserIDContextKey).(uuid.UUID); ok {
+	rawUserID := r.Context().Value(UserIDContextKey)
+	if userID, ok := rawUserID.(uuid.UUID); ok {
 		return userID.String()
+	}
+	if userID, ok := rawUserID.(string); ok {
+		return userID
 	}
 	return ""
 }
 
-// GetClientID is used by the logger to extract the client id from a request context
+// GetClientID extracts the client id from a request context
 func GetClientID(r *http.Request) string {
 	if clientID, ok := r.Context().Value(ClientIDContextKey).(string); ok {
 		return clientID
@@ -38,10 +40,26 @@ func GetClientID(r *http.Request) string {
 	return ""
 }
 
-// GetTenantID is used by the logger to extract the tenant id from a request context
+// GetTenantID extracts the tenant id from a request context.
 func GetTenantID(r *http.Request) string {
-	if tenantID, ok := r.Context().Value(TenantIDContextKey).(string); ok && tenantID != "" {
+	if tenantID, ok := r.Context().Value(TenantIDContextKey).(string); ok {
 		return tenantID
 	}
-	return DefaultTenantID
+	return ""
+}
+
+// WithUserID adds the user id to the request context
+func WithUserID(r *http.Request, userID string) *http.Request {
+	return r.WithContext(context.WithValue(r.Context(), UserIDContextKey, userID))
+}
+
+// WithClientID adds the client id to the request context
+func WithClientID(r *http.Request, clientID string) *http.Request {
+	return r.WithContext(context.WithValue(r.Context(), ClientIDContextKey, clientID))
+}
+
+// WithTenantID adds the tenant id to the request context.
+// It defaults to 'd4l' if the value is not found in the context.
+func WithTenantID(r *http.Request, tenantID string) *http.Request {
+	return r.WithContext(context.WithValue(r.Context(), TenantIDContextKey, tenantID))
 }

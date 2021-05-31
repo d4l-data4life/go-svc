@@ -9,31 +9,38 @@ import (
 )
 
 func TestGetUserID(t *testing.T) {
-	none := "none"
-	id := "123e4567-e89b-12d3-a456-426655440000"
+	someID := uuid.Must(uuid.NewV4())
+
 	tests := []struct {
-		name   string
-		userID string
-		want   string
+		name string
+		ctx  context.Context
+		want string
 	}{
-		{"Successful", id, id},
-		{"Broken user id", "random", ""},
-		{"No user id", none, ""},
+		{
+			name: "works with UUID",
+			ctx:  context.WithValue(context.TODO(), UserIDContextKey, someID),
+			want: someID.String(),
+		},
+		{
+			name: "works with string",
+			ctx:  context.WithValue(context.TODO(), UserIDContextKey, someID.String()),
+			want: someID.String(),
+		},
+		{
+			name: "works with empty user ID",
+			ctx:  context.WithValue(context.TODO(), UserIDContextKey, ""),
+			want: "",
+		},
+		{
+			name: "works with missing user ID",
+			ctx:  context.TODO(),
+			want: "",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			req, _ := http.NewRequest(http.MethodGet, "", nil)
-			if tt.userID != none {
-				reqID, err := uuid.FromString(tt.userID)
-				ctx := req.Context()
-				if err == nil {
-					ctx = context.WithValue(ctx, UserIDContextKey, reqID)
-				} else {
-					ctx = context.WithValue(ctx, UserIDContextKey, tt.userID)
-				}
-				req = req.WithContext(ctx)
-			}
-			if got := GetUserID(req); got != tt.want {
+			if got := GetUserID(req.WithContext(tt.ctx)); got != tt.want {
 				t.Errorf("GetUserID() = %v, want %v", got, tt.want)
 			}
 		})
@@ -65,25 +72,34 @@ func TestGetClientID(t *testing.T) {
 	}
 }
 
-func TestGetTenantID(t *testing.T) {
-	none := "none"
+func TestGetTennatID(t *testing.T) {
+	someID := uuid.Must(uuid.NewV4())
+
 	tests := []struct {
-		name     string
-		tenantID string
-		want     string
+		name string
+		ctx  context.Context
+		want string
 	}{
-		{"Successful", "charite", "charite"},
-		{"Empty tenant id", "", "d4l"},
-		{"No tenant id", none, "d4l"},
+		{
+			name: "works with an existing value",
+			ctx:  context.WithValue(context.TODO(), TenantIDContextKey, someID.String()),
+			want: someID.String(),
+		},
+		{
+			name: "works with empty value",
+			ctx:  context.WithValue(context.TODO(), TenantIDContextKey, ""),
+			want: "",
+		},
+		{
+			name: "works with missing key",
+			ctx:  context.TODO(),
+			want: "",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			req, _ := http.NewRequest(http.MethodGet, "", nil)
-			if tt.tenantID != none {
-				ctx := context.WithValue(req.Context(), TenantIDContextKey, tt.tenantID)
-				req = req.WithContext(ctx)
-			}
-			if got := GetTenantID(req); got != tt.want {
+			if got := GetTenantID(req.WithContext(tt.ctx)); got != tt.want {
 				t.Errorf("GetTenantID() = %v, want %v", got, tt.want)
 			}
 		})
