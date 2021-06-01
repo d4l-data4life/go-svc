@@ -95,7 +95,7 @@ func TestTestNotfifcationMock_GetNotifiedUsers(t *testing.T) {
 					tt.calls[i].language,
 					tt.calls[i].languageSettingKey,
 					tt.calls[i].consentGuardKey,
-					0,
+					"",
 					"",
 					nil,
 					tt.calls[i].subscribers...)
@@ -189,7 +189,7 @@ func TestNotificationMock_SendTemplated(t *testing.T) {
 		language           string
 		languageSettingKey string
 		consentGuardKey    string
-		minConsentVersion  int
+		minConsentVersion  string
 		payload            map[string]interface{}
 		subscribers        []uuid.UUID
 	}
@@ -207,7 +207,7 @@ func TestNotificationMock_SendTemplated(t *testing.T) {
 				language:           "de",
 				languageSettingKey: "dummy",
 				consentGuardKey:    "dummy",
-				minConsentVersion:  0,
+				minConsentVersion:  "",
 				payload:            map[string]interface{}{"field": "value"},
 				subscribers:        []uuid.UUID{user1, user2, user3},
 			},
@@ -232,7 +232,7 @@ func TestNotificationMock_SendTemplated(t *testing.T) {
 				language:           "de",
 				languageSettingKey: "dummy",
 				consentGuardKey:    "",
-				minConsentVersion:  0,
+				minConsentVersion:  "",
 				payload:            map[string]interface{}{"field": "value"},
 				subscribers:        []uuid.UUID{user1, user2, user3},
 			},

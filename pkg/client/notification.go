@@ -23,7 +23,7 @@ type NotificationServiceRequest struct {
 	TemplateKey                  string                 `json:"templateKey"`
 	LanguageSettingKey           string                 `json:"languageSettingKey"`
 	ConsentGuardKey              string                 `json:"consentGuardKey"`             // optional parameter - default = ""
-	MinConsentVersion            int                    `json:"minConsentVersion,omitempty"` // optional parameter - default = "0"
+	MinConsentVersion            string                 `json:"minConsentVersion,omitempty"` // optional parameter - default = "0"
 	TemplateLanguage             string                 `json:"templateLanguage"`
 	UseMailJetTemplatingLanguage bool                   `json:"useMailJetTemplatingLanguage"`
 	TemplateErrorReportingEmail  string                 `json:"templateErrorReportingEmail"`
@@ -118,7 +118,25 @@ type NotificationV5 interface {
 	GetNotifiedUsers() NotifiedUsers
 }
 
-var _ NotificationV5 = (*NotificationService)(nil)
+// NotificationV6 is an extension of Notification(V5) interface
+// It changes the signature of 'SendTemplated' and is not backwards-compatible with previous 'Notification' interfaces
+// However, NotificationV5 can still be used if minConsentVersion only targets major versions of the consent documents
+type NotificationV6 interface {
+	// SendTemplated sends a templated email and returns error
+	SendTemplated(ctx context.Context,
+		templateKey, language, languageSettingKey string,
+		consentGuardKey string, minConsentVersion string,
+		arbitraryEmailAddress string,
+		payload map[string]interface{}, subscribers ...uuid.UUID) (NotificationStatus, error)
+	// GetJobStatus returns the status of a notification job submitted asynchronously before
+	GetJobStatus(ctx context.Context, jobID uuid.UUID) (NotificationStatus, error)
+	// DeleteJob cancels job processing
+	DeleteJob(ctx context.Context, jobID uuid.UUID) error
+	// GetNotifiedUsers returns basic info about notified users and error
+	GetNotifiedUsers() NotifiedUsers
+}
+
+var _ NotificationV6 = (*NotificationService)(nil)
 var userAgentNotification = "go-svc.client.NotificationService"
 
 // NotificationService is a client for the cds-notification
@@ -150,7 +168,7 @@ func (c *NotificationService) GetNotifiedUsers() NotifiedUsers {
 func (c *NotificationService) SendTemplated(ctx context.Context,
 	templateKey, language, languageSettingKey string,
 	consentGuardKey string,
-	minConsentVersion int,
+	minConsentVersion string,
 	arbitraryEmailAddress string,
 	payload map[string]interface{},
 	subscribers ...uuid.UUID,

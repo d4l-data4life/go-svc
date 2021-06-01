@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"strconv"
 
 	uuid "github.com/gofrs/uuid"
 )
@@ -27,7 +28,7 @@ func (c *NotificationServiceLegacy) SendTemplated(templateKey, language string,
 	payload map[string]interface{},
 	subscribers ...uuid.UUID,
 ) error {
-	_, err := c.ns.SendTemplated(context.Background(), templateKey, language, "global.language", "", 0, "", payload, subscribers...)
+	_, err := c.ns.SendTemplated(context.Background(), templateKey, language, "global.language", "", "", "", payload, subscribers...)
 	return err
 }
 
@@ -52,7 +53,7 @@ func (c *NotificationServiceLegacyV3) SendTemplated(ctx context.Context,
 	payload map[string]interface{},
 	subscribers ...uuid.UUID,
 ) error {
-	_, err := c.ns.SendTemplated(context.Background(), templateKey, language, languageSettingKey, "", 0, "", payload, subscribers...)
+	_, err := c.ns.SendTemplated(context.Background(), templateKey, language, languageSettingKey, "", "", "", payload, subscribers...)
 	return err
 }
 
@@ -77,7 +78,7 @@ func (c *NotificationServiceLegacyV4) SendTemplated(ctx context.Context,
 	consentGuardKey string, minConsentVersion int,
 	payload map[string]interface{}, subscribers ...uuid.UUID,
 ) (NotificationStatus, error) {
-	return c.ns.SendTemplated(context.Background(), templateKey, language, languageSettingKey, "", 0, "", payload, subscribers...)
+	return c.ns.SendTemplated(context.Background(), templateKey, language, languageSettingKey, "", "", "", payload, subscribers...)
 }
 
 func (c *NotificationServiceLegacyV4) DeleteJob(ctx context.Context, jobID uuid.UUID) error {
@@ -85,5 +86,37 @@ func (c *NotificationServiceLegacyV4) DeleteJob(ctx context.Context, jobID uuid.
 }
 
 func (c *NotificationServiceLegacyV4) GetJobStatus(ctx context.Context, jobID uuid.UUID) (NotificationStatus, error) {
+	return c.ns.GetJobStatus(ctx, jobID)
+}
+
+var _ NotificationV5 = (*NotificationServiceLegacyV5)(nil)
+
+// NotificationServiceLegacyV5 is a client for the cds-notification
+// it implements NotificationV5 interface
+type NotificationServiceLegacyV5 struct {
+	ns *NotificationService
+}
+
+func NewNotificationServiceLegacyV5(svcAddr, svcSecret, caller string) *NotificationServiceLegacyV5 {
+	return &NotificationServiceLegacyV5{NewNotificationService(svcAddr, svcSecret, caller)}
+}
+
+func (c *NotificationServiceLegacyV5) GetNotifiedUsers() NotifiedUsers {
+	return c.ns.GetNotifiedUsers()
+}
+
+func (c *NotificationServiceLegacyV5) SendTemplated(ctx context.Context,
+	templateKey, language, languageSettingKey string,
+	consentGuardKey string, minConsentVersion int, arbitraryEmailAddress string,
+	payload map[string]interface{}, subscribers ...uuid.UUID,
+) (NotificationStatus, error) {
+	return c.ns.SendTemplated(context.Background(), templateKey, language, languageSettingKey, "", strconv.Itoa(minConsentVersion), "", payload, subscribers...)
+}
+
+func (c *NotificationServiceLegacyV5) DeleteJob(ctx context.Context, jobID uuid.UUID) error {
+	return c.ns.DeleteJob(ctx, jobID)
+}
+
+func (c *NotificationServiceLegacyV5) GetJobStatus(ctx context.Context, jobID uuid.UUID) (NotificationStatus, error) {
 	return c.ns.GetJobStatus(ctx, jobID)
 }

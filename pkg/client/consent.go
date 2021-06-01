@@ -40,7 +40,7 @@ var (
 
 type Consent interface {
 	// GetBatchConsents fetches state of user consents identified by consent key
-	GetBatchConsents(ctx context.Context, consentKey string, minVersion int, subscribers ...uuid.UUID) (map[uuid.UUID]string, error)
+	GetBatchConsents(ctx context.Context, consentKey string, minVersion string, subscribers ...uuid.UUID) (map[uuid.UUID]string, error)
 }
 
 var _ Consent = (*ConsentService)(nil)
@@ -65,10 +65,10 @@ func NewConsentService(svcAddr, svcSecret, caller string) *ConsentService {
 	}
 }
 
-func (cs *ConsentService) GetBatchConsents(ctx context.Context, consentKey string, minVersion int, subscribers ...uuid.UUID) (map[uuid.UUID]string, error) {
+func (cs *ConsentService) GetBatchConsents(ctx context.Context, consentKey string, minVersion string, subscribers ...uuid.UUID) (map[uuid.UUID]string, error) {
 	var contentURL string
-	if minVersion > 0 {
-		contentURL = fmt.Sprintf("%s/api/v1/admin/userConsents/%s/batch?version=%d", cs.svcAddr, consentKey, minVersion)
+	if minVersion != "" {
+		contentURL = fmt.Sprintf("%s/api/v1/admin/userConsents/%s/batch?version=%s", cs.svcAddr, consentKey, minVersion)
 	} else {
 		contentURL = fmt.Sprintf("%s/api/v1/admin/userConsents/%s/batch", cs.svcAddr, consentKey)
 	}

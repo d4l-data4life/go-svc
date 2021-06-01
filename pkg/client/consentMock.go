@@ -21,7 +21,7 @@ func NewConsentMock(state map[uuid.UUID]string) *ConsentMock {
 	}
 }
 
-func (cs *ConsentMock) GetBatchConsents(ctx context.Context, consentKey string, minVersion int, subscribers ...uuid.UUID) (map[uuid.UUID]string, error) {
+func (cs *ConsentMock) GetBatchConsents(ctx context.Context, consentKey string, minVersion string, subscribers ...uuid.UUID) (map[uuid.UUID]string, error) {
 	result := make(map[uuid.UUID]string)
 	for _, accID := range subscribers {
 		value, ok := cs.state[accID]
@@ -43,7 +43,7 @@ func NewConsentMockRoundRobin() *ConsentMockRoundRobin {
 	return &ConsentMockRoundRobin{}
 }
 
-func (cs *ConsentMockRoundRobin) GetBatchConsents(ctx context.Context, consentKey string, minVersion int, subscribers ...uuid.UUID) (map[uuid.UUID]string, error) {
+func (cs *ConsentMockRoundRobin) GetBatchConsents(ctx context.Context, consentKey string, minVersion string, subscribers ...uuid.UUID) (map[uuid.UUID]string, error) {
 	result := make(map[uuid.UUID]string)
 	for idx, accID := range subscribers {
 		switch idx % 3 {
