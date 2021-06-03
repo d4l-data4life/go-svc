@@ -36,6 +36,49 @@ func NewNotificationMockWithClients(upCli UserPreferences, csCli Consent) *Notif
 	}
 }
 
+func (c *NotificationMock) SendRaw(ctx context.Context,
+	consentGuardKey string, minConsentVersion string,
+	fromName string, fromAddress string, subject string, message string,
+	arbitraryEmailAddress string,
+	payload map[string]interface{},
+	subscribers ...uuid.UUID,
+) (NotificationStatus, error) {
+	c.counter.Count("raw", "raw", subscribers...)
+	caller, _ := payload["caller"].(string)
+	traceID, _ := ctx.Value(log.TraceIDContextKey).(string)
+
+	userConsents, _ := c.csCli.GetBatchConsents(ctx, consentGuardKey, minConsentVersion, subscribers...)
+	stats := make(map[string]int)
+	stats[EventConsent] = 0
+	stats[EventRevoke] = 0
+	stats[ConsentNeverConsented] = 0
+	stats[ConsentUnknown] = 0
+	stats[ConsentNotNeeded] = 0
+	if len(consentGuardKey) == 0 {
+		stats[ConsentNotNeeded] = len(subscribers)
+	} else {
+		for _, accID := range subscribers {
+			event, ok := userConsents[accID]
+			if ok {
+				stats[event]++
+			} else {
+				stats[ConsentUnknown]++
+			}
+		}
+	}
+	ns := NotificationStatus{
+		JobIDs:          []uuid.UUID{uuid.Must(uuid.NewV4())},
+		Error:           "",
+		Result:          "",
+		Caller:          caller,
+		StateQueue:      "not in queue",
+		StateProcessing: "not ready yet",
+		TraceID:         traceID,
+		ConsentStats:    stats,
+	}
+	return ns, nil
+}
+
 func (c *NotificationMock) SendTemplated(ctx context.Context,
 	templateKey, language, languageSettingKey string,
 	consentGuardKey string,

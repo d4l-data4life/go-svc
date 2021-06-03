@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Client pkg - support for `SendRaw` in the notification client
+
 ### Changed
 
 ### Deprecated

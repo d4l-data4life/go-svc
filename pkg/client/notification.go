@@ -128,6 +128,12 @@ type NotificationV6 interface {
 		consentGuardKey string, minConsentVersion string,
 		arbitraryEmailAddress string,
 		payload map[string]interface{}, subscribers ...uuid.UUID) (NotificationStatus, error)
+	// SendRaw sends a plain-text email and returns error
+	SendRaw(ctx context.Context,
+		consentGuardKey string, minConsentVersion string,
+		fromName string, fromAddress string, subject string, message string,
+		arbitraryEmailAddress string,
+		payload map[string]interface{}, subscribers ...uuid.UUID) (NotificationStatus, error)
 	// GetJobStatus returns the status of a notification job submitted asynchronously before
 	GetJobStatus(ctx context.Context, jobID uuid.UUID) (NotificationStatus, error)
 	// DeleteJob cancels job processing
@@ -163,6 +169,31 @@ func NewNotificationService(svcAddr, svcSecret, caller string) *NotificationServ
 
 func (c *NotificationService) GetNotifiedUsers() NotifiedUsers {
 	return c.counter.GetStatus()
+}
+
+func (c *NotificationService) SendRaw(ctx context.Context,
+	consentGuardKey string, minConsentVersion string,
+	fromName string, fromAddress string, subject string, message string,
+	arbitraryEmailAddress string,
+	payload map[string]interface{},
+	subscribers ...uuid.UUID,
+) (NotificationStatus, error) {
+	requestBody := NotificationServiceRequest{
+		AccountIDs:                   subscribers,
+		ArbitraryEmailAddress:        arbitraryEmailAddress,
+		ConsentGuardKey:              consentGuardKey,
+		MinConsentVersion:            minConsentVersion,
+		FromName:                     fromName,
+		FromAddress:                  fromAddress,
+		Subject:                      subject,
+		Message:                      message,
+		Caller:                       c.caller,
+		UseMailJetTemplatingLanguage: payload != nil,
+		TemplatePayload:              payload,
+		TemplateErrorReportingEmail:  "",
+	}
+	c.counter.Count("raw", "raw", subscribers...)
+	return c.sendRawEmail(ctx, requestBody)
 }
 
 func (c *NotificationService) SendTemplated(ctx context.Context,
@@ -226,6 +257,26 @@ func (c *NotificationService) sendTemplatedEmail(ctx context.Context, requestBod
 	body, code, err := call(ctx, contentURL, "POST", c.svcSecret, userAgentNotification, bytes.NewBuffer(jsonBytes), http.StatusOK, http.StatusAccepted)
 	if err != nil {
 		logging.LogErrorfCtx(ctx, err, "sendTemplatedEmail failed, code: %d", code)
+	}
+
+	err = json.Unmarshal(body, &reply)
+	if err != nil {
+		logging.LogErrorfCtx(ctx, err, "error unmarshalling reply from notification service. Reply: %s", string(body))
+	}
+	return reply, err
+}
+
+func (c *NotificationService) sendRawEmail(ctx context.Context, requestBody NotificationServiceRequest) (NotificationStatus, error) {
+	contentURL := fmt.Sprintf("%s/api/v1/notifications/raw", c.svcAddr)
+	reply := NotificationStatus{}
+	jsonBytes, err := json.Marshal(requestBody)
+	if err != nil {
+		logging.LogErrorfCtx(ctx, err, "error transforming notification request to JSON")
+		return reply, err
+	}
+	body, code, err := call(ctx, contentURL, "POST", c.svcSecret, userAgentNotification, bytes.NewBuffer(jsonBytes), http.StatusOK, http.StatusAccepted)
+	if err != nil {
+		logging.LogErrorfCtx(ctx, err, "sendRawEmail failed, code: %d", code)
 	}
 
 	err = json.Unmarshal(body, &reply)
