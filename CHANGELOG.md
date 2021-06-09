@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- bievents - provide method GetEmailTypeNoError for simpler error handling in client code
+
 ### Changed
 
 ### Deprecated

@@ -7,6 +7,7 @@ type EmailType string
 const (
 	Internal EmailType = "internal"
 	External EmailType = "external"
+	Invalid  EmailType = "invalid"
 )
 
 // Create a map for internal emails for better search time complexity.
@@ -24,7 +25,7 @@ func GetEmailType(email string) (EmailType, error) {
 	ed := strings.Split(email, "@")
 
 	if len(ed) != 2 {
-		return "", ErrInvalidEmail
+		return Invalid, ErrInvalidEmail
 	}
 
 	if _, ok := internalEmails[ed[1]]; ok {
@@ -32,4 +33,9 @@ func GetEmailType(email string) (EmailType, error) {
 	}
 
 	return External, nil
+}
+
+func GetEmailTypeNoError(email string) EmailType {
+	t, _ := GetEmailType(email)
+	return t
 }

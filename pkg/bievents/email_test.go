@@ -77,3 +77,65 @@ func TestGetEmailType(t *testing.T) {
 		})
 	}
 }
+
+func TestGetEmailTypeNoError(t *testing.T) {
+	for _, tc := range [...]struct {
+		name   string
+		email  string
+		result EmailType
+	}{
+		{
+			name:   "should fail for empty email string",
+			email:  "",
+			result: Invalid,
+		},
+		{
+			name:   "should fail for invalid email string with 2 @",
+			email:  "some@invalid@email.com",
+			result: Invalid,
+		},
+		{
+			name:   "should return internal for data4life email",
+			email:  "abc@data4life.care",
+			result: Internal,
+		},
+		{
+			name:   "should return internal for gesundheitscloud email",
+			email:  "abc@gesundheitscloud.de",
+			result: Internal,
+		},
+		{
+			name:   "should return internal for qamadness email",
+			email:  "abc@qamadness.com",
+			result: Internal,
+		},
+		{
+			name:   "should return internal for wearehackerone email",
+			email:  "abc@wearehackerone.com",
+			result: Internal,
+		},
+		{
+			name:   "should return internal for ghostinspector email",
+			email:  "abc@ghostinspector.com",
+			result: Internal,
+		},
+		{
+			name:   "should return external for gmail email",
+			email:  "abc@gmail.com",
+			result: External,
+		},
+		{
+			name:   "should return external for gmail email",
+			email:  "abc@gmail.com",
+			result: External,
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			have := GetEmailTypeNoError(tc.email)
+
+			if want := have; want != have {
+				t.Errorf("expected email to be %s found %s", want, have)
+			}
+		})
+	}
+}
