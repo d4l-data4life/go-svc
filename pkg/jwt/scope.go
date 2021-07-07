@@ -24,6 +24,7 @@ const (
 	TokenUserKeysRead      = "ku:r"
 	TokenUserKeysWrite     = "ku:w"
 	TokenUserKeysAppend    = "ku:a"
+	TokenUserKeysMigrate   = "ku:m"
 	TokenAppKeysRead       = "ka:r"
 	TokenAppKeysWrite      = "ka:w"
 	TokenAppKeysAppend     = "ka:a"
@@ -70,9 +71,10 @@ var (
 		TokenUserWrite: exists,
 		TokenUserQuery: exists,
 
-		TokenUserKeysRead:   exists,
-		TokenUserKeysWrite:  exists,
-		TokenUserKeysAppend: exists,
+		TokenUserKeysRead:    exists,
+		TokenUserKeysWrite:   exists,
+		TokenUserKeysAppend:  exists,
+		TokenUserKeysMigrate: exists,
 
 		TokenAppKeysRead:   exists,
 		TokenAppKeysWrite:  exists,
