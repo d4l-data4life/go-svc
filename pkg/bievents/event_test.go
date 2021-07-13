@@ -32,6 +32,7 @@ func TestLog(t *testing.T) {
 					CUC:         "cuc",
 					SourceURL:   "https://abc.com",
 					AccountType: Internal,
+					Source:      "some-source",
 				},
 			},
 			result: map[string]interface{}{
@@ -43,7 +44,12 @@ func TestLog(t *testing.T) {
 				"activity-type":        "login",
 				"user-id":              "def",
 				"consent-document-key": "consent",
-				"data":                 map[string]interface{}{"cuc": "cuc", "account-type": "internal", "source-url": "https://abc.com"},
+				"data": map[string]interface{}{
+					"cuc":          "cuc",
+					"account-type": "internal",
+					"source-url":   "https://abc.com",
+					"source":       "some-source",
+				},
 			},
 		},
 		{
@@ -55,6 +61,7 @@ func TestLog(t *testing.T) {
 					CUC:         "cuc",
 					SourceURL:   "https://abc.com",
 					AccountType: Internal,
+					Source:      "some-source",
 				},
 			},
 			result: map[string]interface{}{
@@ -66,7 +73,12 @@ func TestLog(t *testing.T) {
 				"activity-type":        "login",
 				"user-id":              "def",
 				"consent-document-key": "",
-				"data":                 map[string]interface{}{"cuc": "cuc", "account-type": "internal", "source-url": "https://abc.com"},
+				"data": map[string]interface{}{
+					"cuc":          "cuc",
+					"account-type": "internal",
+					"source-url":   "https://abc.com",
+					"source":       "some-source",
+				},
 			},
 		},
 	} {

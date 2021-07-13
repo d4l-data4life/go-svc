@@ -30,4 +30,5 @@ type OnboardingData struct {
 	CUC         string    `json:"cuc"`
 	AccountType EmailType `json:"account-type"`
 	SourceURL   string    `json:"source-url"`
+	Source      string    `json:"source"`
 }
