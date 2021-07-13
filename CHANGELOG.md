@@ -9,8 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Add source field to OnBoardingData in bievents
-
 ### Changed
 
 ### Deprecated
@@ -20,6 +18,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Security
+
+## [v1.10.0] - 2021-07-13
+
+### Added
+
+- Add source field to OnBoardingData in bievents
 
 ## [v1.9.0] - 2021-07-08
 
@@ -303,7 +307,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial state: standards for Main, HTTP Server, DB access (gorm), Logging, Instrumented-Handler, and K8s Probe
 
-[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.9.0...HEAD
+[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.10.0...HEAD
+[v1.10.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.9.0...v1.10.0
 [v1.9.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.8.0...v1.9.0
 [v1.8.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.7.0...v1.8.0
 [v1.7.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.6.1...v1.7.0
