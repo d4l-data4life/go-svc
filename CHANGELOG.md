@@ -9,9 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Add package `db2` which upgrades `github.com/jinzhu/gorm` to `gorm.io/gorm`
-- channels - added FanIn
-
 ### Changed
 
 ### Deprecated
@@ -21,6 +18,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Security
+
+## [v1.11.0] - 2021-07-19
+
+### Added
+
+- Add package `db2` which upgrades `github.com/jinzhu/gorm` to `gorm.io/gorm`
+- channels - added FanIn
 
 ## [v1.10.0] - 2021-07-13
 
@@ -310,7 +314,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial state: standards for Main, HTTP Server, DB access (gorm), Logging, Instrumented-Handler, and K8s Probe
 
-[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.10.0...HEAD
+[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.11.0...HEAD
+[v1.11.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.10.0...v1.11.0
 [v1.10.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.9.0...v1.10.0
 [v1.9.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.8.0...v1.9.0
 [v1.8.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.7.0...v1.8.0
