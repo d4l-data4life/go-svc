@@ -10,6 +10,7 @@ import (
 	"github.com/gesundheitscloud/go-svc/internal/channels"
 	"github.com/gesundheitscloud/go-svc/pkg/cache"
 	"github.com/gesundheitscloud/go-svc/pkg/db"
+	"github.com/gesundheitscloud/go-svc/pkg/db2"
 	"github.com/gesundheitscloud/go-svc/pkg/logging"
 	"github.com/gesundheitscloud/go-svc/pkg/probe"
 )
@@ -41,6 +42,12 @@ func WithPostgres(opts *db.ConnectionOptions) MainOption {
 	}
 }
 
+func WithPostgresDB2(opts *db2.ConnectionOptions) MainOption {
+	return func(runCtx context.Context) {
+		db2options = opts
+	}
+}
+
 func WithRedis(opts *cache.RedisConnectionOptions) MainOption {
 	return func(runCtx context.Context) {
 		redisoptions = opts
@@ -48,6 +55,7 @@ func WithRedis(opts *cache.RedisConnectionOptions) MainOption {
 }
 
 var dboptions *db.ConnectionOptions
+var db2options *db2.ConnectionOptions
 var redisoptions *cache.RedisConnectionOptions
 
 // Main is a wrapper function over main - it handles the typical tasks like starting DB connection, handling OS singnals, etc.
@@ -64,8 +72,9 @@ func Main(serviceMain MainFunction, svcName string, options ...MainOption) {
 
 	redisUp := cache.Initialize(runCtx, redisoptions)
 	dbUp := db.Initialize(runCtx, dboptions)
+	db2Up := db2.Initialize(runCtx, db2options)
 
-	if waitForDB(runCtx, dbUp, redisUp) {
+	if waitForDB(runCtx, dbUp, redisUp, db2Up) {
 		logging.LogInfof("dbs connected")
 	} else {
 		stopService()
@@ -84,9 +93,10 @@ func Main(serviceMain MainFunction, svcName string, options ...MainOption) {
 }
 
 // waitForDB returns true when DB and/or Redis is up and connected, false when DB connection failed and the service should be shutdown
-func waitForDB(ctx context.Context, dbUp <-chan struct{}, redisUp <-chan struct{}) bool {
+func waitForDB(ctx context.Context, dbUp <-chan struct{}, redisUp <-chan struct{}, db2Up <-chan struct{}) bool {
 	logging.LogInfof("Waiting up to 2 minutes for DB connection...")
-	for range channels.OrDoneTimeout(ctx.Done(), time.After(10*time.Second), dbUp, redisUp) {
+	mergedChannel := channels.FanIn(ctx.Done(), dbUp, redisUp, db2Up)
+	for range channels.OrDoneTimeout(ctx.Done(), time.After(10*time.Second), mergedChannel) {
 		// a message on dbUp = database is ready
 		return true
 	}

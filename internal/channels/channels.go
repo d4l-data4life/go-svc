@@ -3,6 +3,7 @@
 package channels
 
 import (
+	"sync"
 	"time"
 )
 
@@ -29,30 +30,20 @@ func OrDone(done, c <-chan struct{}) <-chan struct{} {
 	return valStream
 }
 
-// OrDoneTimeout iterates over channels c0 and c1 until: (1) c0 AND c1 closes, (2) timeout happens, (3) done receives a message
-// values returned from c0 and c1 (while channel is open) mean that the respective DB connection is up
-// closing c0 and c1 means that their initialisation procedures have finished
-func OrDoneTimeout(done <-chan struct{}, timeout <-chan time.Time, c0 <-chan struct{}, c1 <-chan struct{}) <-chan struct{} {
+// OrDoneTimeout iterates over channhel c until: (1) c closes, (2) timeout happens, (3) done receives a message
+// closing c means that the initialisation procedures has finished
+func OrDoneTimeout(done <-chan struct{}, timeout <-chan time.Time, c <-chan struct{}) <-chan struct{} {
 	valStream := make(chan struct{})
 	go func() {
 		defer close(valStream)
-		channelOpen0 := true
-		channelOpen1 := true
 		for {
 			select {
 			case <-timeout:
 				return
 			case <-done:
 				return
-			case _, ok := <-c0:
-				channelOpen0 = ok
-				if !channelOpen0 && !channelOpen1 {
-					valStream <- struct{}{}
-					return
-				}
-			case _, ok := <-c1:
-				channelOpen1 = ok
-				if !channelOpen0 && !channelOpen1 {
+			case _, ok := <-c:
+				if !ok {
 					valStream <- struct{}{}
 					return
 				}
@@ -60,6 +51,31 @@ func OrDoneTimeout(done <-chan struct{}, timeout <-chan time.Time, c0 <-chan str
 		}
 	}()
 	return valStream
+}
+
+// FanIn merges channels into one output channel
+func FanIn(done <-chan struct{}, channels ...<-chan struct{}) <-chan struct{} {
+	var wg sync.WaitGroup
+	out := make(chan struct{})
+	output := func(c <-chan struct{}) {
+		defer wg.Done()
+		for i := range c {
+			select {
+			case <-done:
+				return
+			case out <- i:
+			}
+		}
+	}
+	wg.Add(len(channels))
+	for _, c := range channels {
+		go output(c)
+	}
+	go func() {
+		wg.Wait()
+		close(out)
+	}()
+	return out
 }
 
 // Or returns when the first of the channels returns

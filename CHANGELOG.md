@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Add package `db2` which upgrades `github.com/jinzhu/gorm` to `gorm.io/gorm`
+- channels - added FanIn
+
 ### Changed
 
 ### Deprecated
