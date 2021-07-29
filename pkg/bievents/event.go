@@ -13,17 +13,28 @@ type Emitter struct {
 	serviceName    string
 	serviceVersion string
 	hostname       string
+	tenantID       string
 	sync.Mutex
 	out *json.Encoder
 }
 
-// WithWriter is an option for NewLogger which lets the caller specify where to
+// WithWriter is an option for NewEventEmitter which lets the caller specify where to
 // dump the logs.
 // WithWriter defaults to JSON encoding
 // Using it simultaneously with WithEncoder will cause overrides
 func WithWriter(w io.Writer) func(*Emitter) {
 	return func(l *Emitter) {
 		l.out = json.NewEncoder(w)
+	}
+}
+
+// WithTenantID is an option for NewEventEmitter which lets the caller specify which tenant
+// ID the event emitter represents. This is useful when the tenant ID is constant for
+// all the events logged by on instance.
+// The tenant ID explicitly set for an event will override this value.
+func WithTenantID(tenantID string) func(*Emitter) {
+	return func(l *Emitter) {
+		l.tenantID = tenantID
 	}
 }
 
@@ -55,6 +66,13 @@ func (e *Emitter) Log(event Event) error {
 }
 
 func (e *Emitter) emit(event Event) BaseEvent {
+	var tenantID string
+	if event.TenantID != "" {
+		tenantID = event.TenantID
+	} else {
+		tenantID = e.tenantID
+	}
+
 	return BaseEvent{
 		ServiceName:    e.serviceName,
 		ServiceVersion: e.serviceVersion,
@@ -64,7 +82,7 @@ func (e *Emitter) emit(event Event) BaseEvent {
 		Event: Event{
 			ActivityType:       event.ActivityType,
 			UserID:             event.UserID,
-			TenantID:           event.TenantID,
+			TenantID:           tenantID,
 			ConsentDocumentKey: event.ConsentDocumentKey,
 			Data:               event.Data,
 		},
