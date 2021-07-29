@@ -15,6 +15,18 @@ type BaseEvent struct {
 	Event
 }
 
+// State represents the state of a BI event:
+// Success: the event happened successful
+// Failure: the event was attempted but failed
+// Attempt: the event was attempted but not further information about its success is available at that time.
+type State string
+
+const (
+	Success State = "success"
+	Failure State = "failure"
+	Attempt State = "attempt"
+)
+
 // Event is the info passed on specific to event.
 type Event struct {
 	ActivityType       string      `json:"activity-type"`
@@ -22,6 +34,7 @@ type Event struct {
 	Data               interface{} `json:"data"`
 	TenantID           string      `json:"tenant-id"`
 	ConsentDocumentKey string      `json:"consent-document-key"`
+	State              State       `json:"state,omitempty"`
 }
 
 // OnboardingData is used to define details about onboarding data.
