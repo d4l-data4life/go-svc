@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- DB2 pkg - use migrate pkg after the execution of the gorm migrations
+
 ### Changed
 
 ### Deprecated
