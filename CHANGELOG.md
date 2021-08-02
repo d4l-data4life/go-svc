@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - bievents - add optional state to events
 - bievents - `WithTenantID` option for emitter
+- bievents - more events data types
 - d4lcontext - `GetUserIDFromCtx`, `GetClientIDFromCtx`, `GetTenantIDFromCtx` to extract information from a context object directly
 
 ### Changed

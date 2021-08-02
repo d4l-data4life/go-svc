@@ -45,3 +45,20 @@ type OnboardingData struct {
 	SourceURL   string    `json:"source-url"`
 	Source      string    `json:"source"`
 }
+
+type EIDLoginData struct {
+	Challenge string `json:"eid-challenge"`
+	ClientID  string `json:"client-id"`
+}
+
+type EIDSamlEntranceData struct {
+	Usecase   string `json:"eid-usecase"`
+	Country   string `json:"eid-country"`
+	Challenge string `json:"eid-challenge"`
+}
+
+type DeviceRegisterData struct {
+	DeviceType string `json:"device-type"`
+	Challenge  string `json:"eid-challenge,omitempty"` // only for eID devices
+	DeviceID   string `json:"device-id"`
+}
