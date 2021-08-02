@@ -9,11 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- bievents - add optional state to events
-- bievents - `WithTenantID` option for emitter
-- bievents - more events data types
-- d4lcontext - `GetUserIDFromCtx`, `GetClientIDFromCtx`, `GetTenantIDFromCtx` to extract information from a context object directly
-
 ### Changed
 
 ### Deprecated
@@ -23,6 +18,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Security
+
+## [v1.12.0] - 2021-08-02
+
+### Added
+
+- bievents - add optional state to events
+- bievents - `WithTenantID` option for emitter
+- bievents - more events data types
+- d4lcontext - `GetUserIDFromCtx`, `GetClientIDFromCtx`, `GetTenantIDFromCtx` to extract information from a context object directly
 
 ## [v1.11.0] - 2021-07-19
 
@@ -319,7 +323,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial state: standards for Main, HTTP Server, DB access (gorm), Logging, Instrumented-Handler, and K8s Probe
 
-[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.11.0...HEAD
+[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.12.0...HEAD
+[v1.12.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.11.0...v1.12.0
 [v1.11.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.10.0...v1.11.0
 [v1.10.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.9.0...v1.10.0
 [v1.9.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.8.0...v1.9.0
