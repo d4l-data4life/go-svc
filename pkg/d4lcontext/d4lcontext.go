@@ -22,7 +22,22 @@ const (
 
 // GetUserID extracts the user id from a request context
 func GetUserID(r *http.Request) string {
-	rawUserID := r.Context().Value(UserIDContextKey)
+	return GetUserIDFromCtx(r.Context())
+}
+
+// GetClientID extracts the client id from a request context
+func GetClientID(r *http.Request) string {
+	return GetClientIDFromCtx(r.Context())
+}
+
+// GetTenantID extracts the tenant id from a request context.
+func GetTenantID(r *http.Request) string {
+	return GetTenantIDFromCtx(r.Context())
+}
+
+// GetUserID extracts the user id from a request context
+func GetUserIDFromCtx(ctx context.Context) string {
+	rawUserID := ctx.Value(UserIDContextKey)
 	if userID, ok := rawUserID.(uuid.UUID); ok {
 		return userID.String()
 	}
@@ -33,16 +48,16 @@ func GetUserID(r *http.Request) string {
 }
 
 // GetClientID extracts the client id from a request context
-func GetClientID(r *http.Request) string {
-	if clientID, ok := r.Context().Value(ClientIDContextKey).(string); ok {
+func GetClientIDFromCtx(ctx context.Context) string {
+	if clientID, ok := ctx.Value(ClientIDContextKey).(string); ok {
 		return clientID
 	}
 	return ""
 }
 
 // GetTenantID extracts the tenant id from a request context.
-func GetTenantID(r *http.Request) string {
-	if tenantID, ok := r.Context().Value(TenantIDContextKey).(string); ok {
+func GetTenantIDFromCtx(ctx context.Context) string {
+	if tenantID, ok := ctx.Value(TenantIDContextKey).(string); ok {
 		return tenantID
 	}
 	return ""
