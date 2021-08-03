@@ -28,6 +28,7 @@ func TestLog(t *testing.T) {
 				UserID:             "def",
 				TenantID:           tenantID,
 				ConsentDocumentKey: "consent",
+				State:              Success,
 				Data: OnboardingData{
 					CUC:         "cuc",
 					SourceURL:   "https://abc.com",
@@ -41,6 +42,7 @@ func TestLog(t *testing.T) {
 				"hostname":             hostname,
 				"tenant-id":            tenantID,
 				"event-type":           "bi-event",
+				"state":                "success",
 				"activity-type":        "login",
 				"user-id":              "def",
 				"consent-document-key": "consent",

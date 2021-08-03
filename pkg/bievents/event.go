@@ -66,11 +66,8 @@ func (e *Emitter) Log(event Event) error {
 }
 
 func (e *Emitter) emit(event Event) BaseEvent {
-	var tenantID string
-	if event.TenantID != "" {
-		tenantID = event.TenantID
-	} else {
-		tenantID = e.tenantID
+	if event.TenantID == "" {
+		event.TenantID = e.tenantID
 	}
 
 	return BaseEvent{
@@ -79,12 +76,6 @@ func (e *Emitter) emit(event Event) BaseEvent {
 		HostName:       e.hostname,
 		EventType:      "bi-event",
 		Timestamp:      time.Now(),
-		Event: Event{
-			ActivityType:       event.ActivityType,
-			UserID:             event.UserID,
-			TenantID:           tenantID,
-			ConsentDocumentKey: event.ConsentDocumentKey,
-			Data:               event.Data,
-		},
+		Event:          event,
 	}
 }

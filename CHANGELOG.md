@@ -19,6 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- bievents - fix missing state property on logged events
+
 ### Security
 
 ## [v1.13.0] - 2021-08-02
