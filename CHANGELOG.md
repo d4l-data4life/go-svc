@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- DB2 - Set txdb postgres driver to pgx
+
 ### Security
 
 ## [v1.14.0] - 2021-08-03

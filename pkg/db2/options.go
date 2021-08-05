@@ -155,7 +155,7 @@ func TXDBPostgresDriver(connectString string) (*gorm.DB, error) {
 	drivers := sql.Drivers()
 	i := sort.SearchStrings(drivers, "txdb")
 	if i >= len(drivers) || drivers[i] != "txdb" {
-		txdb.Register("txdb", "postgres", connectString)
+		txdb.Register("txdb", "pgx", connectString)
 	}
 	return gorm.Open(postgres.New(postgres.Config{DriverName: "txdb", DSN: connectString}))
 }
