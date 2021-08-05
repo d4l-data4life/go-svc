@@ -17,9 +17,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- DB2 - Set txdb postgres driver to pgx
-
 ### Security
+
+## [v1.14.1] - 2021-08-05
+
+### Fixed
+
+- DB2 - Set txdb postgres driver to pgx
 
 ## [v1.14.0] - 2021-08-03
 
@@ -341,7 +345,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial state: standards for Main, HTTP Server, DB access (gorm), Logging, Instrumented-Handler, and K8s Probe
 
-[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.14.0...HEAD
+[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.14.1...HEAD
+[v1.14.1]: https://github.com/gesundheitscloud/go-svc/compare/v1.14.0...v1.14.1
 [v1.14.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.13.0...v1.14.0
 [v1.13.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.12.0...v1.13.0
 [v1.12.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.11.0...v1.12.0
