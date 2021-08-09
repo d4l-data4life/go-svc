@@ -1,6 +1,6 @@
 ARG GO_VERSION=1.16
 # Tester
-FROM golang:${GO_VERSION}-alpine AS builder
+FROM phdp-snapshots.hpsgc.de/golang:${GO_VERSION}-alpine AS builder
 
 RUN apk update && apk upgrade && \
   apk --update --no-cache add git gcc musl-dev make tzdata && \

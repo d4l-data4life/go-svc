@@ -4,7 +4,7 @@ ARG GO_VERSION=1.16
 # First stage: code and flags.
 # This stage is used for running the tests with a valid Go environment, with
 # `/vendor` directory support enabled.
-FROM golang:${GO_VERSION} AS code
+FROM phdp-snapshots.hpsgc.de/golang:${GO_VERSION}-alpine AS code
 
 # Set the working directory outside $GOPATH to enable the support for modules.
 WORKDIR /src
@@ -13,7 +13,7 @@ WORKDIR /src
 COPY ./ ./
 
 # Second stage: build the executable
-FROM golang:${GO_VERSION}-alpine AS builder
+FROM phdp-snapshots.hpsgc.de/golang:${GO_VERSION}-alpine AS builder
 
 # Create the user and group files that will be used in the running container to
 # run the process an unprivileged user.

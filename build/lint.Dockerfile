@@ -2,7 +2,7 @@
 ARG CILINT_VERSION
 
 # LINTER stage: get the linter executable
-FROM golangci/golangci-lint:${CILINT_VERSION} AS lint-base
+FROM phdp-snapshots.hpsgc.de/golangci/golangci-lint:${CILINT_VERSION} AS lint-base
 
 FROM lint-base AS lint
 COPY --from=lint-base /usr/bin/golangci-lint /usr/bin/golangci-lint
