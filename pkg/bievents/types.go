@@ -1,41 +1,22 @@
 package bievents
 
-import "time"
+type ActivityType = string
 
-// BaseEvent is the concrete event which is common to all the events.
-// Parameters ServiceName, ServiceVersion, HostName, EventType, Timestamp are populated by library.
-// Paremeters in Event are passed on from the consumer of the library.
-type BaseEvent struct {
-	ServiceName    string    `json:"service-name"`
-	ServiceVersion string    `json:"service-version"`
-	HostName       string    `json:"hostname"`
-	EventType      string    `json:"event-type"`
-	Timestamp      time.Time `json:"timestamp"`
-	// Embed Event struct. This will enable Event json to be printed on the same level as BaseEvent during json encoding.
-	Event
-}
-
-// State represents the state of a BI event:
-// Success: the event happened successful
-// Failure: the event was attempted but failed
-// Attempt: the event was attempted but not further information about its success is available at that time.
-type State string
-
+// The following values are the supported activity types for BI events.
 const (
-	Success State = "success"
-	Failure State = "failure"
-	Attempt State = "attempt"
+	Register        ActivityType = "register"
+	EmailVerify     ActivityType = "email-verify"
+	Login           ActivityType = "login"
+	EIDLogin        ActivityType = "eid-login"
+	Logout          ActivityType = "logout"
+	PhoneVerify     ActivityType = "phone-verify"
+	DeviceRegister  ActivityType = "device-register"
+	DeviceDelete    ActivityType = "device-delete"
+	EIDEntrance     ActivityType = "eid-saml-entrance"
+	LoginComplete   ActivityType = "login-complete"
+	SharingStart    ActivityType = "sharing-start"
+	SharingComplete ActivityType = "sharing-complete"
 )
-
-// Event is the info passed on specific to event.
-type Event struct {
-	ActivityType       string      `json:"activity-type"`
-	UserID             string      `json:"user-id"`
-	Data               interface{} `json:"data"`
-	TenantID           string      `json:"tenant-id"`
-	ConsentDocumentKey string      `json:"consent-document-key"`
-	State              State       `json:"state,omitempty"`
-}
 
 // OnboardingData is used to define details about onboarding data.
 // This type can be used to define structs
@@ -46,9 +27,21 @@ type OnboardingData struct {
 	Source      string    `json:"source"`
 }
 
+type LoginData struct {
+	ClientID string `json:"client-id"`
+}
+
 type EIDLoginData struct {
 	Challenge string `json:"eid-challenge"`
 	ClientID  string `json:"client-id"`
+}
+
+type LoginCompleteData struct {
+	SessionID string // a session identifier: it allows to connect a login and a logout event
+}
+
+type LogoutData struct {
+	SessionID string // a session identifier: it allows to connect a login and a logout event
 }
 
 type EIDSamlEntranceData struct {
@@ -61,4 +54,21 @@ type DeviceRegisterData struct {
 	DeviceType string `json:"device-type"`
 	Challenge  string `json:"eid-challenge,omitempty"` // only for eID devices
 	DeviceID   string `json:"device-id"`
+	OwnerID    string `json:"owner-id"`
+}
+
+type DeviceDeleteData struct {
+	DeviceID string
+}
+
+type PhoneVerifyData struct {
+	DeviceID string
+}
+
+type SharingStartData struct {
+	SharingSessionID string
+}
+
+type SharingCompleteData struct {
+	SharingSessionID string
 }

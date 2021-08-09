@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- bievents - activity types are moved to this library (were in services code)
+- bievents - more events data types
+
 ### Changed
 
 - Ops: Pull Docker images from Nexus instead of DockerHub
