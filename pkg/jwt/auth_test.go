@@ -395,14 +395,14 @@ JWTPublicKey:
 `)
 	t.Logf("using config:\n%s", configYaml)
 
-	kp := dynamic.NewViperConfig(
-		dynamic.ConfigSource(bytes.NewBuffer(configYaml)),
-		dynamic.ConfigFormat("yaml"),
+	kp := dynamic.NewViperConfig("auth_test",
+		dynamic.WithConfigSource(bytes.NewBuffer(configYaml)),
+		dynamic.WithConfigFormat("yaml"),
 	)
 	err = kp.Bootstrap()
 	assert.NoError(t, err)
 
-	keys, err := kp.PublicKeys()
+	keys, err := kp.JWTPublicKeys()
 	assert.NoError(t, err)
 	assert.Equal(t, 3, len(keys))
 

@@ -31,18 +31,18 @@ type DummyKeyProvider struct {
 	Key *rsa.PublicKey
 }
 
-func (dkp *DummyKeyProvider) PublicKeys() ([]dynamic.PublicKey, error) {
-	pk := dynamic.PublicKey{Key: dkp.Key, Name: "arbitrary", Comment: "generated in code jwt.New()"}
-	return []dynamic.PublicKey{pk}, nil
+func (dkp *DummyKeyProvider) JWTPublicKeys() ([]dynamic.JWTPublicKey, error) {
+	jwtpk := dynamic.JWTPublicKey{Key: dkp.Key, Name: "arbitrary", Comment: "generated in code jwt.New()"}
+	return []dynamic.JWTPublicKey{jwtpk}, nil
 }
 
-type KeyProvider interface {
-	PublicKeys() ([]dynamic.PublicKey, error)
+type JWTPublicKeysProvider interface {
+	JWTPublicKeys() ([]dynamic.JWTPublicKey, error)
 }
 
 // Authenticator contains the public key necessary to verify the signature.
 type Authenticator struct {
-	keyProvider KeyProvider
+	keyProvider JWTPublicKeysProvider
 	logger      logger
 }
 
@@ -55,7 +55,7 @@ func New(pk *rsa.PublicKey, l logger) *Authenticator {
 
 // NewAuthenticator creates an Authenticator that creates an auth Middleware for
 // JWT verification against multiple publick keys provided by a KeyProvider
-func NewAuthenticator(pkp KeyProvider, l logger) *Authenticator {
+func NewAuthenticator(pkp JWTPublicKeysProvider, l logger) *Authenticator {
 	return &Authenticator{keyProvider: pkp, logger: l}
 }
 
@@ -74,7 +74,7 @@ func (auth *Authenticator) Verify(rules ...rule) func(handler http.Handler) http
 // internal context keys such that a downstream middleware has access to any of these.
 func (auth *Authenticator) Extract(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		candidateKeys, err := auth.keyProvider.PublicKeys()
+		candidateKeys, err := auth.keyProvider.JWTPublicKeys()
 		if err != nil {
 			_ = auth.logger.ErrGeneric(r.Context(), fmt.Errorf("jwt.Extract: keyProvider.PublicKeys() failed: %w", err))
 			next.ServeHTTP(w, r)
@@ -102,7 +102,7 @@ func (auth *Authenticator) Extract(next http.Handler) http.Handler {
 
 // VerifyAny checks if any of the many JWT keys satisfies given rules
 func (auth *Authenticator) VerifyAny(rules ...rule) func(handler http.Handler) http.Handler {
-	candidateKeys, err := auth.keyProvider.PublicKeys()
+	candidateKeys, err := auth.keyProvider.JWTPublicKeys()
 
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -144,7 +144,7 @@ func (auth *Authenticator) VerifyAny(rules ...rule) func(handler http.Handler) h
 }
 
 // verify combines verifyPubKey and verifyRules and writes JWT claims into request's context
-func (auth *Authenticator) verify(r *http.Request, pubKey dynamic.PublicKey, rules ...rule) (*http.Request, int, error) {
+func (auth *Authenticator) verify(r *http.Request, pubKey dynamic.JWTPublicKey, rules ...rule) (*http.Request, int, error) {
 	status, claims, err := auth.verifyPubKey(r, pubKey.Key, pubKey.Name)
 	if err != nil {
 		return r, status, fmt.Errorf("error verifying public key: %w: %v", ErrPubKeyVerification, err)

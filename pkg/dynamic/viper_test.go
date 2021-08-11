@@ -2,84 +2,242 @@ package dynamic
 
 import (
 	"bytes"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
-// any approach to require this configuration into your program.
-var yamlExample = []byte(`
-JWTPublicKey:
-- name: "dev-vault-active"
-  comment: "copied from VEGA_JWT_PUBLIC_KEY"
-  not_before: 2020-01-01
-  not_after: 2022-01-01
+// privKeyEntry is test helper (hence t in params) to generate a valid priv Key entry
+func privKeyEntry(t *testing.T, name string, enabled bool) string {
+	return `
+- name: "` + name + `"
+  comment: "generated with: openssl genrsa 2048 -out private.pem"
+  enabled: ` + fmt.Sprintf("%t", enabled) + `
+  created_at: "unknown"
+  author: "Jenkins"
   key: |
-    -----BEGIN PUBLIC KEY-----
-    MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAyqw4d1SSY6fk61jc4B70
-    xEaJb3h4gczV6vmy2GS4+cizBCC4bjuRrL72/rlVUBszHFLar40nPOAlrGD8ZrMY
-    Vn/lEvCHL19r1tHs/iHU9wdX6nY6Pkkd7FPnosFh6uB80KdQV1ahC5wQ60/0yA+O
-    CiEbj8YHj/K9y2BwV4G6+FFda7URh9P9zDnzZ5uwYx9FXOxmNOWIo3yjw2goyUJw
-    2s90Zlce14k18Uo1/wKjtMw5girxbi3tl8pQqm3c2AHSllmfNAyW2hOTDrT5M3rA
-    gktYGTCdJDv9sYZkE10P7o2jx39yP8314Da25RfTSK9Og9UGv8NbYOjBCo8/UbAp
-    t7h4kbxMcOvVpf2PmSIKC3859y5lBmH5y57YwuejpcPv/QRPoO6MhzXfS2LsjQIJ
-    9XtqvInhwosZy9AId7mL804o7Dzsx+EZtCcw//P36ZO1wuTRomSUaBOL5G+M6Poy
-    riosmwtPDJj7zcr6RlM8B4RDPrz9Q9/s4GGIgL0zV0GFXXKpPQe9v1J6iG5zRIcW
-    61RHWlaMT5Op6kTLZTaiB1qAqNZi9ljKtPXN2vAO0Lq03MCQNmdgqmbghpKxGg9u
-    /17+tYVb5MAhwHcqXF0r1rMHXb69y1bwRFnrCaHF/WFzZJBmOhanhs7OyPdpJiHz
-    t9mxhZZUU8FCb9p3MyRvg3ECAwEAAQ==
-    -----END PUBLIC KEY-----
-- name: "dev-vault-previous"
-  comment: "copied from somewhere"
-  not_before: 2020-01-01
-  not_after: 2022-01-01
-  key: |
-    -----BEGIN PUBLIC KEY-----
-    MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAl+J2z++v3JcSL2r6Kfo9
-    9eeoEXbksQvHSjKYSR6h3V4y3T6ZCBo5Fd6BMWmyMuvkj+FGzjOydBbYFr7oYJih
-    5GG8GZFHHiPe3YOtlst0ccG0MKN1Xyqu73OlwShtopqf77dGfqcxBerIkXuRr7R8
-    3KwCohPla7dhrCpSeTvXcdMHoERXpeSY0wXKpAc1GtXu8G0cMuHzPwLPUQhYAwUg
-    pSH1D1JKsQVsN8BW58NXDhuVuBVOsOBzO///dQT35dXwFJa7v57CqncJp2JjpIwT
-    NaWwjWcWBXvCoUonFS55pXmJo2+NAOHRMEnnEvpzOQLTwnBW3xffRlw96/x5BTH7
-    adXmcnE1UM8JQ7lGnbOFdsyfN6GvLoITZA5YVyOX/hfHeZOQPF1fGcvsANqwL7ZJ
-    CHmgnJMD2X4X1njv6lftXFDJFqN/Z/a/zTLgLSKsZrl44zwbjts4leCs/mOhKDwt
-    3QtUCFQG8pkVBbbtAWx7tlL18H9N23p67aL5OQi+ZJPs3NH538EV/SFF2aWrLRqX
-    hwdOGFNkuBrH/qYPMB41kzHy7c7JhVf+zcedPCnXC1YwD1nSJtKDIbIfmTaIMMaU
-    vvVhw9eR1/TdBGUcnDBQA5FZWBvGL7q0QwNbSv/ne9Y+QuxqWMAyUimXYvc0LLuL
-    KLPw52VL0SvM9rHnW+sqIJ8CAwEAAQ==
-    -----END PUBLIC KEY-----
-- name: "integrationTest"
-  comment: "copied from this repo: /test/config"
-  not_before: 2020-01-01
-  not_after: 2022-01-01
-  key: |
-    -----BEGIN PUBLIC KEY-----
-    MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEA2ljY82CRfjTQ9eZaDLO/
-    W02/eGwdlzAvf+54dXqDd5AjxEtNtIDNGzuQiH+74zMOlGJbH6bh74BgRbXmTyP4
-    dgbJkfdXtiLo161wJTptEhUBDF3+evCUZZ4+M8xCrV97lZXId6Lm9yDO+FSEMHbM
-    3XdA07vVSldvr/feQHKuGBrcBLHzBjme4s+TKFD6+nEhp9WujPfw6SgpHGZCA3HN
-    6KwiWWJ9TDs2PiA0vgoW3DT8FHhu0hDkcusYImcdc2AUVMSXLqbFMAc7fJzKwuEr
-    CAI4wOmg4C+7XczSuDkEhcZLhGOxxDNe945ExiTqQeLn29uJ1T6LbwfPy2IS16Ji
-    Pxa/lYqZc1C9+s+8iFOYb/rEzzyfmSI6Jb7SVFgq2qJftgX887Wr9xi5NFWd8TsA
-    bws92P/2Gge6Mfyr5CVs3nI4wcMkbiBznPsJWuZnsbjAENlGXLBE7ljyygAwuB/A
-    ysDobMKjenG8552q93OUwVDuGyAi3zF0nEvFaToSszoEGIZysRbKjW1INPWnTFcA
-    +U85o8kj+Drr8DTohBrZ3G86bg1YHpTvMnUQuxZ+usLxynGsEckjWz+9QevYt1s4
-    6ZaSfU4L9JM5USRFX3RpoSf5MdGhb2G8qWNleqXdhTXEHpeUFZcdRfASKxgMWJ+x
-    YflMznsWkLa8MG5Z0kqhYu0CAwEAAQ==
-    -----END PUBLIC KEY-----
+    -----BEGIN RSA PRIVATE KEY-----
+    MIIEowIBAAKCAQEArUG/lcVDen29RnHK+f1E5UzoXAAMTT5Xatdts7o4+jNwXl7L
+    uYSAnmrl50XjyM5fLCog6G+qLz0L6U07EbXB0B/paHuYLlAG9rIYIaAceZYrhMRe
+    USx3DL2yIpawa1YR9QYgyHTY2/3sXF+vd/T7JNqBxI/v0vZkhaFCugrWlvAICC1Y
+    jQXrjZqRRPl0OsUwZ2kmRvlqvYcVSLEif+uKeNMyplThb9CEQZdjjLMSskYzcmGS
+    fPc10ciEDhYR4O5M8vOO5DLeLwj6dw/PTrrslAxrdQqiP4/xyx89ZfFMsxBIBw5J
+    eZ0VnQ46Chr5Dy34A/FacA3Sqb0ZEFkmwCTBjwIDAQABAoIBAQCMpb0zhinbPEv0
+    7deKzVGqm55dYSSbaCpq72t85YXvhuaHlYjol2oaMElmT9Q0ZWPZZHHGfy+2nWYY
+    BLwZCmXF4MIIMZ0+q3Sbu8PfOC0lfwThCNBQMTqLu0rqzU12NS7qrAjc8g5BuIay
+    DnNRfCyMpF2IBhj4N1EvMdQLV1UQvYChvuok/oe9xxXPlhb9HCrHhs0WXamhuYmj
+    2ZkAPtZ/zM7tzeiHfczx5sUh2BqtkiWDcpezkDhEQhn7C6b3C/2UGfQ8Q1CM3ske
+    3D7uLSctvbWH3JNYm0QzRQUgXKYK9xfPsFVv7nxNZyOMtHIrary2Po6PfaGxkGvX
+    sdRusDjBAoGBANdzbLNInge/wQKYeUJ7CoOcBWKIpa3kMIAy22wkSAFzE70gCHEn
+    7/ppdUGmvHnuzULGQOtXkoHJ3S0TUf4RQ8GYIBCIwD5RkOwj92echkTltUCFsygQ
+    b6US4a5WYAg+UNAgSCpzTkj/tGAAtmB4qhN8LHXUOzM0EjChFG/3WJffAoGBAM3d
+    Yn9Zq8MjyRViFMgOQzxcv4EfY1tiE2IVJ7skRkI/KBWcpAqg54N3Ft4ih2RzYUob
+    e5xPHMu44MqBrDXnk5RGiDI2ph3xvVszTTsFWCtn6PXrh7v8OTYovsiww/aN10/p
+    Rn7zz7oSAKUizyU6tdu6xMOW7GE8lsI/S70aycxRAoGAJqdwwyGuKJnAmSSd7M2C
+    b2ZYmPsHLpGYGggF0fsYaBorWm0a1qJhrb2p6eNuQToU3XwQPajyghKjeejTdw/F
+    5j/S0OSYCRY9OACj7JTqigXkZPUX1YJNZYJjtxGMHS6A9TY1fFg/nV0zEV5PWjOL
+    3/8RQvqWvHMFKHBd6FCqNmUCgYAb2/rpaxQwi1Y6G5TeYfe9YnvUGJBUnJgs7Nn8
+    nHMZofxluFYGzjGme+ZPV3LlKCwhYEjBJX+rHjDlltjcTqONLGJgET83zDAo+G9a
+    LmX5Mc24AhDTYtXHO4peFHXglt9thA8zPQF+l9MYhfZsfl6ABu173p/MpOtuDCzO
+    waJPkQKBgGNWifCTY+rfDyzZOO50jefGXALd6rhMscfGED+gwyfFfHQxdiutDLnI
+    VPd3tSZu2RU0c3a5wEEFqlJAl07VkVLg96mTKlW7dJzvvS3eqXR3v56f3+MSvTrO
+    ZBQeOldZwwPpJEnP4bhDlAOqFtffc3JmvsczOOhYVDkLduuUgVUc
+    -----END RSA PRIVATE KEY-----`
+}
 
+// pubKeyEntry is test helper (hence t in params) to generate a valid pub Key entry
+func pubKeyEntry(t *testing.T, name string) string {
+	return `
+- name: "` + name + `"
+  comment: "generated with: openssl rsa -in private.pem -pubout -outform PEM -out public.pem"
+  not_before: 2020-01-01
+  not_after: 2022-01-01
+  key: |
+    -----BEGIN PUBLIC KEY-----
+    MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArUG/lcVDen29RnHK+f1E
+    5UzoXAAMTT5Xatdts7o4+jNwXl7LuYSAnmrl50XjyM5fLCog6G+qLz0L6U07EbXB
+    0B/paHuYLlAG9rIYIaAceZYrhMReUSx3DL2yIpawa1YR9QYgyHTY2/3sXF+vd/T7
+    JNqBxI/v0vZkhaFCugrWlvAICC1YjQXrjZqRRPl0OsUwZ2kmRvlqvYcVSLEif+uK
+    eNMyplThb9CEQZdjjLMSskYzcmGSfPc10ciEDhYR4O5M8vOO5DLeLwj6dw/PTrrs
+    lAxrdQqiP4/xyx89ZfFMsxBIBw5JeZ0VnQ46Chr5Dy34A/FacA3Sqb0ZEFkmwCTB
+    jwIDAQAB
+    -----END PUBLIC KEY-----`
+}
+
+func TestBasicViperEmptyConfig(t *testing.T) {
+	// important - watch indentation here! this must produce valid yaml
+	var yamlExample = []byte(`
+JWTPublicKey: []
+JWTPrivateKey: []
 `)
 
-func TestBasicViper(t *testing.T) {
-	vc := NewViperConfig(ConfigFormat("yaml"),
-		ConfigSource(bytes.NewBuffer(yamlExample)),
-		AutoBootstrap(false),
-		WatchChanges(false),
+	vc := NewViperConfig("test", WithConfigFormat("yaml"),
+		WithConfigSource(bytes.NewBuffer(yamlExample)),
+		WithAutoBootstrap(false),
+		WithWatchChanges(false),
+	)
+	assert.NoError(t, vc.Bootstrap())
+
+	arr, err := vc.JWTPublicKeys()
+	assert.Error(t, err)
+	assert.Equal(t, 0, len(arr))
+
+	pkey, err := vc.JWTPrivateKey()
+	assert.Error(t, err)
+	assert.Equal(t, JWTPrivateKey{}, pkey)
+}
+
+func TestBasicViperNoBootstrap(t *testing.T) {
+	// important - watch indentation here! this must produce valid yaml
+	var yamlExample = []byte(`
+JWTPublicKey:
+` + pubKeyEntry(t, "public") + `
+JWTPrivateKey:
+` + privKeyEntry(t, "private", true) + `
+`)
+
+	vc := NewViperConfig("test", WithConfigFormat("yaml"),
+		WithConfigSource(bytes.NewBuffer(yamlExample)),
+		WithAutoBootstrap(false),
+		WithWatchChanges(false),
+	)
+	arr, err := vc.JWTPublicKeys()
+	assert.Error(t, err)
+	assert.Equal(t, 0, len(arr))
+
+	pkey, err := vc.JWTPrivateKey()
+	assert.Error(t, err)
+	assert.Equal(t, JWTPrivateKey{}, pkey)
+}
+
+func TestBasicViperPublicKeys(t *testing.T) {
+	// important - watch indentation here! this must produce valid yaml
+	var yamlExample = []byte(`
+JWTPublicKey:
+` + pubKeyEntry(t, "generated-for-test-1") + `
+` + pubKeyEntry(t, "generated-for-test-2") + `
+` + pubKeyEntry(t, "generated-for-test-3") + `
+`)
+
+	vc := NewViperConfig("test", WithConfigFormat("yaml"),
+		WithConfigSource(bytes.NewBuffer(yamlExample)),
+		WithAutoBootstrap(false),
+		WithWatchChanges(false),
+	)
+	assert.NoError(t, vc.Bootstrap())
+
+	arr, err := vc.JWTPublicKeys()
+	assert.NoError(t, err)
+	assert.Equal(t, 3, len(arr))
+}
+
+func TestBasicViperPrivateKeysOneEnabled(t *testing.T) {
+	var yamlOneEnabled = []byte(`
+JWTPrivateKey:
+` + privKeyEntry(t, "generated-for-test-1", true) + `
+` + privKeyEntry(t, "generated-for-test-2", false) + `
+`)
+
+	vc := NewViperConfig("test", WithConfigFormat("yaml"),
+		WithConfigSource(bytes.NewBuffer(yamlOneEnabled)),
+		WithAutoBootstrap(false),
+		WithWatchChanges(false),
 	)
 	err := vc.Bootstrap()
 	assert.NoError(t, err)
 
-	arr, err := vc.PublicKeys()
+	key, err := vc.JWTPrivateKey()
 	assert.NoError(t, err)
-	assert.Equal(t, 3, len(arr))
+	assert.NotNil(t, key.Key)
+	assert.Equal(t, "generated-for-test-1", key.Name)
+	assert.NotEqual(t, "the-same-but-copied", key.Name)
+	assert.NotEmpty(t, key.CreatedAt)
+	assert.NotEmpty(t, key.Author)
+}
+func TestBasicViperPrivateKeysBothEnabled(t *testing.T) {
+	var yamlBothEnabled = []byte(`
+JWTPrivateKey:
+` + privKeyEntry(t, "generated-for-test-1", true) + `
+` + privKeyEntry(t, "generated-for-test-2", true) + `
+`)
+
+	vc := NewViperConfig("test", WithConfigFormat("yaml"),
+		WithConfigSource(bytes.NewBuffer(yamlBothEnabled)),
+		WithAutoBootstrap(false),
+		WithWatchChanges(false),
+	)
+	assert.NoError(t, vc.Bootstrap())
+
+	key, err := vc.JWTPrivateKey()
+	assert.NoError(t, err)
+	assert.NotNil(t, key.Key)
+	assert.Equal(t, "generated-for-test-1", key.Name)
+	assert.NotEqual(t, "generated-for-test-2", key.Name)
+	assert.NotEmpty(t, key.CreatedAt)
+	assert.NotEmpty(t, key.Author)
+}
+
+func TestBasicViperPrivateKeysAllDisabled(t *testing.T) {
+	var yamlBothDisabled = []byte(`
+JWTPrivateKey:
+` + privKeyEntry(t, "generated-for-test-1", false) + `
+` + privKeyEntry(t, "generated-for-test-2", false) + `
+`)
+	vc := NewViperConfig("test", WithConfigFormat("yaml"),
+		WithConfigSource(bytes.NewBuffer(yamlBothDisabled)),
+		WithAutoBootstrap(false),
+		WithWatchChanges(false),
+	)
+	assert.NoError(t, vc.Bootstrap())
+
+	key, err := vc.JWTPrivateKey()
+	assert.Error(t, err)
+	assert.Nil(t, key.Key)
+	assert.Empty(t, key.CreatedAt)
+	assert.Empty(t, key.Author)
+}
+
+func TestBasicViperMerge(t *testing.T) {
+	var yamlPrivate1 = []byte(`
+JWTPrivateKey:
+` + privKeyEntry(t, "private", true) + `
+`)
+	var yamlPublic1 = []byte(`
+JWTPublicKey:
+` + pubKeyEntry(t, "public") + `
+`)
+
+	vc := NewViperConfig("public",
+		WithConfigFormat("yaml"),
+		WithConfigSource(bytes.NewBuffer(yamlPublic1)),
+		WithAutoBootstrap(false),
+		WithWatchChanges(false),
+	)
+	assert.NoError(t, vc.Bootstrap())
+
+	vc2 := NewViperConfig("private",
+		WithConfigFormat("yaml"),
+		WithConfigSource(bytes.NewBuffer(yamlPrivate1)),
+		WithAutoBootstrap(false),
+		WithWatchChanges(false),
+	)
+	assert.NoError(t, vc2.Bootstrap())
+
+	assert.NoError(t, vc.Merge(vc2))
+	assert.Equal(t, "merged-public+private", vc.name)
+
+	arr, err := vc.JWTPublicKeys()
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(arr))
+	assert.NotEmpty(t, arr[0].Comment)
+	assert.NotEmpty(t, arr[0].Key)
+	assert.NotEmpty(t, arr[0].NotAfter)
+	assert.NotEmpty(t, arr[0].NotBefore)
+
+	key, err := vc.JWTPrivateKey()
+	assert.NoError(t, err)
+	assert.NotNil(t, key.Key)
+	assert.NotEmpty(t, key.CreatedAt)
+	assert.NotEmpty(t, key.Author)
 }
