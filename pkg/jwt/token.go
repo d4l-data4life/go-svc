@@ -4,8 +4,8 @@ import (
 	"crypto/rsa"
 	"time"
 
-	jwtgo "github.com/dgrijalva/jwt-go"
 	"github.com/gofrs/uuid"
+	jwtgo "github.com/golang-jwt/jwt/v4"
 )
 
 type Token struct {

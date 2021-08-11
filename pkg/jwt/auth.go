@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/dgrijalva/jwt-go"
-	jwtReq "github.com/dgrijalva/jwt-go/request"
 	"github.com/gesundheitscloud/go-svc/pkg/d4lcontext"
 	"github.com/gesundheitscloud/go-svc/pkg/dynamic"
 	"github.com/go-chi/chi"
 	"github.com/gofrs/uuid"
+	"github.com/golang-jwt/jwt/v4"
+	jwtReq "github.com/golang-jwt/jwt/v4/request"
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 )

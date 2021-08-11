@@ -7,8 +7,8 @@ import (
 
 	gcJWT "github.com/gesundheitscloud/go-svc/pkg/jwt"
 
-	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/gofrs/uuid"
+	jwt "github.com/golang-jwt/jwt/v4"
 )
 
 const (

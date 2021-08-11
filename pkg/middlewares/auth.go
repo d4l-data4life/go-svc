@@ -8,12 +8,12 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/dgrijalva/jwt-go"
 	"github.com/gesundheitscloud/go-svc/pkg/d4lcontext"
 	"github.com/gesundheitscloud/go-svc/pkg/instrumented"
 	"github.com/gesundheitscloud/go-svc/pkg/logging"
 	"github.com/gesundheitscloud/go-svc/pkg/prom"
 	uuid "github.com/gofrs/uuid"
+	"github.com/golang-jwt/jwt/v4"
 )
 
 const (

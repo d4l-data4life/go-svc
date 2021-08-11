@@ -23,7 +23,7 @@ RUN mkdir /user && \
 
 # Import the Certificate-Authority certificates for the app to be able to send
 # requests to HTTPS endpoints.
-RUN apk add --no-cache ca-certificates
+RUN apk add --no-cache ca-certificates git gcc musl-dev make tzdata
 
 # Accept the version of the app that will be injected into the compiled
 # executable.
