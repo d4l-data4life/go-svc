@@ -4,18 +4,24 @@ type ActivityType = string
 
 // The following values are the supported activity types for BI events.
 const (
-	Register        ActivityType = "register"
-	EmailVerify     ActivityType = "email-verify"
-	Login           ActivityType = "login"
-	EIDLogin        ActivityType = "eid-login"
-	Logout          ActivityType = "logout"
-	PhoneVerify     ActivityType = "phone-verify"
-	DeviceRegister  ActivityType = "device-register"
-	DeviceDelete    ActivityType = "device-delete"
-	EIDEntrance     ActivityType = "eid-saml-entrance"
-	LoginComplete   ActivityType = "login-complete"
-	SharingStart    ActivityType = "sharing-start"
-	SharingComplete ActivityType = "sharing-complete"
+	Register          ActivityType = "register"
+	EmailVerify       ActivityType = "email-verify"
+	Login             ActivityType = "login"
+	EIDLogin          ActivityType = "eid-login"
+	Logout            ActivityType = "logout"
+	PhoneVerify       ActivityType = "phone-verify"
+	DeviceRegister    ActivityType = "device-register"
+	DeviceDelete      ActivityType = "device-delete"
+	EIDEntrance       ActivityType = "eid-saml-entrance"
+	LoginComplete     ActivityType = "login-complete"
+	SharingStart      ActivityType = "sharing-start"
+	SharingComplete   ActivityType = "sharing-complete"
+	DocumentDelete    ActivityType = "document-delete"
+	DocumentDeleteAll ActivityType = "document-delete-all"
+	DocumentUpload    ActivityType = "document-upload"
+	RecordRead        ActivityType = "record-read"
+	RecordBulkRead    ActivityType = "record-bulk-read"
+	RecordCreate      ActivityType = "record-create"
 )
 
 // OnboardingData is used to define details about onboarding data.

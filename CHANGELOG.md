@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- bievents - add blob and record event types
 - bievents - activity types are moved to this library (were in services code)
 - bievents - more events data types
 
