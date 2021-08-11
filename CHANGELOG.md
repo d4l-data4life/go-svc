@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## [v1.15.0] - 2021-08-11
+
+### Added
+
 - bievents - add blob and record event types
 - bievents - activity types are moved to this library (were in services code)
 - bievents - more events data types
@@ -17,12 +31,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Ops: Pull Docker images from Nexus instead of DockerHub
 - dynamic - refactor interfaces and add support for JWT private keys
-
-### Deprecated
-
-### Removed
-
-### Fixed
 
 ### Security
 
@@ -354,7 +362,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial state: standards for Main, HTTP Server, DB access (gorm), Logging, Instrumented-Handler, and K8s Probe
 
-[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.14.1...HEAD
+[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.15.0...HEAD
+[v1.15.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.14.1...v1.15.0
 [v1.14.1]: https://github.com/gesundheitscloud/go-svc/compare/v1.14.0...v1.14.1
 [v1.14.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.13.0...v1.14.0
 [v1.13.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.12.0...v1.13.0
