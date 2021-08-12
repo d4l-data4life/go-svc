@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- migrate - fox broken integration-tests
+
 ### Security
 
 ## [v1.15.0] - 2021-08-11

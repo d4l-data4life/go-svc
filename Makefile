@@ -7,7 +7,7 @@ define LOCAL_VARIABLES
 endef
 
 parallel-test:               ## Specifies space-separated list of targets that can be run in parallel
-	@echo "lint unit-test"
+	@echo "lint unit-test integration-test"
 
 test: lint unit-test integration-test
 
@@ -34,15 +34,26 @@ local-test:      ## Run tests natively
 	go vet ./... && \
 	go test -v -cover -covermode=atomic ./pkg/...
 
-integration-test:
-	TARGET=code docker-compose \
-		-f build/docker-compose.yml \
+.PHONY: integration-test
+integration-test: clean integration-test-dirty clean
+
+.PHONY: integration-test-dirty
+integration-test-dirty:
+	COMPOSE_DOCKER_CLI_BUILD=1 DOCKER_BUILDKIT=1 \
+	TARGET=integration-test \
+		docker-compose \
+		--file build/docker-compose.yml \
 		build \
-		--build-arg GO_VERSION="$(GO_VERSION)" migrate-test
-	VERBOSE=false docker-compose \
-		-f build/docker-compose.yml \
-		run --rm migrate-test \
-		go test -coverprofile=coverage.txt -covermode=atomic -coverpkg=./... ./test
+		--build-arg GO_VERSION="$(GO_VERSION)"
+
+	COMPOSE_DOCKER_CLI_BUILD=1 DOCKER_BUILDKIT=1 \
+	TARGET=integration-test \
+	docker-compose \
+		--file build/docker-compose.yml \
+		up \
+		--attach-dependencies \
+		--exit-code-from migrate-test \
+		migrate-test
 
 scan-docker-images:
 	@echo ""
@@ -50,6 +61,7 @@ scan-docker-images:
 docker-push:
 	true
 
+.PHONY: clean
 clean:
 	docker-compose \
 		-f build/docker-compose.yml \
