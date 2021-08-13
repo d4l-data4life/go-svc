@@ -110,7 +110,7 @@ func (e *Emitter) emit(event Event) BaseEvent {
 		ServiceVersion: e.serviceVersion,
 		HostName:       e.hostname,
 		EventType:      "bi-event",
-		Timestamp:      time.Now(),
+		Timestamp:      time.Now().Truncate(time.Second),
 		Event:          event,
 	}
 }

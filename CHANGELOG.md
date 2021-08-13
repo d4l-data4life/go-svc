@@ -9,7 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- bievents - use cuc ID instead of cuc name for onboarding BI data
+
 ### Changed
+
+- bievents - round timestamp of events to seconds
 
 ### Deprecated
 

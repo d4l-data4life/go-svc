@@ -29,8 +29,8 @@ func TestLog(t *testing.T) {
 				TenantID:           tenantID,
 				ConsentDocumentKey: "consent",
 				State:              Success,
-				Data: OnboardingData{
-					CUC:         "cuc",
+				Data: UserRegisterData{
+					CucID:       "cuc_1",
 					SourceURL:   "https://abc.com",
 					AccountType: Internal,
 					Source:      "some-source",
@@ -47,7 +47,7 @@ func TestLog(t *testing.T) {
 				"user-id":              "def",
 				"consent-document-key": "consent",
 				"data": map[string]interface{}{
-					"cuc":          "cuc",
+					"cuc-id":       "cuc_1",
 					"account-type": "internal",
 					"source-url":   "https://abc.com",
 					"source":       "some-source",
@@ -59,8 +59,8 @@ func TestLog(t *testing.T) {
 			value: Event{
 				ActivityType: "login",
 				UserID:       "def",
-				Data: OnboardingData{
-					CUC:         "cuc",
+				Data: UserRegisterData{
+					CucID:       "cuc_2",
 					SourceURL:   "https://abc.com",
 					AccountType: Internal,
 					Source:      "some-source",
@@ -76,7 +76,7 @@ func TestLog(t *testing.T) {
 				"user-id":              "def",
 				"consent-document-key": "",
 				"data": map[string]interface{}{
-					"cuc":          "cuc",
+					"cuc-id":       "cuc_2",
 					"account-type": "internal",
 					"source-url":   "https://abc.com",
 					"source":       "some-source",
