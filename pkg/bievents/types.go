@@ -6,8 +6,8 @@ type ActivityType = string
 const (
 	Register          ActivityType = "register"
 	EmailVerify       ActivityType = "email-verify"
-	Login             ActivityType = "login"
-	EIDLogin          ActivityType = "eid-login"
+	Login             ActivityType = "login-start"
+	EIDLogin          ActivityType = "eid-login-start"
 	Logout            ActivityType = "logout"
 	TokenRefreshed    ActivityType = "token-refreshed"
 	PhoneVerify       ActivityType = "phone-verify"
@@ -30,7 +30,7 @@ type UserRegisterData struct {
 	CucID       string    `json:"cuc-id"`
 	AccountType EmailType `json:"account-type"`
 	SourceURL   string    `json:"source-url"`
-	Source      string    `json:"source"`
+	ClientID    string    `json:"client-id"`
 }
 
 type LoginData struct {

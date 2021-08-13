@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - bievents - round timestamp of events to seconds
+- bievents - remove `source` from UserRegisterData
+- bievents - rename events: `login` to `login-start` and `eid-login` to `eid-login-start`
 
 ### Deprecated
 
