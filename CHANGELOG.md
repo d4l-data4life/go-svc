@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Inconsistent BI events names: changed `token-refreshed` to `token-refresh`, `sharing-revoked` to `sharing-revoke`
+
 ### Deprecated
 
 ### Removed
