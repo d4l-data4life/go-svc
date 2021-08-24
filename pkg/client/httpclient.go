@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/gesundheitscloud/go-svc/pkg/log"
-	"github.com/gesundheitscloud/go-svc/pkg/prom"
+	"github.com/gesundheitscloud/go-svc/pkg/transport"
 )
 
 const (
@@ -58,10 +58,11 @@ func timeout(timeoutSec int) time.Duration {
 }
 
 func newInstrumentedHTTPClient(name string, logger *log.Logger) *http.Client {
-	monitored := prom.NewRoundTripperInstrumenter().Instrument(name, http.DefaultTransport)
-	loggedMonitored := logger.LoggedTransport(monitored)
-
 	return &http.Client{
-		Transport: loggedMonitored,
+		Transport: transport.Chain(
+			transport.Prometheus(name),
+			transport.TraceID,
+			transport.Log(logger),
+		)(http.DefaultTransport),
 	}
 }

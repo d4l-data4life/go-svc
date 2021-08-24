@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/gesundheitscloud/go-svc/pkg/log"
+	"github.com/gesundheitscloud/go-svc/pkg/transport"
 )
 
 func TestLogHttpOutRequest(t *testing.T) {
@@ -170,7 +171,7 @@ func TestLogHTTPOutReqResp(t *testing.T) {
 	req.Header.Add("Content-Type", "text/plain")
 
 	client := http.Client{
-		Transport: l.LoggedTransport(nil),
+		Transport: transport.Log(l)(nil),
 		Timeout:   10 * time.Second,
 	}
 
@@ -341,7 +342,7 @@ func TestLogHTTPOutReqRespHeader(t *testing.T) {
 	req.Header.Add(log.TraceIDHeaderKey, "t1")
 
 	client := http.Client{
-		Transport: l.LoggedTransport(nil),
+		Transport: transport.Log(l)(nil),
 		Timeout:   10 * time.Second,
 	}
 
