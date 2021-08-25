@@ -9,11 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- bievents - property `authn-type` to event data for type `login-start`
+
 ### Changed
+
+- bievents - event type `eid-login-start` remodelled to `login-start` with `authn-type=eID`
 
 ### Deprecated
 
 ### Removed
+
+- bievents - event type `eid-login-start`
 
 ### Fixed
 

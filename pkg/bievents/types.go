@@ -7,7 +7,6 @@ const (
 	Register          ActivityType = "register"
 	EmailVerify       ActivityType = "email-verify"
 	Login             ActivityType = "login-start"
-	EIDLogin          ActivityType = "eid-login-start"
 	Logout            ActivityType = "logout"
 	TokenRefresh      ActivityType = "token-refresh"
 	PhoneVerify       ActivityType = "phone-verify"
@@ -26,6 +25,14 @@ const (
 	RecordCreate      ActivityType = "record-create"
 )
 
+type AuthnType string
+
+const (
+	Email AuthnType = "email"
+	SMS   AuthnType = "SMS"
+	EID   AuthnType = "eID"
+)
+
 type UserRegisterData struct {
 	CucID       string    `json:"cuc-id"`
 	AccountType EmailType `json:"account-type"`
@@ -34,14 +41,10 @@ type UserRegisterData struct {
 }
 
 type LoginData struct {
-	ClientID  string `json:"client-id"`
-	SourceURL string `json:"source-url"`
-}
-
-type EIDLoginData struct {
-	Challenge string `json:"eid-challenge"`
-	ClientID  string `json:"client-id"`
-	SourceURL string `json:"source-url"`
+	AuthenticationType AuthnType `json:"authn-type"`
+	ClientID           string    `json:"client-id"`
+	SourceURL          string    `json:"source-url"`
+	Challenge          string    `json:"eid-challenge,omitempty"` // only for authn type eID
 }
 
 type LoginCompleteData struct {
