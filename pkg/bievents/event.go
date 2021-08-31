@@ -2,8 +2,10 @@ package bievents
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"os"
+	"runtime"
 	"sync"
 	"time"
 )
@@ -51,6 +53,7 @@ type Event struct {
 	TenantID           string       `json:"tenant-id"`
 	ConsentDocumentKey string       `json:"consent-document-key"`
 	State              State        `json:"state,omitempty"`
+	EventSource        string       `json:"event-source"`
 }
 
 // WithWriter is an option for NewEventEmitter which lets the caller specify where to
@@ -113,4 +116,12 @@ func (e *Emitter) emit(event Event) BaseEvent {
 		Timestamp:      time.Now().Truncate(time.Second),
 		Event:          event,
 	}
+}
+
+// GetEventSource returns the file and line where this func was called from
+// example: /pkg/handlers/userConsentHandler.go:292
+// the skip parameter can be used to ascend up the call stack
+func GetEventSource(skip int) string {
+	_, fn, line, _ := runtime.Caller(skip)
+	return fmt.Sprintf("%s:%d", fn, line)
 }

@@ -4,7 +4,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"reflect"
+	"strconv"
+	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestLog(t *testing.T) {
@@ -46,6 +50,7 @@ func TestLog(t *testing.T) {
 				"activity-type":        "login",
 				"user-id":              "def",
 				"consent-document-key": "consent",
+				"event-source":         "",
 				"data": map[string]interface{}{
 					"cuc-id":       "cuc_1",
 					"account-type": "internal",
@@ -75,6 +80,7 @@ func TestLog(t *testing.T) {
 				"activity-type":        "login",
 				"user-id":              "def",
 				"consent-document-key": "",
+				"event-source":         "",
 				"data": map[string]interface{}{
 					"cuc-id":       "cuc_2",
 					"account-type": "internal",
@@ -106,4 +112,12 @@ func TestLog(t *testing.T) {
 
 		})
 	}
+}
+
+func TestGetEventSource(t *testing.T) {
+	eventSoource := GetEventSource(0)
+	parts := strings.Split(eventSoource, ":")
+	assert.True(t, strings.HasSuffix(parts[0], "pkg/bievents/event.go"))
+	_, err := strconv.Atoi(parts[1])
+	assert.NoError(t, err)
 }
