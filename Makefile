@@ -1,5 +1,5 @@
 GO_VERSION := 1.16
-CILINT_VERSION := v1.41
+CILINT_VERSION := v1.42
 
 PKG="./..."
 

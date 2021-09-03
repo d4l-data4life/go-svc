@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/gesundheitscloud/go-svc/pkg/d4lcontext"
+	"github.com/gesundheitscloud/go-svc/pkg/dynamic"
 	"github.com/gesundheitscloud/go-svc/pkg/instrumented"
 	"github.com/gesundheitscloud/go-svc/pkg/logging"
 	"github.com/gesundheitscloud/go-svc/pkg/prom"
@@ -19,6 +20,11 @@ import (
 const (
 	// AuthHeaderName is the name of the authheader
 	AuthHeaderName string = "Authorization"
+)
+
+var (
+	ErrorAuthMisconfiguredJWTProvider  = errors.New("authenticator misconfigured: JWT public key provider")
+	ErrorAuthMisconfiguredJWTPublicKey = errors.New("authenticator misconfigured: JWT public key - file missing")
 )
 
 type claims struct {
@@ -36,17 +42,34 @@ type Auth struct {
 	*instrumented.Handler
 	serviceSecret            string
 	publicKey                *rsa.PublicKey
+	publicKeyProvider        JWTPublicKeysProvider
 	instrumentLatencyBuckets []float64
 	instrumentSizeBuckets    []float64
 }
 
 // NewAuth initializes the auth middleware
+// DEPRECATED in favour of: NewAuthentication
 func NewAuth(serviceSecret string, publicKey *rsa.PublicKey, handlerFactory *instrumented.HandlerFactory, opts ...AuthOption) *Auth {
+	return NewAuthentication(serviceSecret, AuthWithRSAPublicKey(publicKey), handlerFactory, opts...)
+}
+
+type JWTPublicKeysProvider interface {
+	JWTPublicKeys() ([]dynamic.JWTPublicKey, error)
+}
+
+// NewAuthentication initializes the auth middleware using JWT pub keys from ViperConfig
+func NewAuthentication(serviceSecret string, keys AuthOptionJWTKeys, handlerFactory *instrumented.HandlerFactory, opts ...AuthOption) *Auth {
 	auth := &Auth{
 		serviceSecret:            serviceSecret,
-		publicKey:                publicKey,
+		publicKey:                nil,
+		publicKeyProvider:        nil,
 		instrumentLatencyBuckets: instrumented.LatencyBuckets,
 		instrumentSizeBuckets:    instrumented.SizeBuckets,
+	}
+
+	// setup keys first - this is obligatory, but passing keys=nil would cause panic
+	if keys != nil {
+		keys(auth)
 	}
 
 	for _, opt := range opts {
@@ -58,6 +81,24 @@ func NewAuth(serviceSecret string, publicKey *rsa.PublicKey, handlerFactory *ins
 		prom.WithSizeBuckets(auth.instrumentSizeBuckets),
 	)
 	return auth
+}
+
+// AuthOptionJWTKeys is to be implemented by functional options
+type AuthOptionJWTKeys func(*Auth)
+
+// AuthWithRSAPublicKey - DEPRECATED - sets the public key from file
+// Use AuthWithPublicKeyProvider instead
+func AuthWithRSAPublicKey(pk *rsa.PublicKey) AuthOptionJWTKeys {
+	return func(a *Auth) {
+		a.publicKey = pk
+	}
+}
+
+// AuthWithPublicKeyProvider sets the JWT public key provider interface
+func AuthWithPublicKeyProvider(prov JWTPublicKeysProvider) AuthOptionJWTKeys {
+	return func(a *Auth) {
+		a.publicKeyProvider = prov
+	}
 }
 
 // AuthOption is to be implemented by functional options
@@ -80,34 +121,24 @@ func AuthWithSizeBuckets(sizeBuckets []float64) AuthOption {
 // JWT is a middleware protecting routes with a jwt based auth
 func (auth *Auth) JWT(next http.Handler) http.Handler {
 	handlerFunc := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		authToken, err := auth.getBearerToken(r)
-		if err != nil {
-			WriteHTTPErrorCode(w, err, http.StatusUnauthorized)
+		authToken, terr := auth.getBearerToken(r)
+		if terr != nil {
+			WriteHTTPErrorCode(w, terr, http.StatusUnauthorized)
 			return
 		}
-		tk := &claims{}
-		_, err = jwt.ParseWithClaims(authToken, tk, func(token *jwt.Token) (interface{}, error) {
-			return auth.publicKey, nil
-		})
-
-		if err != nil {
-			if ve, ok := err.(*jwt.ValidationError); ok {
-				switch {
-				case ve.Errors&jwt.ValidationErrorMalformed != 0:
-					logging.LogErrorfCtx(r.Context(), err, "malformed jwt")
-					WriteHTTPErrorCode(w, errors.New("token is malformed"), http.StatusUnauthorized)
-				case ve.Errors&jwt.ValidationErrorExpired != 0:
-					WriteHTTPErrorCode(w, errors.New("token is expired"), http.StatusUnauthorized)
-				case ve.Errors&jwt.ValidationErrorNotValidYet != 0:
-					WriteHTTPErrorCode(w, errors.New("token is not valid yet"), http.StatusUnauthorized)
-				default:
-					logging.LogErrorfCtx(r.Context(), err, "Error parsing jwt")
-					WriteHTTPErrorCode(w, errors.New("error parsing jwt"), http.StatusUnauthorized)
-				}
-				return
-			}
+		var tk *claims
+		var status int
+		var err error
+		switch {
+		case auth.publicKeyProvider != nil:
+			tk, status, err = auth.jwtProvider(authToken, w, r) // preferred, required for "easier secrets rotation"
+		default:
+			tk, status, err = auth.jwtFile(authToken, w, r) // deprecated, should serve only as fallback for the transition-period
 		}
-
+		if err != nil {
+			WriteHTTPErrorCode(w, err, status)
+			return
+		}
 		ctx := context.WithValue(r.Context(), d4lcontext.ClientIDContextKey, tk.ClientID)
 		ctx = context.WithValue(ctx, d4lcontext.UserIDContextKey, tk.UserID)
 		ctx = context.WithValue(ctx, d4lcontext.TenantIDContextKey, tk.TenantID)
@@ -116,6 +147,66 @@ func (auth *Auth) JWT(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r)
 	})
 	return auth.Instrumenter().Instrument("auth", handlerFunc)
+}
+
+// jwtProvider verifies the request using public keys provided by the key-provider - at least one public key must match
+func (auth *Auth) jwtProvider(authToken string, w http.ResponseWriter, r *http.Request) (tk *claims, status int, err error) {
+	tk = &claims{}
+	if auth.publicKeyProvider == nil {
+		logging.LogErrorfCtx(r.Context(), ErrorAuthMisconfiguredJWTProvider, "JWT public key provider is nil")
+		return tk, http.StatusInternalServerError, ErrorAuthMisconfiguredJWTProvider
+	}
+
+	// we check multiple public keys
+	pubKeys, err := auth.publicKeyProvider.JWTPublicKeys()
+	if err != nil {
+		logging.LogErrorfCtx(r.Context(), err, "unable to use public keys")
+		return tk, http.StatusInternalServerError, err
+	}
+	var jwtParseErr error
+	for _, key := range pubKeys {
+		logging.LogDebugfCtx(r.Context(), "verifying using JWT public key '%s'", key.Name)
+		_, jwtParseErr = jwt.ParseWithClaims(authToken, tk, func(token *jwt.Token) (interface{}, error) {
+			return key.Key, nil
+		})
+		if jwtParseErr == nil {
+			logging.LogDebugfCtx(r.Context(), "JWT public key '%s': match", key.Name)
+			return tk, http.StatusContinue, nil
+		} else {
+			logging.LogDebugfCtx(r.Context(), "JWT public key '%s': no match - %s", key.Name, jwtParseErr.Error())
+		}
+	}
+	// 0 public keys match - return last error
+	return tk, http.StatusUnauthorized, jwtParseErr
+}
+
+// jwtFile verifies the request using single public key provided from file
+func (auth *Auth) jwtFile(authToken string, w http.ResponseWriter, r *http.Request) (tk *claims, status int, err error) {
+	tk = &claims{}
+	if auth.publicKey == nil {
+		logging.LogErrorfCtx(r.Context(), ErrorAuthMisconfiguredJWTPublicKey, "JWT rsa.PublicKey is nil")
+		return tk, http.StatusInternalServerError, ErrorAuthMisconfiguredJWTPublicKey
+	}
+	_, err = jwt.ParseWithClaims(authToken, tk, func(token *jwt.Token) (interface{}, error) {
+		return auth.publicKey, nil
+	})
+	if err != nil {
+		if ve, ok := err.(*jwt.ValidationError); ok {
+			switch {
+			case ve.Errors&jwt.ValidationErrorMalformed != 0:
+				logging.LogErrorfCtx(r.Context(), err, "malformed jwt")
+				return tk, http.StatusUnauthorized, errors.New("token is malformed")
+			case ve.Errors&jwt.ValidationErrorExpired != 0:
+				return tk, http.StatusUnauthorized, errors.New("token is expired")
+			case ve.Errors&jwt.ValidationErrorNotValidYet != 0:
+				return tk, http.StatusUnauthorized, errors.New("token is not valid yet")
+			default:
+				logging.LogErrorfCtx(r.Context(), err, "Error parsing jwt")
+				return tk, http.StatusUnauthorized, errors.New("error parsing jwt")
+			}
+		}
+	}
+	return tk, http.StatusContinue, nil
 }
 
 // ServiceSecret is a middleware protecting routes with a service secret
