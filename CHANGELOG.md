@@ -9,21 +9,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Support for *easier secrets rotation* for JWT keys by adding new constructor `middlewares.NewAuthentication(...)`
-
 ### Changed
 
 ### Deprecated
-
-- Constructor `middlewares.NewAuth(...)` in favor of `middlewares.NewAuthentication(...)`
-    For 1:1 backwards compatibility use: `NewAuthentication(token, AuthWithRSAPublicKey(key), handlerFactory, options...)` instead of `NewAuth(token, key, handlerFactory, options...)`.
-    To support *easier secrets rotation* use: `NewAuthentication(token, AuthWithPublicKeyProvider(viperConfig), handlerFactory, options...)`
 
 ### Removed
 
 ### Fixed
 
 ### Security
+
+## [v1.20.0] - 2021-09-06
+
+### Added
+
+- Support for *easier secrets rotation* for JWT keys by adding new constructor `middlewares.NewAuthentication(...)`
+
+### Deprecated
+
+- Constructor `middlewares.NewAuth(...)` in favor of `middlewares.NewAuthentication(...)`
+    For 1:1 backwards compatibility use: `NewAuthentication(token, AuthWithRSAPublicKey(key), handlerFactory, options...)` instead of `NewAuth(token, key, handlerFactory, options...)`.
+    To support *easier secrets rotation* use: `NewAuthentication(token, AuthWithPublicKeyProvider(viperConfig), handlerFactory, options...)`
 
 ## [v1.19.0] - 2021-08-31
 
@@ -410,7 +416,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial state: standards for Main, HTTP Server, DB access (gorm), Logging, Instrumented-Handler, and K8s Probe
 
-[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.19.0...HEAD
+[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.20.0...HEAD
+[v1.20.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.19.0...v1.20.0
 [v1.19.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.18.0...v1.19.0
 [v1.18.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.17.0...v1.18.0
 [v1.17.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.16.0...v1.17.0
