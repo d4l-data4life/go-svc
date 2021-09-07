@@ -19,6 +19,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+## [v1.21.0] - 2021-09-07
+
+### Added
+
+- http client CSRF transport
+
 ## [v1.20.0] - 2021-09-06
 
 ### Added
@@ -416,7 +422,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial state: standards for Main, HTTP Server, DB access (gorm), Logging, Instrumented-Handler, and K8s Probe
 
-[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.20.0...HEAD
+[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.21.0...HEAD
+[v1.21.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.20.0...v1.21.0
 [v1.20.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.19.0...v1.20.0
 [v1.19.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.18.0...v1.19.0
 [v1.18.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.17.0...v1.18.0
