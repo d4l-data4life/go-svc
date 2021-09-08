@@ -8,6 +8,7 @@ import (
 	"github.com/DATA-DOG/go-txdb"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 type MigrationFunc func(do *gorm.DB) error
@@ -42,6 +43,7 @@ type ConnectionOptions struct {
 	MigrationFunc         MigrationFunc
 	DriverFunc            DriverFunc
 	EnableInstrumentation bool
+	LoggerConfig          logger.Config
 }
 
 type ConnectionOption func(*ConnectionOptions)
@@ -57,6 +59,10 @@ func WithDefaults() ConnectionOption {
 		c.SSLMode = "verify-full"
 		c.SSLRootCertPath = "/root.ca.pem"
 		c.EnableInstrumentation = true
+		c.LoggerConfig = logger.Config{
+			SlowThreshold:             500 * time.Millisecond,
+			IgnoreRecordNotFoundError: true,
+		}
 	}
 }
 
@@ -137,6 +143,12 @@ func WithDriverFunc(fn DriverFunc) ConnectionOption {
 func WithEnableInstrumentation(value bool) ConnectionOption {
 	return func(c *ConnectionOptions) {
 		c.EnableInstrumentation = value
+	}
+}
+
+func WithLoggerConfig(conf logger.Config) ConnectionOption {
+	return func(c *ConnectionOptions) {
+		c.LoggerConfig = conf
 	}
 }
 
