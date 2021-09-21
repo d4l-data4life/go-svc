@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package commonpb;
+option go_package = "github.com/gesundheitscloud/go-svc/pkg/commonpb";
+
+import "google/protobuf/struct.proto";
+
+message Error {
+  string code = 1 [json_name="code"];
+  string trace_id = 2 [json_name="trace_id"];
+  string message = 3 [json_name="message"];
+  google.protobuf.Struct details = 4 [json_name="details"];
+}
+
