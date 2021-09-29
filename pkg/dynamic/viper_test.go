@@ -3,10 +3,226 @@ package dynamic
 import (
 	"bytes"
 	"fmt"
+	"io/ioutil"
+	"log"
+	"os"
+	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
+
+// TestViperConfigCopying ensures that ViperConfing object works correctly when copied in various ways (as long as 'go vet' allows)
+func TestViperConfigCopying(t *testing.T) {
+	// important - watch indentation here! this must produce valid yaml
+	var yamlExample1 = []byte(`
+JWTPublicKey:
+` + pubKeyEntry(t, "public1") + `
+` + pubKeyEntry(t, "public2") + `
+JWTPrivateKey:
+` + privKeyEntry(t, "private1", true) + `
+` + privKeyEntry(t, "private2", false) + `
+`)
+	var yamlExample2 = []byte(`
+JWTPublicKey:
+` + pubKeyEntry(t, "publicA") + `
+JWTPrivateKey:
+` + privKeyEntry(t, "privateA", true) + `
+`)
+	// write config 1 to temp file
+	tmpDir, err := os.MkdirTemp("", "unittest")
+	if err != nil {
+		log.Fatal(err)
+	}
+	t.Logf("created dir %s", tmpDir)
+	defer func() {
+		t.Logf("deleting dir %s", tmpDir)
+		os.RemoveAll(tmpDir) // clean up
+	}()
+	if err := ioutil.WriteFile(filepath.Join(tmpDir, "config.yaml"), yamlExample1, 0666); err != nil {
+		t.Fatal(err)
+	}
+	t.Logf("written file %s", filepath.Join(tmpDir, "config.yaml"))
+
+	vc := NewViperConfig("test", WithConfigFormat("yaml"),
+		WithConfigFileName("config"),
+		WithConfigFilePaths(tmpDir),
+		WithAutoBootstrap(true),
+		WithWatchChanges(true),
+	)
+	if vc.Error != nil {
+		log.Fatal(err, "unable to bootstrap VC")
+	}
+
+	arr, err := vc.JWTPublicKeys()
+	assert.NoError(t, err)
+	assert.Equal(t, 2, len(arr))
+
+	pkey, err := vc.JWTPrivateKey()
+	assert.NoError(t, err)
+	assert.Equal(t, "private1", pkey.Name)
+
+	// now get an interface
+	type vcInterface interface {
+		JWTPublicKeys() ([]JWTPublicKey, error)
+		JWTPrivateKey() (JWTPrivateKey, error)
+	}
+
+	// interfacerFun accepts VC in form of an interface
+	interfacerFun := func(d vcInterface, t *testing.T, numPub int, privName, testName string) {
+		arr, err := d.JWTPublicKeys()
+		assert.NoError(t, err, testName)
+		assert.Equal(t, numPub, len(arr), testName)
+
+		pkey, err := d.JWTPrivateKey()
+		assert.NoError(t, err, testName)
+		assert.Equal(t, privName, pkey.Name, testName)
+	}
+	// we also tested this for copying of vc, but 'go vet' disallows such code -
+	// call of purerFun copies lock value: (...)dynamic.ViperConfig contains sync.Once contains sync.Mutex
+
+	// pointerFun accepts VC in its natural form as pointer
+	pointerFun := func(vc *ViperConfig, t *testing.T, numPub int, privName, testName string) {
+		arr, err := vc.JWTPublicKeys()
+		assert.NoError(t, err, testName)
+		assert.Equal(t, numPub, len(arr), testName)
+
+		pkey, err := vc.JWTPrivateKey()
+		assert.NoError(t, err, testName)
+		assert.Equal(t, privName, pkey.Name, testName)
+	}
+
+	interfacerFun(vc, t, 2, "private1", "phase1-interfacer")
+	pointerFun(vc, t, 2, "private1", "phase1-pointer")
+
+	// now simulate hot-reload of the config
+	if err := ioutil.WriteFile(filepath.Join(tmpDir, "config.yaml"), yamlExample2, 0666); err != nil {
+		t.Fatal(err)
+	}
+	// wait a bit for the filesystem to catch the changes in the config files and notify Viper
+	<-time.After(50 * time.Millisecond)
+
+	// all forms should catch the new changes
+	interfacerFun(vc, t, 1, "privateA", "phase2-interfacer")
+	pointerFun(vc, t, 1, "privateA", "phase2-pointer")
+}
+
+// TestViperConfigHotReloadAfterMerge ensures that ViperConfing (VC) object works (in)correctly after merging with another VC object
+func TestViperConfigHotReloadAfterMerge(t *testing.T) {
+	// important - watch indentation here! this must produce valid yaml
+	var yamlExample1 = []byte(`
+JWTPublicKey:
+` + pubKeyEntry(t, "public1") + `
+` + pubKeyEntry(t, "public2"))
+
+	var yamlExample2 = []byte(`
+JWTPrivateKey:
+` + privKeyEntry(t, "private1", true) + `
+` + privKeyEntry(t, "private2", false) + `
+`)
+	// prepare two separate temporary dirs
+	tmpDir1, err := os.MkdirTemp("", "unittest1")
+	if err != nil {
+		log.Fatal(err)
+	}
+	t.Logf("created dir %s", tmpDir1)
+	defer func() {
+		t.Logf("deleting dir %s", tmpDir1)
+		os.RemoveAll(tmpDir1) // clean up
+	}()
+	tmpDir2, err := os.MkdirTemp("", "unittest2")
+	if err != nil {
+		log.Fatal(err)
+	}
+	t.Logf("created dir %s", tmpDir2)
+	defer func() {
+		t.Logf("deleting dir %s", tmpDir2)
+		os.RemoveAll(tmpDir2) // clean up
+	}()
+
+	// Write to config.yaml files to separate dirs
+	if err := ioutil.WriteFile(filepath.Join(tmpDir1, "config.yaml"), yamlExample1, 0666); err != nil {
+		t.Fatal(err)
+	}
+	t.Logf("written file %s", filepath.Join(tmpDir1, "config.yaml"))
+
+	if err := ioutil.WriteFile(filepath.Join(tmpDir2, "config.yaml"), yamlExample2, 0666); err != nil {
+		t.Fatal(err)
+	}
+	t.Logf("written file %s", filepath.Join(tmpDir2, "config.yaml"))
+
+	// build 2 separate vc objects
+	vc1 := NewViperConfig("test1", WithConfigFormat("yaml"),
+		WithConfigFileName("config"),
+		WithConfigFilePaths(tmpDir1),
+		WithAutoBootstrap(true),
+		WithWatchChanges(true),
+	)
+	if vc1.Error != nil {
+		log.Fatal(err, "unable to bootstrap VC1")
+	}
+	vc2 := NewViperConfig("test2", WithConfigFormat("yaml"),
+		WithConfigFileName("config"),
+		WithConfigFilePaths(tmpDir2),
+		WithAutoBootstrap(true),
+		WithWatchChanges(true),
+	)
+	if vc2.Error != nil {
+		log.Fatal(err, "unable to bootstrap VC2")
+	}
+	// sanity checks
+	arr, err := vc1.JWTPublicKeys()
+	assert.NoError(t, err)
+	assert.Equal(t, 2, len(arr))
+
+	pkey, err := vc2.JWTPrivateKey()
+	assert.NoError(t, err)
+	assert.Equal(t, "private1", pkey.Name)
+
+	// now merge the two VC into 1
+	err = vc1.MergeAndDisableHotReload(vc2)
+	assert.NoError(t, err)
+	// vc1 consits now of vc1+vc2
+	assert.Equal(t, vc1.name, "merged-test1+test2")
+	// now, the bound between merged vc1 and config file 2 is lost
+	// updating config.yaml in tmpDir2 will NOT lead to correct hot-reloading of merged config, however, the config from tmpDir1 should be updated
+
+	// now simulate hot-reload of the config 1 and 2
+	var yamlExample1B = []byte(`
+JWTPublicKey:
+` + pubKeyEntry(t, "publicA") + `
+` + pubKeyEntry(t, "publicB") + `
+` + pubKeyEntry(t, "publicC"))
+
+	if err := ioutil.WriteFile(filepath.Join(tmpDir1, "config.yaml"), yamlExample1B, 0666); err != nil {
+		t.Fatal(err)
+	}
+	var yamlExample2B = []byte(`
+JWTPrivateKey:
+` + privKeyEntry(t, "privateA", true) + `
+` + privKeyEntry(t, "privateB", false) + `
+`)
+
+	if err := ioutil.WriteFile(filepath.Join(tmpDir2, "config.yaml"), yamlExample2B, 0666); err != nil {
+		t.Fatal(err)
+	}
+	// wait a bit for the filesystem to catch the changes in the config files and notify Viper
+	<-time.After(50 * time.Millisecond)
+
+	arr, err = vc1.JWTPublicKeys()
+	assert.NoError(t, err)
+	assert.Equal(t, 3, len(arr))
+	assert.Equal(t, "publicA", arr[0].Name)
+	assert.Equal(t, "publicB", arr[1].Name)
+	assert.Equal(t, "publicC", arr[2].Name)
+
+	pkey, err = vc1.JWTPrivateKey()
+	assert.NoError(t, err)
+	assert.NotEqual(t, "privateA", pkey.Name) // We all would like that this would work this way ;(
+	assert.Equal(t, "private1", pkey.Name)    // instead, the hot-reload for the vc2 is ignored, and we see the old value here
+
+}
 
 // privKeyEntry is test helper (hence t in params) to generate a valid priv Key entry
 func privKeyEntry(t *testing.T, name string, enabled bool) string {
@@ -224,7 +440,7 @@ JWTPublicKey:
 	)
 	assert.NoError(t, vc2.Bootstrap())
 
-	assert.NoError(t, vc.Merge(vc2))
+	assert.NoError(t, vc.MergeAndDisableHotReload(vc2))
 	assert.Equal(t, "merged-public+private", vc.name)
 
 	arr, err := vc.JWTPublicKeys()

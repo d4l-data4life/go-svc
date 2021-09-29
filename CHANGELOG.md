@@ -9,11 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- dynamic - Metrics for monitoring bootstrapping and hot-reloading of JWT keys
+- dynamic - `ViperConfig.WithServiceName` to provide information about service name for more informative metrics
 - Add commonpb package
 
 ### Changed
 
+- dynamic - Renamed `ViperConfig.Merge` to `ViperConfig.MergeAndDisableHotReload` to increase awareness about its side-effects
+
 ### Deprecated
+
+- dynamic - `ViperConfig.Merge / MergeAndDisableHotReload` shall not be used anymore to prevent occurrences of hard-to-debug side-effects (it disables hot-reload)
 
 ### Removed
 

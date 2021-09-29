@@ -175,6 +175,13 @@ func WithConfigFormat(configFormat string) ViperConfigOpt {
 		vp.configFormat = configFormat
 	}
 }
+func WithServiceName(s string) ViperConfigOpt {
+	return func(vp *ViperConfig) {
+		vp.svcName = s
+	}
+}
+
+// WithAutoBootstrap setting this to false disables WithWatchChanges(true)
 func WithAutoBootstrap(b bool) ViperConfigOpt {
 	return func(vp *ViperConfig) {
 		vp.autoBootstrap = b
@@ -212,6 +219,8 @@ func WithViperVerbose(b bool) ViperConfigOpt {
 type ViperConfig struct {
 	// name of the ViperConfig entity
 	name string
+	// serviceName is the identifier of the service using ViperConfig entity
+	svcName string
 	// Error stores config bootstraping and loading errors
 	Error error
 
@@ -259,6 +268,7 @@ type ViperConfig struct {
 func NewViperConfig(name string, opts ...ViperConfigOpt) *ViperConfig {
 	vp := &ViperConfig{
 		name:            name,
+		svcName:         "unknown-svc",
 		configSrc:       nil,
 		configPaths:     []string{"."},
 		configFileName:  "config",
@@ -296,12 +306,15 @@ func NewViperConfig(name string, opts ...ViperConfigOpt) *ViperConfig {
 	if vp.watchChanges {
 		vp.WatchConfig()
 	}
+	AddDynamicPkgMetrics(vp.svcName, vp.v.ConfigFileUsed(), vp.autoBootstrap)
 	return vp
 }
 
-// Merge merges values from another viper instance into the current one
+// MergeAndDisableHotReload merges values from another viper instance into the current one
 // to be used when configs are provided in multiple files, as one viper instance can read config only from a single file
-func (vc *ViperConfig) Merge(other *ViperConfig) error {
+// WARNING: MERGING DISABLES HOT-RELOAD of the 'other' config - use with caution!
+// the name MergeAndDisableHotReload shall ensure that users understand the consequences of using it
+func (vc *ViperConfig) MergeAndDisableHotReload(other *ViperConfig) error {
 	orgName := vc.name
 	_ = other.v.ReadInConfig()
 	vc.logger.LogDebug("Merging '%s' into '%s'", other.name, vc.name)
@@ -328,9 +341,11 @@ func (vc *ViperConfig) bootstrap() error {
 		err := vc.v.ReadConfig(vc.configSrc)
 		if err == nil {
 			vc.logger.LogDebug("Boostrap finished. Setting keys (secrets): %s", strings.Join(vc.v.AllKeys(), ","))
+			MetricBootstrapStatus.WithLabelValues(string(vc.name), string(vc.svcName)).Set(1)
 			vc.handleConfigChange(fsnotify.Event{Name: "ViperConfig.Bootstrap event with useCustomSource"})
 		} else {
 			vc.logger.LogDebug("Boostrap failed. Error: %s", err.Error())
+			MetricBootstrapStatus.WithLabelValues(string(vc.name), string(vc.svcName)).Set(0)
 		}
 		return err
 	}
@@ -344,13 +359,16 @@ func (vc *ViperConfig) bootstrap() error {
 		if err2, ok := err.(viper.ConfigFileNotFoundError); ok {
 			// Config file not found
 			// this error can be optionally ignored - maybe in a moment the config file will be fixed and auto-reloaded?
+			MetricBootstrapStatus.WithLabelValues(string(vc.name), string(vc.svcName)).Set(0)
 			return fmt.Errorf("cannot find config file: %s \n", vc.v.ConfigFileUsed())
 		} else {
 			// Config file was found but another error was produced
+			MetricBootstrapStatus.WithLabelValues(string(vc.name), string(vc.svcName)).Set(0)
 			return fmt.Errorf("error reading config file: %w \n", err2)
 		}
 	}
 
+	MetricBootstrapStatus.WithLabelValues(string(vc.name), string(vc.svcName)).Set(1)
 	vc.logger.LogDebug("Boostrap finished. Setting keys (secrets): %s", strings.Join(vc.v.AllKeys(), ","))
 	vc.handleConfigChange(fsnotify.Event{Name: "ViperConfig.Bootstrap event"})
 	return nil
@@ -395,22 +413,28 @@ func (vc *ViperConfig) WatchConfig() {
 func (vc *ViperConfig) handleConfigChange(e ...fsnotify.Event) {
 	if fatalErr, infoErrs := vc.updatePublicKeys(); fatalErr != nil {
 		vc.logger.LogError(fatalErr, "fatal error")
+		MetricConfigHotReloads.WithLabelValues(string(vc.name), string(vc.svcName), "JWT-pub-keys", "failed").Inc()
 	} else if len(infoErrs) > 0 {
 		for _, infoErr := range infoErrs {
 			vc.logger.LogError(infoErr, "partial error")
 		}
+		MetricConfigHotReloads.WithLabelValues(string(vc.name), string(vc.svcName), "JWT-pub-keys", "ok-but-parts-failed").Inc()
 	} else {
 		vc.logger.LogInfo("successfully read config for JWT public keys")
+		MetricConfigHotReloads.WithLabelValues(string(vc.name), string(vc.svcName), "JWT-pub-keys", "ok").Inc()
 	}
 
 	if fatalErr, infoErrs := vc.updatePrivateKeys(); fatalErr != nil {
 		vc.logger.LogError(fatalErr, "fatal error")
+		MetricConfigHotReloads.WithLabelValues(string(vc.name), string(vc.svcName), "JWT-priv-keys", "failed").Inc()
 	} else if len(infoErrs) > 0 {
 		for _, infoErr := range infoErrs {
 			vc.logger.LogError(infoErr, "partial error")
+			MetricConfigHotReloads.WithLabelValues(string(vc.name), string(vc.svcName), "JWT-priv-keys", "ok-but-parts-failed").Inc()
 		}
 	} else {
 		vc.logger.LogInfo("successfully read config for JWT private keys")
+		MetricConfigHotReloads.WithLabelValues(string(vc.name), string(vc.svcName), "JWT-priv-keys", "ok").Inc()
 	}
 
 	vc.logger.LogDebug(vc.logSummary())
@@ -447,8 +471,10 @@ func (vc *ViperConfig) JWTPublicKeys() ([]JWTPublicKey, error) {
 func (vc *ViperConfig) updatePublicKeys() (fatal error, infoErrs []error) {
 	keys, fatalErr, infoErrs := parsePublicKeys(vc.v, vc.logger)
 	if fatalErr != nil {
+		MetricSecretsLoaded.WithLabelValues(string(vc.name), string(vc.svcName), "JWT-pub-keys").Set(float64(0))
 		return fatalErr, infoErrs
 	}
+	MetricSecretsLoaded.WithLabelValues(string(vc.name), string(vc.svcName), "JWT-pub-keys").Set(float64(len(keys) - len(infoErrs)))
 	vc.pubKeys = keys // store the keys to speed-up access in the future
 	return nil, infoErrs
 }
@@ -503,6 +529,7 @@ func (vc *ViperConfig) JWTPrivateKey() (JWTPrivateKey, error) {
 func (vc *ViperConfig) updatePrivateKeys() (fatal error, infoErr []error) {
 	keys, fatalErr, infoErrs := parsePrivateKeys(vc.v, vc.logger)
 	if fatalErr != nil {
+		MetricSecretsLoaded.WithLabelValues(string(vc.name), string(vc.svcName), "JWT-priv-keys").Set(0)
 		return fatalErr, infoErr
 	}
 
@@ -526,6 +553,7 @@ func (vc *ViperConfig) updatePrivateKeys() (fatal error, infoErr []error) {
 		currentlyActiveKey = vc.activePrivKey.Name
 	}
 	vc.logger.LogDebug("post-update active private key: '%s'", currentlyActiveKey)
+	MetricSecretsLoaded.WithLabelValues(string(vc.name), string(vc.svcName), "JWT-priv-keys").Set(float64(len(keys) - len(infoErrs)))
 	return nil, infoErrs
 }
 

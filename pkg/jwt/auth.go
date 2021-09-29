@@ -49,8 +49,7 @@ type Authenticator struct {
 // New (DEPRECATED in favour of NewAuthenticator) creates an Authenticator that creates an auth Middleware.
 // It supports single public key in rsa form
 func New(pk *rsa.PublicKey, l logger) *Authenticator {
-	dkp := &DummyKeyProvider{Key: pk}
-	return &Authenticator{keyProvider: dkp, logger: l}
+	return &Authenticator{keyProvider: &DummyKeyProvider{Key: pk}, logger: l}
 }
 
 // NewAuthenticator creates an Authenticator that creates an auth Middleware for
