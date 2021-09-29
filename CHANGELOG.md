@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## [v1.23.0] - 2021-09-29
+
+### Added
+
 - dynamic - Metrics for monitoring bootstrapping and hot-reloading of JWT keys
 - dynamic - `ViperConfig.WithServiceName` to provide information about service name for more informative metrics
 - Add commonpb package
@@ -20,12 +34,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Deprecated
 
 - dynamic - `ViperConfig.Merge / MergeAndDisableHotReload` shall not be used anymore to prevent occurrences of hard-to-debug side-effects (it disables hot-reload)
-
-### Removed
-
-### Fixed
-
-### Security
 
 ## [v1.22.0] - 2021-09-14
 
@@ -437,7 +445,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial state: standards for Main, HTTP Server, DB access (gorm), Logging, Instrumented-Handler, and K8s Probe
 
-[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.22.0...HEAD
+[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.23.0...HEAD
+[v1.23.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.22.0...v1.23.0
 [v1.22.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.21.0...v1.22.0
 [v1.21.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.20.0...v1.21.0
 [v1.20.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.19.0...v1.20.0
