@@ -31,7 +31,7 @@ require (
 	golang.org/x/oauth2 v0.0.0-20210514164344-f6687ab2804c
 	golang.org/x/sys v0.0.0-20210809222454-d867a43fc93e // indirect
 	golang.org/x/text v0.3.7 // indirect
-	google.golang.org/protobuf v1.27.1 // indirect
+	google.golang.org/protobuf v1.27.1
 	gorm.io/driver/postgres v1.1.0
 	gorm.io/driver/sqlite v1.1.4
 	gorm.io/gorm v1.21.12

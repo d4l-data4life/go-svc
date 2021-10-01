@@ -62,6 +62,22 @@ func (e *PrettyEncoder) Encode(entry interface{}) error {
 	case outResponseLog:
 		s = fmt.Sprintf("%s %s %s | traceID: %s; userID: %s; url: %s; code: %d; roundtrip-duration: %d | %s",
 			v.Timestamp.Format(timeFmt), v.LogLevel, v.EventType, v.TraceID, v.UserID, v.ReqURL, v.ResponseCode, v.Duration, v.ResponseBody)
+	case sqlLogEntry:
+		s = fmt.Sprintf("%s %s %s | traceId: %s; userID: %s | action: %s; Duration: %d",
+			v.Timestamp.Format(timeFmt), v.LogLevel, v.EventType, v.TraceID, v.UserID, v.Action, v.Duration)
+
+		if v.Error != "" {
+			s += fmt.Sprintf(" err: %s", v.Error)
+		}
+
+		if v.Sql != "" {
+			s += fmt.Sprintf(" sql: %s", v.Sql)
+		}
+
+		if v.Args != "" {
+			s += fmt.Sprintf(" args: %s", v.Args)
+		}
+
 	default:
 		return fmt.Errorf("unknown log type: %T", v)
 	}
