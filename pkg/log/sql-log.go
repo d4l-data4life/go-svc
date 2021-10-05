@@ -2,6 +2,7 @@ package log
 
 import (
 	"context"
+	"errors"
 	"time"
 )
 
@@ -18,6 +19,10 @@ func (l *Logger) SqlLog(
 	sqlLogData SqlLogData,
 ) error {
 	traceID, userID, clientID := parseContext(ctx)
+
+	if sqlLogData.Error == nil {
+		sqlLogData.Error = errors.New("")
+	}
 
 	return l.Log(sqlLogEntry{
 		Timestamp:      time.Now(),
