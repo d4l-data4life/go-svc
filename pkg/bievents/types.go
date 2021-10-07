@@ -23,6 +23,7 @@ const (
 	RecordRead        ActivityType = "record-read"
 	RecordBulkRead    ActivityType = "record-bulk-read"
 	RecordCreate      ActivityType = "record-create"
+	PasswordReset     ActivityType = "password-reset"
 )
 
 type AuthnType string
@@ -31,6 +32,13 @@ const (
 	Email AuthnType = "email"
 	SMS   AuthnType = "SMS"
 	EID   AuthnType = "eID"
+)
+
+type PasswordResetAuthnType string
+
+const (
+	EmailToken       PasswordResetAuthnType = "email-token"
+	RecoveryPassword PasswordResetAuthnType = "recovery-password"
 )
 
 type UserRegisterData struct {
@@ -91,4 +99,8 @@ type SharingCompleteData struct {
 
 type SharingRevokedData struct {
 	SharingSessionID string `json:"sharing-session-id"`
+}
+
+type PasswordResetData struct {
+	AuthenticationType PasswordResetAuthnType `json:"authn-type"`
 }

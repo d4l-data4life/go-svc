@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- bievents - event type `password-reset`
+
 ### Changed
 
 ### Deprecated
@@ -21,7 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [v1.24.0] - 2021-10-05
 
-### Added 
+### Added
 
 - log - New sql logging function
 
