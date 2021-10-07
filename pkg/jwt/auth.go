@@ -101,10 +101,9 @@ func (auth *Authenticator) Extract(next http.Handler) http.Handler {
 
 // VerifyAny checks if any of the many JWT keys satisfies given rules
 func (auth *Authenticator) VerifyAny(rules ...rule) func(handler http.Handler) http.Handler {
-	candidateKeys, err := auth.keyProvider.JWTPublicKeys()
-
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			candidateKeys, err := auth.keyProvider.JWTPublicKeys()
 			if err != nil {
 				err := fmt.Errorf("jwt.VerifyAny: keyProvider.PublicKeys() failed: %w", err)
 				_ = auth.logger.ErrUserAuth(r.Context(), errors.Wrap(err, ErrMsgVerifier))
@@ -135,7 +134,7 @@ func (auth *Authenticator) VerifyAny(rules ...rule) func(handler http.Handler) h
 				}
 			}
 			// haven't found any valid key
-			err := fmt.Errorf("jwt.VerifyAny: verification failed for all %d public keys", len(candidateKeys))
+			err = fmt.Errorf("jwt.VerifyAny: verification failed for all %d public keys", len(candidateKeys))
 			_ = auth.logger.ErrUserAuth(r.Context(), errors.Wrap(err, ErrMsgVerifier))
 			httpClientError(w, lastStatus)
 		})
