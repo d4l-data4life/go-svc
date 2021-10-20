@@ -1,58 +1,33 @@
-package dynamic
+package dynamic_test
 
 import (
 	"bytes"
-	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"path/filepath"
 	"testing"
 	"time"
 
+	"github.com/gesundheitscloud/go-svc/pkg/dynamic"
 	"github.com/stretchr/testify/assert"
 )
 
 // TestViperConfigCopying ensures that ViperConfing object works correctly when copied in various ways (as long as 'go vet' allows)
 func TestViperConfigCopying(t *testing.T) {
-	// important - watch indentation here! this must produce valid yaml
-	var yamlExample1 = []byte(`
-JWTPublicKey:
-` + pubKeyEntry(t, "public1") + `
-` + pubKeyEntry(t, "public2") + `
-JWTPrivateKey:
-` + privKeyEntry(t, "private1", true) + `
-` + privKeyEntry(t, "private2", false) + `
-`)
-	var yamlExample2 = []byte(`
-JWTPublicKey:
-` + pubKeyEntry(t, "publicA") + `
-JWTPrivateKey:
-` + privKeyEntry(t, "privateA", true) + `
-`)
-	// write config 1 to temp file
-	tmpDir, err := os.MkdirTemp("", "unittest")
-	if err != nil {
-		log.Fatal(err)
-	}
-	t.Logf("created dir %s", tmpDir)
+	// create config.yaml with 2 keys: A0, A1
+	tmpDir := generateAndWriteConfig(t, 2, "A", "")
 	defer func() {
-		t.Logf("deleting dir %s", tmpDir)
-		os.RemoveAll(tmpDir) // clean up
+		os.RemoveAll(tmpDir) // clean up the temp dir
 	}()
-	if err := ioutil.WriteFile(filepath.Join(tmpDir, "config.yaml"), yamlExample1, 0666); err != nil {
-		t.Fatal(err)
-	}
-	t.Logf("written file %s", filepath.Join(tmpDir, "config.yaml"))
 
-	vc := NewViperConfig("test", WithConfigFormat("yaml"),
-		WithConfigFileName("config"),
-		WithConfigFilePaths(tmpDir),
-		WithAutoBootstrap(true),
-		WithWatchChanges(true),
+	vc := dynamic.NewViperConfig("test", dynamic.WithConfigFormat("yaml"),
+		dynamic.WithConfigFileName("config"),
+		dynamic.WithConfigFilePaths(tmpDir),
+		dynamic.WithAutoBootstrap(true),
+		dynamic.WithWatchChanges(true),
 	)
 	if vc.Error != nil {
-		log.Fatal(err, "unable to bootstrap VC")
+		t.Fatal(vc.Error, "unable to bootstrap VC")
 	}
 
 	arr, err := vc.JWTPublicKeys()
@@ -61,12 +36,12 @@ JWTPrivateKey:
 
 	pkey, err := vc.JWTPrivateKey()
 	assert.NoError(t, err)
-	assert.Equal(t, "private1", pkey.Name)
+	assert.Equal(t, "A0", pkey.Name)
 
 	// now get an interface
 	type vcInterface interface {
-		JWTPublicKeys() ([]JWTPublicKey, error)
-		JWTPrivateKey() (JWTPrivateKey, error)
+		JWTPublicKeys() ([]dynamic.JWTPublicKey, error)
+		JWTPrivateKey() (dynamic.JWTPrivateKey, error)
 	}
 
 	// interfacerFun accepts VC in form of an interface
@@ -83,7 +58,7 @@ JWTPrivateKey:
 	// call of purerFun copies lock value: (...)dynamic.ViperConfig contains sync.Once contains sync.Mutex
 
 	// pointerFun accepts VC in its natural form as pointer
-	pointerFun := func(vc *ViperConfig, t *testing.T, numPub int, privName, testName string) {
+	pointerFun := func(vc *dynamic.ViperConfig, t *testing.T, numPub int, privName, testName string) {
 		arr, err := vc.JWTPublicKeys()
 		assert.NoError(t, err, testName)
 		assert.Equal(t, numPub, len(arr), testName)
@@ -93,38 +68,32 @@ JWTPrivateKey:
 		assert.Equal(t, privName, pkey.Name, testName)
 	}
 
-	interfacerFun(vc, t, 2, "private1", "phase1-interfacer")
-	pointerFun(vc, t, 2, "private1", "phase1-pointer")
+	interfacerFun(vc, t, 2, "A0", "phase1-interfacer")
+	pointerFun(vc, t, 2, "A0", "phase1-pointer")
 
 	// now simulate hot-reload of the config
-	if err := ioutil.WriteFile(filepath.Join(tmpDir, "config.yaml"), yamlExample2, 0666); err != nil {
-		t.Fatal(err)
-	}
+	// KEY ROTATION ON DISK IS HAPPENING HERE
+	// replace 4 key entries named `pre` with only one key named `post`
+	tmpDir = generateAndWriteConfig(t, 1, "B", tmpDir)
 	// wait a bit for the filesystem to catch the changes in the config files and notify Viper
-	<-time.After(50 * time.Millisecond)
+	<-time.After(500 * time.Millisecond)
 
 	// all forms should catch the new changes
-	interfacerFun(vc, t, 1, "privateA", "phase2-interfacer")
-	pointerFun(vc, t, 1, "privateA", "phase2-pointer")
+	interfacerFun(vc, t, 1, "B0", "phase2-interfacer")
+	pointerFun(vc, t, 1, "B0", "phase2-pointer")
 }
 
 // TestViperConfigHotReloadAfterMerge ensures that ViperConfing (VC) object works (in)correctly after merging with another VC object
 func TestViperConfigHotReloadAfterMerge(t *testing.T) {
-	// important - watch indentation here! this must produce valid yaml
-	var yamlExample1 = []byte(`
-JWTPublicKey:
-` + pubKeyEntry(t, "public1") + `
-` + pubKeyEntry(t, "public2"))
+	priv1, pub1 := keyEntries(t, "one", true)
+	priv2, pub2 := keyEntries(t, "two", false)
+	var yamlExample1 = []byte(publicKeyYaml(pub1, pub2))    // only public keys
+	var yamlExample2 = []byte(privateKeyYaml(priv1, priv2)) // only private keys - we will merge both later
 
-	var yamlExample2 = []byte(`
-JWTPrivateKey:
-` + privKeyEntry(t, "private1", true) + `
-` + privKeyEntry(t, "private2", false) + `
-`)
 	// prepare two separate temporary dirs
 	tmpDir1, err := os.MkdirTemp("", "unittest1")
 	if err != nil {
-		log.Fatal(err)
+		t.Fatal(err)
 	}
 	t.Logf("created dir %s", tmpDir1)
 	defer func() {
@@ -133,7 +102,7 @@ JWTPrivateKey:
 	}()
 	tmpDir2, err := os.MkdirTemp("", "unittest2")
 	if err != nil {
-		log.Fatal(err)
+		t.Fatal(err)
 	}
 	t.Logf("created dir %s", tmpDir2)
 	defer func() {
@@ -153,23 +122,23 @@ JWTPrivateKey:
 	t.Logf("written file %s", filepath.Join(tmpDir2, "config.yaml"))
 
 	// build 2 separate vc objects
-	vc1 := NewViperConfig("test1", WithConfigFormat("yaml"),
-		WithConfigFileName("config"),
-		WithConfigFilePaths(tmpDir1),
-		WithAutoBootstrap(true),
-		WithWatchChanges(true),
+	vc1 := dynamic.NewViperConfig("test1", dynamic.WithConfigFormat("yaml"),
+		dynamic.WithConfigFileName("config"),
+		dynamic.WithConfigFilePaths(tmpDir1),
+		dynamic.WithAutoBootstrap(true),
+		dynamic.WithWatchChanges(true),
 	)
 	if vc1.Error != nil {
-		log.Fatal(err, "unable to bootstrap VC1")
+		t.Fatal(vc1.Error, "unable to bootstrap VC1")
 	}
-	vc2 := NewViperConfig("test2", WithConfigFormat("yaml"),
-		WithConfigFileName("config"),
-		WithConfigFilePaths(tmpDir2),
-		WithAutoBootstrap(true),
-		WithWatchChanges(true),
+	vc2 := dynamic.NewViperConfig("test2", dynamic.WithConfigFormat("yaml"),
+		dynamic.WithConfigFileName("config"),
+		dynamic.WithConfigFilePaths(tmpDir2),
+		dynamic.WithAutoBootstrap(true),
+		dynamic.WithWatchChanges(true),
 	)
 	if vc2.Error != nil {
-		log.Fatal(err, "unable to bootstrap VC2")
+		t.Fatal(vc2.Error, "unable to bootstrap VC2")
 	}
 	// sanity checks
 	arr, err := vc1.JWTPublicKeys()
@@ -178,31 +147,26 @@ JWTPrivateKey:
 
 	pkey, err := vc2.JWTPrivateKey()
 	assert.NoError(t, err)
-	assert.Equal(t, "private1", pkey.Name)
+	assert.Equal(t, "one", pkey.Name)
 
 	// now merge the two VC into 1
 	err = vc1.MergeAndDisableHotReload(vc2)
 	assert.NoError(t, err)
 	// vc1 consits now of vc1+vc2
-	assert.Equal(t, vc1.name, "merged-test1+test2")
+	assert.Equal(t, vc1.Name(), "merged-test1+test2")
 	// now, the bound between merged vc1 and config file 2 is lost
 	// updating config.yaml in tmpDir2 will NOT lead to correct hot-reloading of merged config, however, the config from tmpDir1 should be updated
 
 	// now simulate hot-reload of the config 1 and 2
-	var yamlExample1B = []byte(`
-JWTPublicKey:
-` + pubKeyEntry(t, "publicA") + `
-` + pubKeyEntry(t, "publicB") + `
-` + pubKeyEntry(t, "publicC"))
+	privA, pubA := keyEntries(t, "A", true)
+	privB, pubB := keyEntries(t, "B", false)
+	_, pubC := keyEntries(t, "C", false)
+	var yamlExample1B = []byte(publicKeyYaml(pubA, pubB, pubC))
 
 	if err := ioutil.WriteFile(filepath.Join(tmpDir1, "config.yaml"), yamlExample1B, 0666); err != nil {
 		t.Fatal(err)
 	}
-	var yamlExample2B = []byte(`
-JWTPrivateKey:
-` + privKeyEntry(t, "privateA", true) + `
-` + privKeyEntry(t, "privateB", false) + `
-`)
+	var yamlExample2B = []byte(privateKeyYaml(privA, privB))
 
 	if err := ioutil.WriteFile(filepath.Join(tmpDir2, "config.yaml"), yamlExample2B, 0666); err != nil {
 		t.Fatal(err)
@@ -213,85 +177,24 @@ JWTPrivateKey:
 	arr, err = vc1.JWTPublicKeys()
 	assert.NoError(t, err)
 	assert.Equal(t, 3, len(arr))
-	assert.Equal(t, "publicA", arr[0].Name)
-	assert.Equal(t, "publicB", arr[1].Name)
-	assert.Equal(t, "publicC", arr[2].Name)
+	assert.Equal(t, "A", arr[0].Name)
+	assert.Equal(t, "B", arr[1].Name)
+	assert.Equal(t, "C", arr[2].Name)
 
 	pkey, err = vc1.JWTPrivateKey()
 	assert.NoError(t, err)
-	assert.NotEqual(t, "privateA", pkey.Name) // We all would like that this would work this way ;(
-	assert.Equal(t, "private1", pkey.Name)    // instead, the hot-reload for the vc2 is ignored, and we see the old value here
+	assert.NotEqual(t, "A", pkey.Name) // We all would like that this would work this way ;(
+	assert.Equal(t, "one", pkey.Name)  // instead, the hot-reload for the vc2 is ignored, and we see the old value here
 
-}
-
-// privKeyEntry is test helper (hence t in params) to generate a valid priv Key entry
-func privKeyEntry(t *testing.T, name string, enabled bool) string {
-	return `
-- name: "` + name + `"
-  comment: "generated with: openssl genrsa 2048 -out private.pem"
-  enabled: ` + fmt.Sprintf("%t", enabled) + `
-  created_at: "unknown"
-  author: "Jenkins"
-  key: |
-    -----BEGIN RSA PRIVATE KEY-----
-    MIIEowIBAAKCAQEArUG/lcVDen29RnHK+f1E5UzoXAAMTT5Xatdts7o4+jNwXl7L
-    uYSAnmrl50XjyM5fLCog6G+qLz0L6U07EbXB0B/paHuYLlAG9rIYIaAceZYrhMRe
-    USx3DL2yIpawa1YR9QYgyHTY2/3sXF+vd/T7JNqBxI/v0vZkhaFCugrWlvAICC1Y
-    jQXrjZqRRPl0OsUwZ2kmRvlqvYcVSLEif+uKeNMyplThb9CEQZdjjLMSskYzcmGS
-    fPc10ciEDhYR4O5M8vOO5DLeLwj6dw/PTrrslAxrdQqiP4/xyx89ZfFMsxBIBw5J
-    eZ0VnQ46Chr5Dy34A/FacA3Sqb0ZEFkmwCTBjwIDAQABAoIBAQCMpb0zhinbPEv0
-    7deKzVGqm55dYSSbaCpq72t85YXvhuaHlYjol2oaMElmT9Q0ZWPZZHHGfy+2nWYY
-    BLwZCmXF4MIIMZ0+q3Sbu8PfOC0lfwThCNBQMTqLu0rqzU12NS7qrAjc8g5BuIay
-    DnNRfCyMpF2IBhj4N1EvMdQLV1UQvYChvuok/oe9xxXPlhb9HCrHhs0WXamhuYmj
-    2ZkAPtZ/zM7tzeiHfczx5sUh2BqtkiWDcpezkDhEQhn7C6b3C/2UGfQ8Q1CM3ske
-    3D7uLSctvbWH3JNYm0QzRQUgXKYK9xfPsFVv7nxNZyOMtHIrary2Po6PfaGxkGvX
-    sdRusDjBAoGBANdzbLNInge/wQKYeUJ7CoOcBWKIpa3kMIAy22wkSAFzE70gCHEn
-    7/ppdUGmvHnuzULGQOtXkoHJ3S0TUf4RQ8GYIBCIwD5RkOwj92echkTltUCFsygQ
-    b6US4a5WYAg+UNAgSCpzTkj/tGAAtmB4qhN8LHXUOzM0EjChFG/3WJffAoGBAM3d
-    Yn9Zq8MjyRViFMgOQzxcv4EfY1tiE2IVJ7skRkI/KBWcpAqg54N3Ft4ih2RzYUob
-    e5xPHMu44MqBrDXnk5RGiDI2ph3xvVszTTsFWCtn6PXrh7v8OTYovsiww/aN10/p
-    Rn7zz7oSAKUizyU6tdu6xMOW7GE8lsI/S70aycxRAoGAJqdwwyGuKJnAmSSd7M2C
-    b2ZYmPsHLpGYGggF0fsYaBorWm0a1qJhrb2p6eNuQToU3XwQPajyghKjeejTdw/F
-    5j/S0OSYCRY9OACj7JTqigXkZPUX1YJNZYJjtxGMHS6A9TY1fFg/nV0zEV5PWjOL
-    3/8RQvqWvHMFKHBd6FCqNmUCgYAb2/rpaxQwi1Y6G5TeYfe9YnvUGJBUnJgs7Nn8
-    nHMZofxluFYGzjGme+ZPV3LlKCwhYEjBJX+rHjDlltjcTqONLGJgET83zDAo+G9a
-    LmX5Mc24AhDTYtXHO4peFHXglt9thA8zPQF+l9MYhfZsfl6ABu173p/MpOtuDCzO
-    waJPkQKBgGNWifCTY+rfDyzZOO50jefGXALd6rhMscfGED+gwyfFfHQxdiutDLnI
-    VPd3tSZu2RU0c3a5wEEFqlJAl07VkVLg96mTKlW7dJzvvS3eqXR3v56f3+MSvTrO
-    ZBQeOldZwwPpJEnP4bhDlAOqFtffc3JmvsczOOhYVDkLduuUgVUc
-    -----END RSA PRIVATE KEY-----`
-}
-
-// pubKeyEntry is test helper (hence t in params) to generate a valid pub Key entry
-func pubKeyEntry(t *testing.T, name string) string {
-	return `
-- name: "` + name + `"
-  comment: "generated with: openssl rsa -in private.pem -pubout -outform PEM -out public.pem"
-  not_before: 2020-01-01
-  not_after: 2022-01-01
-  key: |
-    -----BEGIN PUBLIC KEY-----
-    MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArUG/lcVDen29RnHK+f1E
-    5UzoXAAMTT5Xatdts7o4+jNwXl7LuYSAnmrl50XjyM5fLCog6G+qLz0L6U07EbXB
-    0B/paHuYLlAG9rIYIaAceZYrhMReUSx3DL2yIpawa1YR9QYgyHTY2/3sXF+vd/T7
-    JNqBxI/v0vZkhaFCugrWlvAICC1YjQXrjZqRRPl0OsUwZ2kmRvlqvYcVSLEif+uK
-    eNMyplThb9CEQZdjjLMSskYzcmGSfPc10ciEDhYR4O5M8vOO5DLeLwj6dw/PTrrs
-    lAxrdQqiP4/xyx89ZfFMsxBIBw5JeZ0VnQ46Chr5Dy34A/FacA3Sqb0ZEFkmwCTB
-    jwIDAQAB
-    -----END PUBLIC KEY-----`
 }
 
 func TestBasicViperEmptyConfig(t *testing.T) {
-	// important - watch indentation here! this must produce valid yaml
-	var yamlExample = []byte(`
-JWTPublicKey: []
-JWTPrivateKey: []
-`)
+	var yamlExample = []byte(configYaml(publicKeyYaml(), privateKeyYaml())) // two empty entries
 
-	vc := NewViperConfig("test", WithConfigFormat("yaml"),
-		WithConfigSource(bytes.NewBuffer(yamlExample)),
-		WithAutoBootstrap(false),
-		WithWatchChanges(false),
+	vc := dynamic.NewViperConfig("test", dynamic.WithConfigFormat("yaml"),
+		dynamic.WithConfigSource(bytes.NewBuffer(yamlExample)),
+		dynamic.WithAutoBootstrap(false),
+		dynamic.WithWatchChanges(false),
 	)
 	assert.NoError(t, vc.Bootstrap())
 
@@ -301,22 +204,17 @@ JWTPrivateKey: []
 
 	pkey, err := vc.JWTPrivateKey()
 	assert.Error(t, err)
-	assert.Equal(t, JWTPrivateKey{}, pkey)
+	assert.Equal(t, dynamic.JWTPrivateKey{}, pkey)
 }
 
 func TestBasicViperNoBootstrap(t *testing.T) {
-	// important - watch indentation here! this must produce valid yaml
-	var yamlExample = []byte(`
-JWTPublicKey:
-` + pubKeyEntry(t, "public") + `
-JWTPrivateKey:
-` + privKeyEntry(t, "private", true) + `
-`)
+	priv1, pub1 := keyEntries(t, "one", true)
+	var yamlExample = []byte(configYaml(publicKeyYaml(pub1), privateKeyYaml(priv1)))
 
-	vc := NewViperConfig("test", WithConfigFormat("yaml"),
-		WithConfigSource(bytes.NewBuffer(yamlExample)),
-		WithAutoBootstrap(false),
-		WithWatchChanges(false),
+	vc := dynamic.NewViperConfig("test", dynamic.WithConfigFormat("yaml"),
+		dynamic.WithConfigSource(bytes.NewBuffer(yamlExample)),
+		dynamic.WithAutoBootstrap(false),
+		dynamic.WithWatchChanges(false),
 	)
 	arr, err := vc.JWTPublicKeys()
 	assert.Error(t, err)
@@ -324,22 +222,22 @@ JWTPrivateKey:
 
 	pkey, err := vc.JWTPrivateKey()
 	assert.Error(t, err)
-	assert.Equal(t, JWTPrivateKey{}, pkey)
+	assert.Equal(t, dynamic.JWTPrivateKey{}, pkey)
 }
 
 func TestBasicViperPublicKeys(t *testing.T) {
+	_, pub1 := keyEntries(t, "one", true)
+	_, pub2 := keyEntries(t, "two", true)
+	_, pub3 := keyEntries(t, "three", true)
 	// important - watch indentation here! this must produce valid yaml
-	var yamlExample = []byte(`
-JWTPublicKey:
-` + pubKeyEntry(t, "generated-for-test-1") + `
-` + pubKeyEntry(t, "generated-for-test-2") + `
-` + pubKeyEntry(t, "generated-for-test-3") + `
-`)
+	yamlExample := publicKeyYaml(pub1, pub2, pub3)
 
-	vc := NewViperConfig("test", WithConfigFormat("yaml"),
-		WithConfigSource(bytes.NewBuffer(yamlExample)),
-		WithAutoBootstrap(false),
-		WithWatchChanges(false),
+	t.Logf("%s", yamlExample)
+
+	vc := dynamic.NewViperConfig("test", dynamic.WithConfigFormat("yaml"),
+		dynamic.WithConfigSource(bytes.NewBuffer([]byte(yamlExample))),
+		dynamic.WithAutoBootstrap(false),
+		dynamic.WithWatchChanges(false),
 	)
 	assert.NoError(t, vc.Bootstrap())
 
@@ -349,16 +247,14 @@ JWTPublicKey:
 }
 
 func TestBasicViperPrivateKeysOneEnabled(t *testing.T) {
-	var yamlOneEnabled = []byte(`
-JWTPrivateKey:
-` + privKeyEntry(t, "generated-for-test-1", true) + `
-` + privKeyEntry(t, "generated-for-test-2", false) + `
-`)
+	priv1, _ := keyEntries(t, "one", true)
+	priv2, _ := keyEntries(t, "two", false)
+	var yamlOneEnabled = []byte(privateKeyYaml(priv1, priv2))
 
-	vc := NewViperConfig("test", WithConfigFormat("yaml"),
-		WithConfigSource(bytes.NewBuffer(yamlOneEnabled)),
-		WithAutoBootstrap(false),
-		WithWatchChanges(false),
+	vc := dynamic.NewViperConfig("test", dynamic.WithConfigFormat("yaml"),
+		dynamic.WithConfigSource(bytes.NewBuffer(yamlOneEnabled)),
+		dynamic.WithAutoBootstrap(false),
+		dynamic.WithWatchChanges(false),
 	)
 	err := vc.Bootstrap()
 	assert.NoError(t, err)
@@ -366,44 +262,42 @@ JWTPrivateKey:
 	key, err := vc.JWTPrivateKey()
 	assert.NoError(t, err)
 	assert.NotNil(t, key.Key)
-	assert.Equal(t, "generated-for-test-1", key.Name)
-	assert.NotEqual(t, "the-same-but-copied", key.Name)
+	assert.Equal(t, "one", key.Name)
+	assert.NotEqual(t, "two", key.Name)
 	assert.NotEmpty(t, key.CreatedAt)
 	assert.NotEmpty(t, key.Author)
 }
-func TestBasicViperPrivateKeysBothEnabled(t *testing.T) {
-	var yamlBothEnabled = []byte(`
-JWTPrivateKey:
-` + privKeyEntry(t, "generated-for-test-1", true) + `
-` + privKeyEntry(t, "generated-for-test-2", true) + `
-`)
 
-	vc := NewViperConfig("test", WithConfigFormat("yaml"),
-		WithConfigSource(bytes.NewBuffer(yamlBothEnabled)),
-		WithAutoBootstrap(false),
-		WithWatchChanges(false),
+func TestBasicViperPrivateKeysBothEnabled(t *testing.T) {
+	priv1, _ := keyEntries(t, "one", true)
+	priv2, _ := keyEntries(t, "two", true)
+	var yamlBothEnabled = []byte(privateKeyYaml(priv1, priv2))
+
+	vc := dynamic.NewViperConfig("test", dynamic.WithConfigFormat("yaml"),
+		dynamic.WithConfigSource(bytes.NewBuffer(yamlBothEnabled)),
+		dynamic.WithAutoBootstrap(false),
+		dynamic.WithWatchChanges(false),
 	)
 	assert.NoError(t, vc.Bootstrap())
 
 	key, err := vc.JWTPrivateKey()
 	assert.NoError(t, err)
 	assert.NotNil(t, key.Key)
-	assert.Equal(t, "generated-for-test-1", key.Name)
-	assert.NotEqual(t, "generated-for-test-2", key.Name)
+	assert.Equal(t, "one", key.Name)
+	assert.NotEqual(t, "two", key.Name)
 	assert.NotEmpty(t, key.CreatedAt)
 	assert.NotEmpty(t, key.Author)
 }
 
 func TestBasicViperPrivateKeysAllDisabled(t *testing.T) {
-	var yamlBothDisabled = []byte(`
-JWTPrivateKey:
-` + privKeyEntry(t, "generated-for-test-1", false) + `
-` + privKeyEntry(t, "generated-for-test-2", false) + `
-`)
-	vc := NewViperConfig("test", WithConfigFormat("yaml"),
-		WithConfigSource(bytes.NewBuffer(yamlBothDisabled)),
-		WithAutoBootstrap(false),
-		WithWatchChanges(false),
+	priv1, _ := keyEntries(t, "one", false)
+	priv2, _ := keyEntries(t, "two", false)
+	var yamlBothDisabled = []byte(privateKeyYaml(priv1, priv2))
+
+	vc := dynamic.NewViperConfig("test", dynamic.WithConfigFormat("yaml"),
+		dynamic.WithConfigSource(bytes.NewBuffer(yamlBothDisabled)),
+		dynamic.WithAutoBootstrap(false),
+		dynamic.WithWatchChanges(false),
 	)
 	assert.NoError(t, vc.Bootstrap())
 
@@ -415,33 +309,29 @@ JWTPrivateKey:
 }
 
 func TestBasicViperMerge(t *testing.T) {
-	var yamlPrivate1 = []byte(`
-JWTPrivateKey:
-` + privKeyEntry(t, "private", true) + `
-`)
-	var yamlPublic1 = []byte(`
-JWTPublicKey:
-` + pubKeyEntry(t, "public") + `
-`)
+	priv1, pub1 := keyEntries(t, "one", true)
 
-	vc := NewViperConfig("public",
-		WithConfigFormat("yaml"),
-		WithConfigSource(bytes.NewBuffer(yamlPublic1)),
-		WithAutoBootstrap(false),
-		WithWatchChanges(false),
+	var yamlPrivate1 = []byte(privateKeyYaml(priv1))
+	var yamlPublic1 = []byte(publicKeyYaml(pub1))
+
+	vc := dynamic.NewViperConfig("public",
+		dynamic.WithConfigFormat("yaml"),
+		dynamic.WithConfigSource(bytes.NewBuffer(yamlPublic1)),
+		dynamic.WithAutoBootstrap(false),
+		dynamic.WithWatchChanges(false),
 	)
 	assert.NoError(t, vc.Bootstrap())
 
-	vc2 := NewViperConfig("private",
-		WithConfigFormat("yaml"),
-		WithConfigSource(bytes.NewBuffer(yamlPrivate1)),
-		WithAutoBootstrap(false),
-		WithWatchChanges(false),
+	vc2 := dynamic.NewViperConfig("private",
+		dynamic.WithConfigFormat("yaml"),
+		dynamic.WithConfigSource(bytes.NewBuffer(yamlPrivate1)),
+		dynamic.WithAutoBootstrap(false),
+		dynamic.WithWatchChanges(false),
 	)
 	assert.NoError(t, vc2.Bootstrap())
 
 	assert.NoError(t, vc.MergeAndDisableHotReload(vc2))
-	assert.Equal(t, "merged-public+private", vc.name)
+	assert.Equal(t, "merged-public+private", vc.Name())
 
 	arr, err := vc.JWTPublicKeys()
 	assert.NoError(t, err)

@@ -310,6 +310,10 @@ func NewViperConfig(name string, opts ...ViperConfigOpt) *ViperConfig {
 	return vp
 }
 
+func (vc *ViperConfig) Name() string {
+	return vc.name
+}
+
 // MergeAndDisableHotReload merges values from another viper instance into the current one
 // to be used when configs are provided in multiple files, as one viper instance can read config only from a single file
 // WARNING: MERGING DISABLES HOT-RELOAD of the 'other' config - use with caution!
