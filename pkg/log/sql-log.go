@@ -2,26 +2,22 @@ package log
 
 import (
 	"context"
-	"errors"
+	"fmt"
 	"time"
 )
 
-type SqlLogData struct {
-	Action   string
-	Duration time.Duration
-	Error    error
-	Sql      string
-	Args     string
-}
-
 func (l *Logger) SqlLog(
 	ctx context.Context,
-	sqlLogData SqlLogData,
+	pgxLogLevel string,
+	msg string,
+	data map[string]interface{},
 ) error {
 	traceID, userID, clientID := parseContext(ctx)
 
-	if sqlLogData.Error == nil {
-		sqlLogData.Error = errors.New("")
+	var dataMessage string
+
+	if len(data) != 0 {
+		dataMessage = fmt.Sprintf("%+v", data)
 	}
 
 	return l.Log(sqlLogEntry{
@@ -35,10 +31,8 @@ func (l *Logger) SqlLog(
 		UserID:         userID,
 		ClientID:       clientID,
 		TenantID:       getFromContextWithDefault(ctx, TenantIDContextKey, l.tenantID),
-		Action:         sqlLogData.Action,
-		Duration:       sqlLogData.Duration.Milliseconds(),
-		Error:          sqlLogData.Error.Error(),
-		Sql:            sqlLogData.Sql,
-		Args:           sqlLogData.Args,
+		PgxLogLevel:    pgxLogLevel,
+		PgxMessage:     msg,
+		PgxData:        dataMessage,
 	})
 }

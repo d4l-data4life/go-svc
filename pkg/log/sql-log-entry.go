@@ -18,12 +18,10 @@ type sqlLogEntry struct {
 
 	UserID string `json:"user-id,omitempty"`
 
-	Action   string `json:"action"`
-	Duration int64  `json:"duration"`
-	Error    string `json:"error,omitempty"`
-	Sql      string `json:"sql,omitempty"`
-	Args     string `json:"args,omitempty"`
-
 	// OAuth client ID
 	ClientID string `json:"client-id,omitempty"`
+
+	PgxLogLevel string `json:"pgx-log-level,omitempty"`
+	PgxMessage  string `json:"pgx-message,omitempty"`
+	PgxData     string `json:"pgx-data,omitempty"`
 }
