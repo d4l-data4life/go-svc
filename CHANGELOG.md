@@ -9,19 +9,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- JWT pkg - token for appending a recovery password
-
 ### Changed
 
 ### Deprecated
 
 ### Removed
 
-- JWT pkg - `AllScopes` variable. Use `KnownScopes` instead.
-
 ### Fixed
 
 ### Security
+
+## [v1.28.0] - 2021-10-27
+
+### Added
+
+- JWT pkg - token for appending a recovery password
+
+### Removed
+
+- JWT pkg - `AllScopes` variable. Use `KnownScopes` instead.
 
 ## [v1.27.0] - 2021-10-26
 
@@ -473,7 +479,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial state: standards for Main, HTTP Server, DB access (gorm), Logging, Instrumented-Handler, and K8s Probe
 
-[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.27.0...HEAD
+[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.28.0...HEAD
+[v1.28.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.27.0...v1.28.0
 [v1.27.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.26.0...v1.27.0
 [v1.26.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.25.0...v1.26.0
 [v1.25.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.24.0...v1.25.0
