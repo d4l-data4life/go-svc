@@ -10,31 +10,32 @@ import (
 
 // constant values for scope tokens
 const (
-	TokenPermissionsRead   = "perm:r"
-	TokenPermissionsWrite  = "perm:w"
-	TokenRecordsRead       = "rec:r"
-	TokenRecordsWrite      = "rec:w"
-	TokenRecordsAppend     = "rec:a"
-	TokenAttachmentsRead   = "attachment:r"
-	TokenAttachmentsWrite  = "attachment:w"
-	TokenAttachmentsAppend = "attachment:a"
-	TokenUserRead          = "user:r"
-	TokenUserWrite         = "user:w"
-	TokenUserQuery         = "user:q"
-	TokenUserKeysRead      = "ku:r"
-	TokenUserKeysWrite     = "ku:w"
-	TokenUserKeysAppend    = "ku:a"
-	TokenUserKeysMigrate   = "ku:m"
-	TokenAppKeysRead       = "ka:r"
-	TokenAppKeysWrite      = "ka:w"
-	TokenAppKeysAppend     = "ka:a"
-	TokenDeviceRead        = "dev:r"
-	TokenDeviceWrite       = "dev:w"
-	TokenDeviceAppend      = "dev:a"
-	TokenUserMailVerify    = "mail:v"
-	TokenTerraDB           = "terradb"
-	TokenTags              = "tag:*"
-	TokenExtended          = "ext:*"
+	TokenPermissionsRead            = "perm:r"
+	TokenPermissionsWrite           = "perm:w"
+	TokenRecordsRead                = "rec:r"
+	TokenRecordsWrite               = "rec:w"
+	TokenRecordsAppend              = "rec:a"
+	TokenAttachmentsRead            = "attachment:r"
+	TokenAttachmentsWrite           = "attachment:w"
+	TokenAttachmentsAppend          = "attachment:a"
+	TokenUserRead                   = "user:r"
+	TokenUserWrite                  = "user:w"
+	TokenUserQuery                  = "user:q"
+	TokenUserKeysRead               = "ku:r"
+	TokenUserKeysWrite              = "ku:w"
+	TokenUserKeysAppend             = "ku:a"
+	TokenUserKeysMigrate            = "ku:m"
+	TokenAppKeysRead                = "ka:r"
+	TokenAppKeysWrite               = "ka:w"
+	TokenAppKeysAppend              = "ka:a"
+	TokenDeviceRead                 = "dev:r"
+	TokenDeviceWrite                = "dev:w"
+	TokenDeviceAppend               = "dev:a"
+	TokenUserMailVerify             = "mail:v"
+	TokenUserRecoveryPasswordAppend = "recp:a"
+	TokenTerraDB                    = "terradb"
+	TokenTags                       = "tag:*"
+	TokenExtended                   = "ext:*"
 )
 
 var (
@@ -89,33 +90,8 @@ var (
 		TokenTerraDB:  exists,
 		TokenTags:     exists,
 		TokenExtended: exists,
-	}
 
-	AllScopes = Scope{
-		Tokens: []string{
-			TokenPermissionsRead,
-			TokenPermissionsWrite,
-			TokenRecordsRead,
-			TokenRecordsWrite,
-			TokenRecordsAppend,
-			TokenAttachmentsRead,
-			TokenAttachmentsWrite,
-			TokenAttachmentsAppend,
-			TokenUserRead,
-			TokenUserWrite,
-			TokenUserQuery,
-			TokenUserKeysRead,
-			TokenUserKeysWrite,
-			TokenUserKeysAppend,
-			TokenAppKeysRead,
-			TokenAppKeysWrite,
-			TokenAppKeysAppend,
-			TokenDeviceRead,
-			TokenDeviceWrite,
-			TokenDeviceAppend,
-			TokenUserMailVerify,
-			TokenTerraDB,
-		},
+		TokenUserRecoveryPasswordAppend: exists,
 	}
 )
 
