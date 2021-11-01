@@ -90,7 +90,7 @@ func (h *HTTPLogger) obfuscateInRequest(rlog inRequestLog) inRequestLog {
 	obf := h.obf[obfKey]
 
 	for _, o := range obf {
-		rlog = o.obfuscateInRequest(rlog)
+		rlog = o.Obfuscate(rlog).(inRequestLog)
 	}
 
 	return rlog

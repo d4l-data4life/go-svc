@@ -6,11 +6,17 @@ import (
 	"time"
 )
 
+// SqlObfuscator applies obfuscation to an SQL Log
+type SqlObfuscator interface {
+	Obfuscate(interface{}) interface{}
+}
+
 func (l *Logger) SqlLog(
 	ctx context.Context,
 	pgxLogLevel string,
 	msg string,
 	data map[string]interface{},
+	obfuscators ...SqlObfuscator,
 ) error {
 	traceID, userID, clientID := parseContext(ctx)
 
@@ -20,7 +26,7 @@ func (l *Logger) SqlLog(
 		dataMessage = fmt.Sprintf("%+v", data)
 	}
 
-	return l.Log(sqlLogEntry{
+	log := sqlLogEntry{
 		Timestamp:      time.Now(),
 		LogLevel:       LevelInfo,
 		TraceID:        traceID,
@@ -34,5 +40,11 @@ func (l *Logger) SqlLog(
 		PgxLogLevel:    pgxLogLevel,
 		PgxMessage:     msg,
 		PgxData:        dataMessage,
-	})
+	}
+
+	for _, obf := range obfuscators {
+		log = obf.Obfuscate(log).(sqlLogEntry)
+	}
+
+	return l.Log(log)
 }

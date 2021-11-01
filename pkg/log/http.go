@@ -67,7 +67,7 @@ type HTTPLogger struct {
 	ipParser       func(*http.Request) string
 	tenantIDParser func(*http.Request) string
 
-	obf map[string][]Obfuscator
+	obf map[string][]HTTPObfuscator
 	ipa []IPAnonymizer
 }
 
@@ -175,7 +175,23 @@ const (
 	HTTPInResponse EventType = "http-in-response"
 )
 
-// Obfuscator used to define which HTTP log event shall be obfuscated and how
+func WithObfuscators(o ...HTTPObfuscator) func(*HTTPLogger) {
+	return func(l *HTTPLogger) {
+		for _, obf := range o {
+			key := l.obfuscatorKey(obf.GetEventType(), obf.GetReqMethod())
+			l.obf[key] = append(l.obf[key], obf)
+		}
+	}
+}
+
+// Interface for HTTP obfuscators
+type HTTPObfuscator interface {
+	GetEventType() EventType
+	GetReqMethod() string
+	Obfuscate(interface{}) interface{}
+}
+
+// Obfuscator is a generic obfuscator used to define which HTTP log event shall be obfuscated and how
 type Obfuscator struct {
 	EventType EventType
 	ReqMethod string
@@ -188,13 +204,23 @@ type Obfuscator struct {
 	With    string
 }
 
-func WithObfuscators(o ...Obfuscator) func(*HTTPLogger) {
-	return func(l *HTTPLogger) {
-		for _, obf := range o {
-			key := l.obfuscatorKey(obf.EventType, obf.ReqMethod)
-			l.obf[key] = append(l.obf[key], obf)
-		}
+func (o Obfuscator) GetEventType() EventType {
+	return o.EventType
+}
+
+func (o Obfuscator) GetReqMethod() string {
+	return o.ReqMethod
+}
+
+func (o Obfuscator) Obfuscate(log interface{}) interface{} {
+	switch l := log.(type) {
+	case inRequestLog:
+		return o.obfuscateInRequest(l)
+	case inResponseLog:
+		return o.obfuscateInResponse(l)
 	}
+
+	return log
 }
 
 type IPType string
@@ -225,7 +251,7 @@ func (l *Logger) WrapHTTP(h http.Handler, options ...func(*HTTPLogger)) HTTPLogg
 		clientParser:   func(_ *http.Request) string { return "" },
 		ipParser:       func(_ *http.Request) string { return "" },
 		tenantIDParser: func(_ *http.Request) string { return "" },
-		obf:            make(map[string][]Obfuscator),
+		obf:            make(map[string][]HTTPObfuscator),
 		ipa:            make([]IPAnonymizer, 0),
 	}
 
