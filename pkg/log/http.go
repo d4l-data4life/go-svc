@@ -71,7 +71,7 @@ type HTTPLogger struct {
 	ipa []IPAnonymizer
 }
 
-func (h *HTTPLogger) obfuscatorKey(et EventType, reqMethod string) string {
+func ObfuscatorKey(et EventType, reqMethod string) string {
 	return strings.ToLower(string(et) + ":" + reqMethod)
 }
 
@@ -171,14 +171,20 @@ const (
 type EventType string
 
 const (
-	HTTPInRequest  EventType = "http-in-request"
-	HTTPInResponse EventType = "http-in-response"
+	HTTPInRequest   EventType = "http-in-request"
+	HTTPInResponse  EventType = "http-in-response"
+	HTTPOutRequest  EventType = "http-out-request"
+	HTTPOutResponse EventType = "http-out-response"
 )
+
+func (e EventType) String() string {
+	return string(e)
+}
 
 func WithObfuscators(o ...HTTPObfuscator) func(*HTTPLogger) {
 	return func(l *HTTPLogger) {
 		for _, obf := range o {
-			key := l.obfuscatorKey(obf.GetEventType(), obf.GetReqMethod())
+			key := ObfuscatorKey(obf.GetEventType(), obf.GetReqMethod())
 			l.obf[key] = append(l.obf[key], obf)
 		}
 	}
@@ -218,6 +224,10 @@ func (o Obfuscator) Obfuscate(log interface{}) interface{} {
 		return o.obfuscateInRequest(l)
 	case inResponseLog:
 		return o.obfuscateInResponse(l)
+	case outRequestLog:
+		return o.obfuscateOutRequest(l)
+	case outResponseLog:
+		return o.obfuscateOutResponse(l)
 	}
 
 	return log

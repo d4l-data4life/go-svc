@@ -21,11 +21,11 @@ func (t *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
 	}
 
 	reqTime := time.Now()
-	_ = t.logger.HttpOutReq(req)
+	_ = t.logger.HttpOutReq(req, nil)
 
 	resp, err := t.next.RoundTrip(req)
 
-	_ = t.logger.HttpOutResponse(req, resp, reqTime)
+	_ = t.logger.HttpOutResponse(req, resp, reqTime, nil)
 
 	return resp, err
 }

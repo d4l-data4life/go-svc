@@ -85,7 +85,7 @@ func (a *IPAnonymizer) anonymizeIPInRequest(rlog inRequestLog) inRequestLog {
 }
 
 func (h *HTTPLogger) obfuscateInRequest(rlog inRequestLog) inRequestLog {
-	obfKey := h.obfuscatorKey(HTTPInRequest, rlog.ReqMethod)
+	obfKey := ObfuscatorKey(HTTPInRequest, rlog.ReqMethod)
 
 	obf := h.obf[obfKey]
 

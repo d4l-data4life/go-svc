@@ -75,7 +75,7 @@ func (l *HTTPLogger) httpInResponse(
 }
 
 func (h *HTTPLogger) obfuscateInResponse(rlog inResponseLog) inResponseLog {
-	obfKey := h.obfuscatorKey(HTTPInResponse, rlog.ReqMethod)
+	obfKey := ObfuscatorKey(HTTPInResponse, rlog.ReqMethod)
 
 	obf := h.obf[obfKey]
 

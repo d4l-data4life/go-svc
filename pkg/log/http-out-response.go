@@ -32,6 +32,7 @@ func (l *Logger) HttpOutResponse(
 	req *http.Request,
 	resp *http.Response,
 	requestTimestamp time.Time,
+	obf map[string][]HTTPObfuscator,
 ) error {
 	traceID, userID, clientID := parseContext(req.Context())
 	if traceID == "" {
@@ -56,7 +57,7 @@ func (l *Logger) HttpOutResponse(
 		level = LevelError
 	}
 
-	return l.Log(outResponseLog{
+	outLog := outResponseLog{
 		Timestamp:       now,
 		LogLevel:        level,
 		TraceID:         traceID,
@@ -65,7 +66,7 @@ func (l *Logger) HttpOutResponse(
 		Hostname:        l.hostname,
 		ReqMethod:       req.Method,
 		ReqURL:          req.URL.String(),
-		EventType:       "http-out-response",
+		EventType:       HTTPOutResponse.String(),
 		UserID:          userID,
 		ResponseCode:    code,
 		ResponseBody:    bodyStr,
@@ -75,5 +76,24 @@ func (l *Logger) HttpOutResponse(
 		Duration:        now.Sub(requestTimestamp).Milliseconds(),
 		ClientID:        clientID,
 		TenantID:        getFromContextWithDefault(req.Context(), TenantIDContextKey, l.tenantID),
-	})
+	}
+
+	o := obf[ObfuscatorKey(HTTPOutRequest, req.Method)]
+	for _, obfuscator := range o {
+		outLog = obfuscator.Obfuscate(outLog).(outResponseLog)
+	}
+
+	return l.Log(outLog)
+}
+
+func (o *Obfuscator) obfuscateOutResponse(rlog outResponseLog) outResponseLog {
+	if o.ReqURL != nil && o.ReqURL.String() != matchAll && !o.ReqURL.MatchString(rlog.ReqURL) {
+		return rlog
+	}
+
+	switch o.Field {
+	case Body:
+		rlog.ResponseBody = o.Replace.ReplaceAllString(rlog.ResponseBody, o.With)
+	}
+	return rlog
 }

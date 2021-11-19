@@ -44,7 +44,7 @@ func (l *Logger) HttpOutRequest(
 		Hostname:       l.hostname,
 		ReqMethod:      reqMethod,
 		ReqURL:         reqURL,
-		EventType:      "http-out-request",
+		EventType:      HTTPOutRequest.String(),
 		UserID:         userID,
 		PayloadLength:  payloadLength,
 		ClientID:       clientID,
@@ -52,14 +52,14 @@ func (l *Logger) HttpOutRequest(
 	})
 }
 
-func (l *Logger) HttpOutReq(req *http.Request) error {
+func (l *Logger) HttpOutReq(req *http.Request, obf map[string][]HTTPObfuscator) error {
 	traceID, userID, clientID := parseContext(req.Context())
 	if traceID == "" {
 		traceID = req.Header.Get(TraceIDHeaderKey)
 	}
 	bodyStr := filteredBodyStrFromReq(req)
 
-	return l.Log(outRequestLog{
+	outLog := outRequestLog{
 		Timestamp:       time.Now(),
 		LogLevel:        LevelInfo,
 		TraceID:         traceID,
@@ -68,7 +68,7 @@ func (l *Logger) HttpOutReq(req *http.Request) error {
 		Hostname:        l.hostname,
 		ReqMethod:       req.Method,
 		ReqURL:          req.URL.String(),
-		EventType:       "http-out-request",
+		EventType:       HTTPOutRequest.String(),
 		UserID:          userID,
 		PayloadLength:   req.ContentLength,
 		ReqBody:         bodyStr,
@@ -76,5 +76,24 @@ func (l *Logger) HttpOutReq(req *http.Request) error {
 		ContentEncoding: req.Header.Get("Content-Encoding"),
 		ClientID:        clientID,
 		TenantID:        getFromContextWithDefault(req.Context(), TenantIDContextKey, l.tenantID),
-	})
+	}
+
+	o := obf[ObfuscatorKey(HTTPOutRequest, req.Method)]
+	for _, obfuscator := range o {
+		outLog = obfuscator.Obfuscate(outLog).(outRequestLog)
+	}
+
+	return l.Log(outLog)
+}
+
+func (o *Obfuscator) obfuscateOutRequest(rlog outRequestLog) outRequestLog {
+	if o.ReqURL != nil && o.ReqURL.String() != matchAll && !o.ReqURL.MatchString(rlog.ReqURL) {
+		return rlog
+	}
+
+	switch o.Field {
+	case Body:
+		rlog.ReqBody = o.Replace.ReplaceAllString(rlog.ReqBody, o.With)
+	}
+	return rlog
 }
