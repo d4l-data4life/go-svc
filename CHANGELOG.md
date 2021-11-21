@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- middleware to handle context cancellation caused by the client connection (return status 499 instead of 500)
 - Obfuscator for HTTP Out Request and Response logging
 
 ### Changed

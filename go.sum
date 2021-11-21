@@ -174,6 +174,10 @@ github.com/go-kit/log v0.1.0/go.mod h1:zbhenjAZHb184qTLMA9ZjW7ThYL0H2mk7Q6pNt4vb
 github.com/go-logfmt/logfmt v0.3.0/go.mod h1:Qt1PoO58o5twSAckw1HlFXLmHsOX5/0LbT9GBnD5lWE=
 github.com/go-logfmt/logfmt v0.4.0/go.mod h1:3RMwSq7FuexP4Kalkev3ejPJsZTpXXBr9+V4qmtdjCk=
 github.com/go-logfmt/logfmt v0.5.0/go.mod h1:wCYkCAKZfumFQihp8CzCvQ3paCTfi41vtzG1KdI/P7A=
+github.com/go-on/wrap v0.0.0-20180815192933-d1ac8ae9b5e2 h1:j/VeKjGI9sDoTxFZBEvoVPHa1UOiELJLcrg4zxwtQMo=
+github.com/go-on/wrap v0.0.0-20180815192933-d1ac8ae9b5e2/go.mod h1:44iXyI9gYqkLpd1IgONysG3iTNET2A1wxkDx84ZVr6U=
+github.com/go-on/wrap-contrib v2.7.1+incompatible h1:A6qs600tcFS1NdMRLzq7X369dCq/enOdN6YXwGIXsYI=
+github.com/go-on/wrap-contrib v2.7.1+incompatible/go.mod h1:bWxySjFLS4TWVzrh5TZICYSYX/NC1jEY5jP0fyx0KbU=
 github.com/go-redis/redis/v8 v8.8.0/go.mod h1:F7resOH5Kdug49Otu24RjHWwgK7u9AmtqWMnCV1iP5Y=
 github.com/go-redis/redis/v8 v8.11.2 h1:WqlSpAwz8mxDSMCvbyz1Mkiqe0LE5OY4j3lgkvu1Ts0=
 github.com/go-redis/redis/v8 v8.11.2/go.mod h1:DLomh7y2e3ggQXQLd1YgmvIfecPJoFl7WU5SOQ/r06M=

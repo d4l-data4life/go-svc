@@ -7,6 +7,7 @@ require (
 	github.com/caarlos0/env v3.5.0+incompatible
 	github.com/fsnotify/fsnotify v1.4.9
 	github.com/go-chi/chi v4.1.2+incompatible
+	github.com/go-on/wrap v0.0.0-20180815192933-d1ac8ae9b5e2
 	github.com/go-redis/redis/v8 v8.11.2
 	github.com/go-redis/redismock/v8 v8.0.6
 	github.com/go-test/deep v1.0.7
