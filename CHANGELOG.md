@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## [v1.30.0] - 2021-11-22
+
+### Added
+
 - middleware to handle context cancellation caused by the client connection (return status 499 instead of 500)
 - Obfuscator for HTTP Out Request and Response logging
 
@@ -19,12 +33,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Deprecated
 
 - [JWT pkg]: `terradb` scope
-
-### Removed
-
-### Fixed
-
-### Security
 
 ## [v1.29.0] - 2021-11-02
 
@@ -492,7 +500,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial state: standards for Main, HTTP Server, DB access (gorm), Logging, Instrumented-Handler, and K8s Probe
 
-[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.29.0...HEAD
+[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.30.0...HEAD
+[v1.30.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.29.0...v1.30.0
 [v1.29.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.28.0...v1.29.0
 [v1.28.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.27.0...v1.28.0
 [v1.27.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.26.0...v1.27.0
