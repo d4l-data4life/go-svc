@@ -14,7 +14,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- [JWT pkg]: Introduce deprecated scopes mechanism (deprecated scopes will not be issued)
+
 ### Deprecated
+
+- [JWT pkg]: `terradb` scope
 
 ### Removed
 
@@ -26,7 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- SQL & HTTP logging now partially obfuscates emails 
+- SQL & HTTP logging now partially obfuscates emails
 
 ## [v1.28.0] - 2021-10-27
 

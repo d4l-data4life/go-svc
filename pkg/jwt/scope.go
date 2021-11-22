@@ -93,6 +93,12 @@ var (
 
 		TokenUserRecoveryPasswordAppend: exists,
 	}
+
+	// DeprecatedTokens are recognized but ignored even if the client asks
+	// for that token.
+	DeprecatedTokens = map[string]bool{
+		TokenTerraDB: true,
+	}
 )
 
 // IsKnownToken is checking if the exact token is known to the package.
@@ -100,6 +106,15 @@ var (
 // Tag token (tag:*).
 func IsKnownToken(token string) bool {
 	_, exists := KnownTokens[token]
+
+	return exists
+}
+
+// IsDeprecated is checking if a token is on the deprecated list.
+// This will not check if the token is known, an unknown token will
+// always return false.
+func IsDeprecated(token string) bool {
+	_, exists := DeprecatedTokens[token]
 
 	return exists
 }
@@ -139,7 +154,8 @@ func (s Scope) Contains(t string) bool {
 // NewScope converts the given requested scope string into a valid scope
 // which can be used to issue access tokens.
 //
-// This function filters unknown requested scope tokens.
+// This function fails if it encounters an unknown requested scope token.
+// This function filters out deprecated scope tokens.
 func NewScope(src string) (Scope, error) {
 	var s Scope
 	if src == "" {
@@ -149,6 +165,10 @@ func NewScope(src string) (Scope, error) {
 	for _, token := range strings.Split(src, " ") {
 		if !IsKnownToken(token) && !IsTag(token) && !IsExtendedToken(token) {
 			return s, ErrUnknownToken
+		}
+
+		if IsDeprecated(token) {
+			continue
 		}
 
 		s.Tokens = append(s.Tokens, token)
