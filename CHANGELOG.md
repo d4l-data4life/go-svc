@@ -15,6 +15,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- [JWT pkg]: `WithScopes` auth checker function. Use `WithAllScopes` instead
+- [JWT pkg]: `WithGorillaMux` middleware. Use `WithGorillaOwner` instead.
+- [JWT pkg]: `New` function. Use `NewAuthenticator` instead.
+- [JWT pkg]: `middleware.Auth`. Use `NewAuthenticator` instead.
+
 ### Fixed
 
 ### Security

@@ -73,7 +73,8 @@ package handler
 import (
 	"net/http"
 
-	jwt "github.com/gesundheitscloud/go-jwt"
+	"github.com/gesundheitscloud/go-svc/pkg/jwt"
+	"github.com/gesundheitscloud/go-svc/pkg/dynamic"
 
 	"github.com/gofrs/uuid"
 	"github.com/gorilla/mux"
@@ -81,9 +82,12 @@ import (
 
 func Handler(cfg *Config) http.Handler {
 	router := mux.NewRouter()
-	auth := jwt.New(
-		cfg.PublicKey, cfg.Logger,
-	)
+
+    // the dynamic package provides a dynamic public keys provider
+    // Check the documentation of the dynamic package for more details
+    pkp := dynamic.NewViperConfig(...)
+
+	auth := jwt.NewAuthenticator(pkp, cfg.Logger)
 
 	writeAccessMiddleware := auth.Verify(
 		jwt.WithGorillaOwner("owner"),

@@ -46,12 +46,6 @@ type Authenticator struct {
 	logger      logger
 }
 
-// New (DEPRECATED in favour of NewAuthenticator) creates an Authenticator that creates an auth Middleware.
-// It supports single public key in rsa form
-func New(pk *rsa.PublicKey, l logger) *Authenticator {
-	return &Authenticator{keyProvider: &DummyKeyProvider{Key: pk}, logger: l}
-}
-
 // NewAuthenticator creates an Authenticator that creates an auth Middleware for
 // JWT verification against multiple publick keys provided by a KeyProvider
 func NewAuthenticator(pkp JWTPublicKeysProvider, l logger) *Authenticator {
@@ -305,10 +299,4 @@ func WithAllScopes(scopes ...string) rule {
 
 		return nil
 	}
-}
-
-// WithScopes verifies that the given scopes are in the JWT.
-// DEPRECATED!
-func WithScopes(scopes ...string) rule {
-	return WithAllScopes(scopes...)
 }

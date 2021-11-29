@@ -1,11 +1,13 @@
-package jwt
+package jwt_test
 
 import (
 	"bytes"
+	"context"
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
 	"errors"
+	"fmt"
 	"math/rand"
 	"net/http"
 	"net/http/httptest"
@@ -15,104 +17,85 @@ import (
 
 	"github.com/gesundheitscloud/go-svc/pkg/d4lcontext"
 	"github.com/gesundheitscloud/go-svc/pkg/dynamic"
+	"github.com/gesundheitscloud/go-svc/pkg/jwt"
+	"github.com/gesundheitscloud/go-svc/pkg/jwt/testutils"
+
+	"github.com/go-chi/chi"
 	"github.com/gofrs/uuid"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 )
 
-const (
-	ownerUUID = "926c97ac-fabf-4e3d-b9ca-0930b3bb7c3c"
-	otherUUID = "91424b78-d372-452e-9ff3-81aba040735e"
-)
-
-func TestGorillaAuthenticator(t *testing.T) {
-	// Prepare data
+func TestWithGorillaOwner(t *testing.T) {
 	read := rand.New(rand.NewSource(time.Now().Unix()))
 	priv, err := rsa.GenerateKey(read, 1024)
 	if err != nil {
 		t.Fatal(err)
 	}
-	auth := New(&priv.PublicKey, &testLogger{})
+	auth := jwt.NewAuthenticator(&jwt.DummyKeyProvider{Key: &priv.PublicKey}, &testutils.Logger{})
 	ownerFlag := "owner"
+	ownerUUID := uuid.Must(uuid.NewV4())
+	otherUUID := uuid.Must(uuid.NewV4())
 
 	for _, tc := range [...]testData{
 		{
-			name: "should succeed with right owner and right scopes",
+			name: "should succeed with right owner",
 			middleware: auth.Verify(
-				WithGorillaOwner(ownerFlag),
-				WithScopes(
-					TokenAttachmentsWrite,
-				),
+				jwt.WithGorillaOwner(ownerFlag),
 			),
-			request: buildRequest(
-				withOwnerURL(ownerUUID),
-				withAuthHeader(
+			request: testutils.BuildRequest(
+				testutils.WithTargetURL(fmt.Sprintf("/users/%s/records", ownerUUID)),
+				testutils.WithAuthHeader(
 					priv,
-					WithUserID(uuid.Must(uuid.FromString(ownerUUID))),
-					WithScopeStrings(TokenAttachmentsWrite),
+					jwt.WithUserID(ownerUUID),
 				),
 			),
 			checks: checks(
 				hasStatusCode(http.StatusOK),
 			),
 		},
-
 		{
 			name: "should fail if non sense is given as vars key",
 			middleware: auth.Verify(
-				WithGorillaOwner("GG"),
-				WithScopes(
-					TokenAttachmentsWrite,
-				),
+				jwt.WithGorillaOwner("GG"),
 			),
-			request: buildRequest(
-				withOwnerURL(ownerUUID),
-				withAuthHeader(
+			request: testutils.BuildRequest(
+				testutils.WithTargetURL(fmt.Sprintf("/users/%s/records", ownerUUID)),
+				testutils.WithAuthHeader(
 					priv,
-					WithUserID(uuid.Must(uuid.FromString(ownerUUID))),
-					WithScopeStrings(TokenAttachmentsWrite),
+					jwt.WithUserID(ownerUUID),
 				),
 			),
 			checks: checks(
 				hasStatusCode(http.StatusUnauthorized),
 			),
 		},
-
 		{
 			name: "should fail on uuid.Nil in request path",
 			middleware: auth.Verify(
-				WithGorillaOwner(ownerFlag),
-				WithScopes(
-					TokenAttachmentsWrite,
-				),
+				jwt.WithGorillaOwner(ownerFlag),
 			),
-			request: buildRequest(
-				withOwnerURL(uuid.Nil.String()),
-				withAuthHeader(
+			request: testutils.BuildRequest(
+				testutils.WithTargetURL(fmt.Sprintf("/users/%s/records", uuid.Nil.String())),
+				testutils.WithAuthHeader(
 					priv,
-					WithUserID(uuid.Must(uuid.FromString(ownerUUID))),
-					WithScopeStrings(TokenAttachmentsWrite),
+					jwt.WithUserID(ownerUUID),
 				),
 			),
 			checks: checks(
 				hasStatusCode(http.StatusUnauthorized),
 			),
 		},
-
 		{
 			name: "should fail on wrong user ID in request path",
 			middleware: auth.Verify(
-				WithGorillaOwner(ownerFlag),
-				WithScopes(
-					TokenAttachmentsWrite,
-				),
+				jwt.WithGorillaOwner(ownerFlag),
 			),
-			request: buildRequest(
-				withOwnerURL(otherUUID),
-				withAuthHeader(
+			request: testutils.BuildRequest(
+				testutils.WithTargetURL(fmt.Sprintf("/users/%s/records", otherUUID)),
+				testutils.WithAuthHeader(
 					priv,
-					WithUserID(uuid.Must(uuid.FromString(ownerUUID))),
-					WithScopeStrings(TokenAttachmentsWrite),
+					jwt.WithUserID(ownerUUID),
 				),
 			),
 			checks: checks(
@@ -120,15 +103,14 @@ func TestGorillaAuthenticator(t *testing.T) {
 			),
 		},
 	} {
-		tc := tc // Pin Variable
-
+		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
-			handler := tc.middleware(http.HandlerFunc(okHandler))
+			handler := tc.middleware(http.HandlerFunc(testutils.OkHandler))
 			res := httptest.NewRecorder()
 
 			router := mux.NewRouter()
 			router.Handle(
-				withOwnerPath("{"+ownerFlag+"}"),
+				"/users/{"+ownerFlag+"}/records",
 				handler,
 			)
 
@@ -144,193 +126,571 @@ func TestGorillaAuthenticator(t *testing.T) {
 	}
 }
 
-// TODO add tests for all other cases (e.g. expired, wrong issuer, ...)
-func TestAuthenticator(t *testing.T) {
-	// Prepare data
+func TestWithChiOwner(t *testing.T) {
 	read := rand.New(rand.NewSource(time.Now().Unix()))
 	priv, err := rsa.GenerateKey(read, 1024)
 	if err != nil {
 		t.Fatal(err)
 	}
-	auth := New(&priv.PublicKey, &testLogger{})
+	auth := jwt.NewAuthenticator(&jwt.DummyKeyProvider{Key: &priv.PublicKey}, &testutils.Logger{})
+	ownerFlag := "owner"
+	ownerUUID := uuid.Must(uuid.NewV4())
+	otherUUID := uuid.Must(uuid.NewV4())
 
 	for _, tc := range [...]testData{
 		{
-			name: "should succeed with right owner and right scopes",
+			name: "should succeed with right owner",
 			middleware: auth.Verify(
-				WithOwner(func(r *http.Request) uuid.UUID {
-					return uuid.Must(uuid.FromString(ownerUUID))
-				}),
-				WithScopes(
-					TokenAttachmentsWrite,
-				),
+				jwt.WithChiOwner(ownerFlag),
 			),
-			request: buildRequest(
-				withOwnerURL(ownerUUID),
-				withAuthHeader(
+			request: testutils.BuildRequest(
+				testutils.WithTargetURL(fmt.Sprintf("/users/%s/records", ownerUUID)),
+				testutils.WithAuthHeader(
 					priv,
-					WithUserID(uuid.Must(uuid.FromString(ownerUUID))),
-					WithScopeStrings(TokenAttachmentsWrite),
+					jwt.WithUserID(ownerUUID),
 				),
 			),
-			endHandler: okHandler,
 			checks: checks(
 				hasStatusCode(http.StatusOK),
 			),
 		},
-
 		{
-			name: "should succeed with right owner and any scope (:w)",
+			name: "should fail if non sense is given as vars key",
 			middleware: auth.Verify(
-				WithOwner(func(r *http.Request) uuid.UUID {
-					return uuid.Must(uuid.FromString(ownerUUID))
-				}),
-				WithAnyScope(
-					TokenAttachmentsRead,
-					TokenAttachmentsWrite,
-				),
+				jwt.WithChiOwner("GG"),
 			),
-			request: buildRequest(
-				withOwnerURL(ownerUUID),
-				withAuthHeader(
+			request: testutils.BuildRequest(
+				testutils.WithTargetURL(fmt.Sprintf("/users/%s/records", ownerUUID)),
+				testutils.WithAuthHeader(
 					priv,
-					WithUserID(uuid.Must(uuid.FromString(ownerUUID))),
-					WithScopeStrings(TokenAttachmentsWrite),
+					jwt.WithUserID(ownerUUID),
 				),
 			),
-			endHandler: okHandler,
+			checks: checks(
+				hasStatusCode(http.StatusUnauthorized),
+			),
+		},
+		{
+			name: "should fail on uuid.Nil in request path",
+			middleware: auth.Verify(
+				jwt.WithChiOwner(ownerFlag),
+			),
+			request: testutils.BuildRequest(
+				testutils.WithTargetURL(fmt.Sprintf("/users/%s/records", uuid.Nil.String())),
+				testutils.WithAuthHeader(
+					priv,
+					jwt.WithUserID(ownerUUID),
+				),
+			),
+			checks: checks(
+				hasStatusCode(http.StatusUnauthorized),
+			),
+		},
+		{
+			name: "should fail on wrong user ID in request path",
+			middleware: auth.Verify(
+				jwt.WithChiOwner(ownerFlag),
+			),
+			request: testutils.BuildRequest(
+				testutils.WithTargetURL(fmt.Sprintf("/users/%s/records", otherUUID)),
+				testutils.WithAuthHeader(
+					priv,
+					jwt.WithUserID(ownerUUID),
+				),
+			),
+			checks: checks(
+				hasStatusCode(http.StatusUnauthorized),
+			),
+		},
+	} {
+		tc := tc
+
+		t.Run(tc.name, func(t *testing.T) {
+			handler := tc.middleware(http.HandlerFunc(testutils.OkHandler))
+			res := httptest.NewRecorder()
+
+			router := chi.NewRouter()
+			router.Handle(
+				"/users/{"+ownerFlag+"}/records",
+				handler,
+			)
+
+			router.ServeHTTP(res, tc.request)
+
+			for _, check := range tc.checks {
+				if err := check(res); err != nil {
+					t.Error(err)
+					return
+				}
+			}
+		})
+	}
+}
+
+func TestWithOwner(t *testing.T) {
+	read := rand.New(rand.NewSource(time.Now().Unix()))
+	priv, err := rsa.GenerateKey(read, 1024)
+	if err != nil {
+		t.Fatal(err)
+	}
+	auth := jwt.NewAuthenticator(&jwt.DummyKeyProvider{Key: &priv.PublicKey}, &testutils.Logger{})
+	ownerUUID := uuid.Must(uuid.NewV4())
+	otherUUID := uuid.Must(uuid.NewV4())
+
+	for _, tc := range [...]testData{
+		{
+			name: "should succeed with right owner",
+			middleware: auth.Verify(
+				jwt.WithOwner(func(r *http.Request) uuid.UUID {
+					return ownerUUID
+				}),
+			),
+			request: testutils.BuildRequest(
+				testutils.WithTargetURL(fmt.Sprintf("/users/%s/records", ownerUUID)),
+				testutils.WithAuthHeader(
+					priv,
+					jwt.WithUserID(ownerUUID),
+				),
+			),
+			endHandler: testutils.OkHandler,
 			checks: checks(
 				hasStatusCode(http.StatusOK),
 			),
 		},
-
 		{
-			name: "should respond with '401 Hasta La Vista' on wrong owner",
+			name: "should respond with 401 on wrong owner",
 			middleware: auth.Verify(
-				WithOwner(func(r *http.Request) uuid.UUID {
-					return uuid.Must(uuid.FromString(ownerUUID))
+				jwt.WithOwner(func(r *http.Request) uuid.UUID {
+					return uuid.Must(uuid.NewV4())
 				}),
-				WithScopes(
-					TokenAttachmentsWrite,
-				),
 			),
-			request: buildRequest(
-				withOwnerURL(ownerUUID),
-				withAuthHeader(
+			request: testutils.BuildRequest(
+				testutils.WithTargetURL(fmt.Sprintf("/users/%s/records", ownerUUID)),
+				testutils.WithAuthHeader(
 					priv,
-					WithUserID(uuid.Must(uuid.FromString(otherUUID))),
-					WithScopeStrings(TokenAttachmentsWrite),
+					jwt.WithUserID(otherUUID),
 				),
 			),
-			endHandler: okHandler,
+			endHandler: testutils.OkHandler,
 			checks: checks(
 				hasStatusCode(http.StatusUnauthorized),
 			),
 		},
-
-		{
-			name: "should respond with '401 Hasta La Vista' on wrong scopes",
-			middleware: auth.Verify(
-				WithOwner(func(r *http.Request) uuid.UUID {
-					return uuid.Must(uuid.FromString(ownerUUID))
-				}),
-				WithScopes(
-					TokenAttachmentsWrite,
-				),
-			),
-			request: buildRequest(
-				withOwnerURL(ownerUUID),
-				withAuthHeader(
-					priv,
-					WithUserID(uuid.Must(uuid.FromString(ownerUUID))),
-					WithScopeStrings(TokenAttachmentsRead),
-				),
-			),
-			endHandler: okHandler,
-			checks: checks(
-				hasStatusCode(http.StatusUnauthorized),
-			),
-		},
-
 		{
 			name: "should fail to interpret broken bearer token",
 			middleware: auth.Verify(
-				WithOwner(func(r *http.Request) uuid.UUID {
-					return uuid.Must(uuid.FromString(ownerUUID))
+				jwt.WithOwner(func(r *http.Request) uuid.UUID {
+					return ownerUUID
 				}),
-				WithScopes(
-					TokenAttachmentsWrite,
-				),
 			),
-			request: buildRequest(
-				withOwnerURL(ownerUUID),
+			request: testutils.BuildRequest(
+				testutils.WithTargetURL(fmt.Sprintf("/users/%s/records", ownerUUID)),
 				func(r *http.Request) error {
 					r.Header.Add("Authorization", "I haz master key!")
 					return nil
 				},
 			),
-			endHandler: okHandler,
+			endHandler: testutils.OkHandler,
 			checks: checks(
 				hasStatusCode(http.StatusUnauthorized),
 			),
 		},
-
 		{
 			name: "should fail to extract a token from malformed request",
 			middleware: auth.Verify(
-				WithOwner(func(r *http.Request) uuid.UUID {
-					return uuid.Must(uuid.FromString(ownerUUID))
+				jwt.WithOwner(func(r *http.Request) uuid.UUID {
+					return ownerUUID
 				}),
-				WithScopes(
-					TokenAttachmentsWrite,
-				),
 			),
 			request:    &http.Request{},
-			endHandler: okHandler,
+			endHandler: testutils.OkHandler,
+			checks: checks(
+				hasStatusCode(http.StatusUnauthorized),
+			),
+		},
+	} {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			handler := tc.middleware(http.HandlerFunc(tc.endHandler))
+			res := httptest.NewRecorder()
+
+			handler.ServeHTTP(res, tc.request)
+
+			for _, check := range tc.checks {
+				if err := check(res); err != nil {
+					t.Error(err)
+					return
+				}
+			}
+		})
+	}
+}
+
+func TestWithAllScopes(t *testing.T) {
+	read := rand.New(rand.NewSource(time.Now().Unix()))
+	priv, err := rsa.GenerateKey(read, 1024)
+	if err != nil {
+		t.Fatal(err)
+	}
+	auth := jwt.NewAuthenticator(&jwt.DummyKeyProvider{Key: &priv.PublicKey}, &testutils.Logger{})
+
+	for _, tc := range [...]testData{
+		{
+			name: "should succeed with right scopes: one scope",
+			middleware: auth.Verify(
+				jwt.WithAllScopes(
+					jwt.TokenAttachmentsWrite,
+				),
+			),
+			request: testutils.BuildRequest(
+				testutils.WithAuthHeader(
+					priv,
+					jwt.WithScopeStrings(jwt.TokenAttachmentsWrite),
+				),
+			),
+			endHandler: testutils.OkHandler,
+			checks: checks(
+				hasStatusCode(http.StatusOK),
+			),
+		},
+		{
+			name: "should succeed with right scopes: multiple scopes",
+			middleware: auth.Verify(
+				jwt.WithAllScopes(
+					jwt.TokenAttachmentsWrite, jwt.TokenAppKeysRead,
+				),
+			),
+			request: testutils.BuildRequest(
+				testutils.WithAuthHeader(
+					priv,
+					jwt.WithScopeStrings(jwt.TokenAttachmentsWrite, jwt.TokenAppKeysRead),
+				),
+			),
+			endHandler: testutils.OkHandler,
+			checks: checks(
+				hasStatusCode(http.StatusOK),
+			),
+		},
+		{
+			name: "should succeed with right scopes but different order",
+			middleware: auth.Verify(
+				jwt.WithAllScopes(
+					jwt.TokenAttachmentsWrite, jwt.TokenAppKeysRead,
+				),
+			),
+			request: testutils.BuildRequest(
+				testutils.WithAuthHeader(
+					priv,
+					jwt.WithScopeStrings(
+						jwt.TokenAppKeysRead,
+						jwt.TokenAttachmentsWrite,
+					),
+				),
+			),
+			endHandler: testutils.OkHandler,
+			checks: checks(
+				hasStatusCode(http.StatusOK),
+			),
+		},
+		{
+			name: "should succeed if more scopes than required are included",
+			middleware: auth.Verify(
+				jwt.WithAllScopes(
+					jwt.TokenAttachmentsWrite, jwt.TokenAppKeysRead,
+				),
+			),
+			request: testutils.BuildRequest(
+				testutils.WithAuthHeader(
+					priv,
+					jwt.WithScopeStrings(
+						jwt.TokenAppKeysRead,
+						jwt.TokenAttachmentsWrite,
+						jwt.TokenAppKeysAppend,
+					),
+				),
+			),
+			endHandler: testutils.OkHandler,
+			checks: checks(
+				hasStatusCode(http.StatusOK),
+			),
+		},
+		{
+			name: "should respond with 401 on missing scope",
+			middleware: auth.Verify(
+				jwt.WithAllScopes(
+					jwt.TokenAttachmentsWrite,
+					jwt.TokenAttachmentsRead,
+				),
+			),
+			request: testutils.BuildRequest(
+				testutils.WithAuthHeader(
+					priv,
+					jwt.WithScopeStrings(jwt.TokenAttachmentsRead),
+				),
+			),
+			endHandler: testutils.OkHandler,
+			checks: checks(
+				hasStatusCode(http.StatusUnauthorized),
+			),
+		},
+	} {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			handler := tc.middleware(http.HandlerFunc(tc.endHandler))
+			res := httptest.NewRecorder()
+
+			handler.ServeHTTP(res, tc.request)
+
+			for _, check := range tc.checks {
+				if err := check(res); err != nil {
+					t.Error(err)
+					return
+				}
+			}
+		})
+	}
+}
+
+func TestWithAnyScopes(t *testing.T) {
+	read := rand.New(rand.NewSource(time.Now().Unix()))
+	priv, err := rsa.GenerateKey(read, 1024)
+	if err != nil {
+		t.Fatal(err)
+	}
+	auth := jwt.NewAuthenticator(&jwt.DummyKeyProvider{Key: &priv.PublicKey}, &testutils.Logger{})
+
+	for _, tc := range [...]testData{
+		{
+			name: "should succeed with right scopes: one scope",
+			middleware: auth.Verify(
+				jwt.WithAnyScope(
+					jwt.TokenAttachmentsWrite,
+				),
+			),
+			request: testutils.BuildRequest(
+				testutils.WithAuthHeader(
+					priv,
+					jwt.WithScopeStrings(jwt.TokenAttachmentsWrite),
+				),
+			),
+			endHandler: testutils.OkHandler,
+			checks: checks(
+				hasStatusCode(http.StatusOK),
+			),
+		},
+		{
+			name: "should succeed with right scopes: multiple scopes",
+			middleware: auth.Verify(
+				jwt.WithAnyScope(
+					jwt.TokenAttachmentsWrite, jwt.TokenAppKeysRead,
+				),
+			),
+			request: testutils.BuildRequest(
+				testutils.WithAuthHeader(
+					priv,
+					jwt.WithScopeStrings(jwt.TokenAttachmentsWrite, jwt.TokenAppKeysRead),
+				),
+			),
+			endHandler: testutils.OkHandler,
+			checks: checks(
+				hasStatusCode(http.StatusOK),
+			),
+		},
+		{
+			name: "should succeed with right scopes but different order",
+			middleware: auth.Verify(
+				jwt.WithAnyScope(
+					jwt.TokenAttachmentsWrite, jwt.TokenAppKeysRead,
+				),
+			),
+			request: testutils.BuildRequest(
+				testutils.WithAuthHeader(
+					priv,
+					jwt.WithScopeStrings(
+						jwt.TokenAppKeysRead,
+						jwt.TokenAttachmentsWrite,
+					),
+				),
+			),
+			endHandler: testutils.OkHandler,
+			checks: checks(
+				hasStatusCode(http.StatusOK),
+			),
+		},
+		{
+			name: "should succeed if more scopes than required are included",
+			middleware: auth.Verify(
+				jwt.WithAnyScope(
+					jwt.TokenAttachmentsWrite, jwt.TokenAppKeysRead,
+				),
+			),
+			request: testutils.BuildRequest(
+				testutils.WithAuthHeader(
+					priv,
+					jwt.WithScopeStrings(
+						jwt.TokenAppKeysRead,
+						jwt.TokenAttachmentsWrite,
+						jwt.TokenAppKeysAppend,
+					),
+				),
+			),
+			endHandler: testutils.OkHandler,
+			checks: checks(
+				hasStatusCode(http.StatusOK),
+			),
+		},
+		{
+			name: "should succeed if a subset of scopes are included",
+			middleware: auth.Verify(
+				jwt.WithAnyScope(
+					jwt.TokenAttachmentsWrite,
+					jwt.TokenAttachmentsRead,
+				),
+			),
+			request: testutils.BuildRequest(
+				testutils.WithAuthHeader(
+					priv,
+					jwt.WithScopeStrings(jwt.TokenAttachmentsRead),
+				),
+			),
+			endHandler: testutils.OkHandler,
+			checks: checks(
+				hasStatusCode(http.StatusOK),
+			),
+		},
+		{
+			name: "should respond with 401 if none of the scopes are included - other scope",
+			middleware: auth.Verify(
+				jwt.WithAnyScope(
+					jwt.TokenAttachmentsWrite,
+					jwt.TokenAttachmentsRead,
+				),
+			),
+			request: testutils.BuildRequest(
+				testutils.WithAuthHeader(
+					priv,
+					jwt.WithScopeStrings(jwt.TokenRecordsWrite),
+				),
+			),
+			endHandler: testutils.OkHandler,
+			checks: checks(
+				hasStatusCode(http.StatusUnauthorized),
+			),
+		},
+		{
+			name: "should respond with 401 if none of the scopes are included - no scope at all",
+			middleware: auth.Verify(
+				jwt.WithAnyScope(
+					jwt.TokenAttachmentsWrite,
+					jwt.TokenAttachmentsRead,
+				),
+			),
+			request: testutils.BuildRequest(
+				testutils.WithAuthHeader(
+					priv,
+				),
+			),
+			endHandler: testutils.OkHandler,
+			checks: checks(
+				hasStatusCode(http.StatusUnauthorized),
+			),
+		},
+	} {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			handler := tc.middleware(http.HandlerFunc(tc.endHandler))
+			res := httptest.NewRecorder()
+
+			handler.ServeHTTP(res, tc.request)
+
+			for _, check := range tc.checks {
+				if err := check(res); err != nil {
+					t.Error(err)
+					return
+				}
+			}
+		})
+	}
+}
+
+func TestVerify(t *testing.T) {
+	read := rand.New(rand.NewSource(time.Now().Unix()))
+	priv, err := rsa.GenerateKey(read, 1024)
+	if err != nil {
+		t.Fatal(err)
+	}
+	auth := jwt.NewAuthenticator(&jwt.DummyKeyProvider{Key: &priv.PublicKey}, &testutils.Logger{})
+	ownerUUID := uuid.Must(uuid.NewV4())
+
+	for _, tc := range [...]struct {
+		name       string
+		middleware func(http.Handler) http.Handler
+		request    *http.Request
+		checks     []checkFunc
+		reqChecks  checkReqFunc
+	}{
+		{
+			name:       "should fail on broken Authorization header",
+			middleware: auth.Verify(),
+			request: testutils.BuildRequest(
+				func(r *http.Request) error {
+					r.Header.Add("Authorization", "wrong")
+					return nil
+				},
+			),
+			checks: checks(
+				hasStatusCode(http.StatusUnauthorized),
+			),
+		},
+		{
+			name:       "should fail to interpret a broken bearer token",
+			middleware: auth.Verify(),
+			request: testutils.BuildRequest(
+				func(r *http.Request) error {
+					r.Header.Add("Authorization", "Bearer wrong")
+					return nil
+				},
+			),
+			checks: checks(
+				hasStatusCode(http.StatusUnauthorized),
+			),
+		},
+		{
+			name:       "should fail missing Authorization header",
+			middleware: auth.Verify(),
+			request:    testutils.BuildRequest(),
 			checks: checks(
 				hasStatusCode(http.StatusUnauthorized),
 			),
 		},
 
 		{
-			name: "end handler should receive a request with JWT claims in the context",
-			middleware: auth.Verify(
-				WithOwner(func(r *http.Request) uuid.UUID {
-					return uuid.Must(uuid.FromString(ownerUUID))
-				}),
-				WithScopes(
-					TokenAttachmentsWrite,
-				),
-			),
-			request: buildRequest(
-				withOwnerURL(ownerUUID),
-				withAuthHeader(
+			name:       "end handler should receive a request with JWT claims in the context",
+			middleware: auth.Verify(),
+			request: testutils.BuildRequest(
+				testutils.WithAuthHeader(
 					priv,
-					WithUserID(uuid.Must(uuid.FromString(ownerUUID))),
-					WithScopeStrings(TokenAttachmentsWrite),
+					jwt.WithUserID(ownerUUID),
+					jwt.WithScopeStrings(jwt.TokenAttachmentsWrite),
 				),
 			),
-			endHandler: func(w http.ResponseWriter, r *http.Request) {
-				claims, ok := r.Context().Value(jwtClaimsContextKey).(*Claims)
-				if !ok {
-					httpClientError(w, 591) // error - custom codes just for the test to find it easily
-					return
-				}
-				if claims == nil {
-					httpClientError(w, 592) // error - custom codes just for the test to find it easily
-					return
-				}
-				httpClientError(w, 299) // success - using 299 to be sure that some other handler won't interfere with standard codes
-			},
+			reqChecks: checkReqAll(
+				hasInContextExtract(func(ctx context.Context) (interface{}, error) {
+					return jwt.GetSubjectID(ctx)
+				}, ownerUUID),
+				hasInContextExtract(func(ctx context.Context) (interface{}, error) {
+					return jwt.GetTagsInScope(ctx)
+				}, []jwt.Tag{jwt.TokenAttachmentsWrite}),
+			),
 			checks: checks(
-				hasStatusCode(299),
+				hasStatusCode(http.StatusOK),
 			),
 		},
 	} {
-		tc := tc // Pin Variable
+		tc := tc
 
 		t.Run(tc.name, func(t *testing.T) {
-			handler := tc.middleware(http.HandlerFunc(tc.endHandler))
+			handler := tc.middleware(http.HandlerFunc(testutils.OkHandler))
 			res := httptest.NewRecorder()
 
 			handler.ServeHTTP(res, tc.request)
@@ -370,6 +730,7 @@ func TestNewAuthenticator_MultiplePubKeys(t *testing.T) {
 	assert.NoError(t, err)
 	priv4, err := rsa.GenerateKey(read, 1024)
 	assert.NoError(t, err)
+	ownerUUID := uuid.Must(uuid.NewV4())
 
 	// use 2-space indent inside this string
 	configYaml := []byte(`
@@ -406,28 +767,27 @@ JWTPublicKey:
 	assert.NoError(t, err)
 	assert.Equal(t, 3, len(keys))
 
-	auth := NewAuthenticator(kp, &testLogger{})
+	auth := jwt.NewAuthenticator(kp, &testutils.Logger{})
 
 	for _, tc := range [...]testData{
 		{
 			name: "should succeed with key1",
 			middleware: auth.Verify(
-				WithOwner(func(r *http.Request) uuid.UUID {
-					return uuid.Must(uuid.FromString(ownerUUID))
+				jwt.WithOwner(func(r *http.Request) uuid.UUID {
+					return ownerUUID
 				}),
-				WithScopes(
-					TokenAttachmentsWrite,
+				jwt.WithAllScopes(
+					jwt.TokenAttachmentsWrite,
 				),
 			),
-			request: buildRequest(
-				withOwnerURL(ownerUUID),
-				withAuthHeader(
+			request: testutils.BuildRequest(
+				testutils.WithAuthHeader(
 					priv1,
-					WithUserID(uuid.Must(uuid.FromString(ownerUUID))),
-					WithScopeStrings(TokenAttachmentsWrite),
+					jwt.WithUserID(ownerUUID),
+					jwt.WithScopeStrings(jwt.TokenAttachmentsWrite),
 				),
 			),
-			endHandler: okHandler,
+			endHandler: testutils.OkHandler,
 			checks: checks(
 				hasStatusCode(http.StatusOK),
 			),
@@ -435,22 +795,21 @@ JWTPublicKey:
 		{
 			name: "should succeed with key2",
 			middleware: auth.Verify(
-				WithOwner(func(r *http.Request) uuid.UUID {
-					return uuid.Must(uuid.FromString(ownerUUID))
+				jwt.WithOwner(func(r *http.Request) uuid.UUID {
+					return ownerUUID
 				}),
-				WithScopes(
-					TokenAttachmentsWrite,
+				jwt.WithAllScopes(
+					jwt.TokenAttachmentsWrite,
 				),
 			),
-			request: buildRequest(
-				withOwnerURL(ownerUUID),
-				withAuthHeader(
+			request: testutils.BuildRequest(
+				testutils.WithAuthHeader(
 					priv2,
-					WithUserID(uuid.Must(uuid.FromString(ownerUUID))),
-					WithScopeStrings(TokenAttachmentsWrite),
+					jwt.WithUserID(ownerUUID),
+					jwt.WithScopeStrings(jwt.TokenAttachmentsWrite),
 				),
 			),
-			endHandler: okHandler,
+			endHandler: testutils.OkHandler,
 			checks: checks(
 				hasStatusCode(http.StatusOK),
 			),
@@ -458,22 +817,21 @@ JWTPublicKey:
 		{
 			name: "should ignore metadata and work with key3", // TODO-PR: Change this case when handling of metadata will be implemented
 			middleware: auth.Verify(
-				WithOwner(func(r *http.Request) uuid.UUID {
-					return uuid.Must(uuid.FromString(ownerUUID))
+				jwt.WithOwner(func(r *http.Request) uuid.UUID {
+					return ownerUUID
 				}),
-				WithScopes(
-					TokenAttachmentsWrite,
+				jwt.WithAllScopes(
+					jwt.TokenAttachmentsWrite,
 				),
 			),
-			request: buildRequest(
-				withOwnerURL(ownerUUID),
-				withAuthHeader(
+			request: testutils.BuildRequest(
+				testutils.WithAuthHeader(
 					priv3,
-					WithUserID(uuid.Must(uuid.FromString(ownerUUID))),
-					WithScopeStrings(TokenAttachmentsWrite),
+					jwt.WithUserID(ownerUUID),
+					jwt.WithScopeStrings(jwt.TokenAttachmentsWrite),
 				),
 			),
-			endHandler: okHandler,
+			endHandler: testutils.OkHandler,
 			checks: checks(
 				hasStatusCode(http.StatusOK),
 			),
@@ -481,22 +839,21 @@ JWTPublicKey:
 		{
 			name: "should fail with all 3 keys not matching the private key",
 			middleware: auth.Verify(
-				WithOwner(func(r *http.Request) uuid.UUID {
-					return uuid.Must(uuid.FromString(ownerUUID))
+				jwt.WithOwner(func(r *http.Request) uuid.UUID {
+					return ownerUUID
 				}),
-				WithScopes(
-					TokenAttachmentsWrite,
+				jwt.WithAllScopes(
+					jwt.TokenAttachmentsWrite,
 				),
 			),
-			request: buildRequest(
-				withOwnerURL(ownerUUID),
-				withAuthHeader(
+			request: testutils.BuildRequest(
+				testutils.WithAuthHeader(
 					priv4,
-					WithUserID(uuid.Must(uuid.FromString(ownerUUID))),
-					WithScopeStrings(TokenAttachmentsWrite),
+					jwt.WithUserID(ownerUUID),
+					jwt.WithScopeStrings(jwt.TokenAttachmentsWrite),
 				),
 			),
-			endHandler: okHandler,
+			endHandler: testutils.OkHandler,
 			checks: checks(
 				hasStatusCode(http.StatusUnauthorized),
 			),
@@ -525,7 +882,7 @@ func TestExtract(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	auth := New(&priv.PublicKey, &testLogger{})
+	auth := jwt.NewAuthenticator(&jwt.DummyKeyProvider{Key: &priv.PublicKey}, &testutils.Logger{})
 
 	userID := uuid.Must(uuid.NewV4())
 	clientID := uuid.Must(uuid.NewV4())
@@ -540,30 +897,35 @@ func TestExtract(t *testing.T) {
 		{
 			name:       "should succeed with request with valid JWT",
 			middleware: auth.Extract,
-			request: buildRequest(
-				withOwnerURL(ownerUUID),
-				withAuthHeader(
+			request: testutils.BuildRequest(
+				testutils.WithAuthHeader(
 					priv,
-					WithUserID(userID),
-					WithScopeStrings(TokenAttachmentsWrite),
-					WithClientID(clientID.String()),
-					WithTenantID(tenantID),
+					jwt.WithUserID(userID),
+					jwt.WithScopeStrings(jwt.TokenAttachmentsWrite),
+					jwt.WithClientID(clientID.String()),
+					jwt.WithTenantID(tenantID),
 				),
 			),
 			reqChecks: checkReqAll(
 				hasInContext(d4lcontext.ClientIDContextKey, clientID.String()),
 				hasInContext(d4lcontext.UserIDContextKey, userID.String()),
 				hasInContext(d4lcontext.TenantIDContextKey, tenantID),
-				hasKeyInContext(jwtClaimsContextKey),
+				hasInContextExtract(func(ctx context.Context) (interface{}, error) {
+					return jwt.GetSubjectID(ctx)
+				}, userID),
+				hasInContextExtract(func(ctx context.Context) (interface{}, error) {
+					return jwt.GetTenantID(ctx)
+				}, tenantID),
+				hasInContextExtract(func(ctx context.Context) (interface{}, error) {
+					return jwt.GetClientID(ctx)
+				}, clientID.String()),
 			),
 		},
 		{
 			name:       "should not break the middleware chain with a request without a JWT",
 			middleware: auth.Extract,
-			request: buildRequest(
-				withOwnerURL(ownerUUID),
-			),
-			reqChecks: checkReqAll(),
+			request:    testutils.BuildRequest(),
+			reqChecks:  checkReqAll(),
 		},
 	} {
 		tc := tc
