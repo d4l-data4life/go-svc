@@ -11,7 +11,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- [JWT pkg]: unknown scopes are ignored by `Scope`'s `Scan` and `UnmarshalJSON` methods (but not by `NewScope` method).
+- [JWT pkg]: `WithAllScopes` and `WithAnyScope` don't fail on unknown scopes; instead the unknown scopes are ignored.
+- [JWT pkg]: a warning is logged for every unknown scope encountered (and ignored) when deserializing scopes.
+
 ### Deprecated
+
+- [JWT pkg]: `NewScope` method (use `Parse` instead)
 
 ### Removed
 

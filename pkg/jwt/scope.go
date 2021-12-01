@@ -1,8 +1,10 @@
 package jwt
 
 import (
+	"context"
 	"database/sql/driver"
 	"encoding/json"
+	"fmt"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -153,10 +155,33 @@ func (s Scope) Contains(t string) bool {
 
 // NewScope converts the given requested scope string into a valid scope
 // which can be used to issue access tokens.
-//
+// DEPRECATED: use Parse instead.
 // This function fails if it encounters an unknown requested scope token.
 // This function filters out deprecated scope tokens.
 func NewScope(src string) (Scope, error) {
+	return parseScope(src, true)
+}
+
+// Parse converts the given scope string into a valid scope object.
+// This function filters out deprecated scope tokens.
+// If `failOnUnknownScope` is set to true, this function returns ErrUnknownToken if
+// it encounters an unknown scope token.
+// If `failOnUnknownScope` is set to false, this function ignores
+// any unknown scopes token.
+func Parse(src string, failOnUnknownScope bool) (Scope, error) {
+	return parseScope(src, failOnUnknownScope)
+}
+
+// parseScope converts the given requested scope(s) string into a valid
+// scope object.
+//
+// This function filters out deprecated scope tokens.
+//
+// If `failOnUnknownScope` is set to true, this function returns ErrUnknownToken if
+// it encounters an unknown scope token.
+// If `failOnUnknownScope` is set to false, this function ignores
+// any unknown scopes token.
+func parseScope(src string, failOnUnknownScope bool) (Scope, error) {
 	var s Scope
 	if src == "" {
 		return s, nil
@@ -164,7 +189,12 @@ func NewScope(src string) (Scope, error) {
 
 	for _, token := range strings.Split(src, " ") {
 		if !IsKnownToken(token) && !IsTag(token) && !IsExtendedToken(token) {
-			return s, ErrUnknownToken
+			if failOnUnknownScope {
+				return s, fmt.Errorf("%w: %s", ErrUnknownToken, token)
+			} else {
+				_ = pkgLogger.WarnGeneric(context.Background(), fmt.Sprintf("ignoring unknown scope: %s", token), nil)
+				continue
+			}
 		}
 
 		if IsDeprecated(token) {
@@ -263,6 +293,7 @@ func (s Scope) Value() (driver.Value, error) {
 }
 
 // Scan implements sql.Scanner for unmarshaling from SQL
+// This function ignores any unknown scopes.
 func (s *Scope) Scan(src interface{}) error {
 	str, ok := src.(string)
 	if !ok {
@@ -270,12 +301,13 @@ func (s *Scope) Scan(src interface{}) error {
 	}
 
 	var err error
-	*s, err = NewScope(str)
+	*s, err = parseScope(str, false)
 
 	return err
 }
 
 // UnmarshalJSON is the method that decodes the scope from a JSON string
+// This function ignores any unknown scopes.
 func (s *Scope) UnmarshalJSON(src []byte) error {
 	var scope string
 	err := json.Unmarshal(src, &scope)
@@ -283,7 +315,7 @@ func (s *Scope) UnmarshalJSON(src []byte) error {
 		return errors.Wrap(err, "error unmarshaling scope string")
 	}
 
-	res, err := NewScope(scope)
+	res, err := parseScope(scope, false)
 	if err != nil {
 		return errors.Wrap(err, "error creating scope")
 	}

@@ -415,6 +415,28 @@ func TestWithAllScopes(t *testing.T) {
 			),
 		},
 		{
+			name: "should ignore unknown scopes",
+			middleware: auth.Verify(
+				jwt.WithAllScopes(
+					jwt.TokenAttachmentsWrite, jwt.TokenAppKeysRead,
+				),
+			),
+			request: testutils.BuildRequest(
+				testutils.WithAuthHeader(
+					priv,
+					jwt.WithScopeStrings(
+						jwt.TokenAttachmentsWrite,
+						jwt.TokenAppKeysRead,
+						"unknown",
+					),
+				),
+			),
+			endHandler: testutils.OkHandler,
+			checks: checks(
+				hasStatusCode(http.StatusOK),
+			),
+		},
+		{
 			name: "should respond with 401 on missing scope",
 			middleware: auth.Verify(
 				jwt.WithAllScopes(
@@ -551,6 +573,27 @@ func TestWithAnyScopes(t *testing.T) {
 				testutils.WithAuthHeader(
 					priv,
 					jwt.WithScopeStrings(jwt.TokenAttachmentsRead),
+				),
+			),
+			endHandler: testutils.OkHandler,
+			checks: checks(
+				hasStatusCode(http.StatusOK),
+			),
+		},
+		{
+			name: "should ignore unknown scopes",
+			middleware: auth.Verify(
+				jwt.WithAnyScope(
+					jwt.TokenAttachmentsWrite, jwt.TokenAppKeysRead,
+				),
+			),
+			request: testutils.BuildRequest(
+				testutils.WithAuthHeader(
+					priv,
+					jwt.WithScopeStrings(
+						"unknown",
+						jwt.TokenAttachmentsWrite,
+					),
 				),
 			),
 			endHandler: testutils.OkHandler,
@@ -889,10 +932,11 @@ func TestExtract(t *testing.T) {
 	tenantID := "some-tenant"
 
 	for _, tc := range [...]struct {
-		name       string
-		middleware func(http.Handler) http.Handler
-		request    *http.Request
-		reqChecks  checkReqFunc
+		name           string
+		middleware     func(http.Handler) http.Handler
+		request        *http.Request
+		reqChecks      checkReqFunc
+		responseChecks checkFunc
 	}{
 		{
 			name:       "should succeed with request with valid JWT",
@@ -922,10 +966,38 @@ func TestExtract(t *testing.T) {
 			),
 		},
 		{
-			name:       "should not break the middleware chain with a request without a JWT",
+			name:           "should not break the middleware chain with a request without a JWT",
+			middleware:     auth.Extract,
+			request:        testutils.BuildRequest(),
+			responseChecks: hasStatusCode(http.StatusOK),
+		},
+		{
+			name:       "should not break the middleware chain with a request with an unknown scope",
 			middleware: auth.Extract,
-			request:    testutils.BuildRequest(),
-			reqChecks:  checkReqAll(),
+			request: testutils.BuildRequest(
+				testutils.WithAuthHeader(
+					priv,
+					jwt.WithUserID(userID),
+					jwt.WithScopeStrings("unknown"),
+					jwt.WithClientID(clientID.String()),
+					jwt.WithTenantID(tenantID),
+				),
+			),
+			responseChecks: hasStatusCode(http.StatusOK),
+		},
+		{
+			name:       "should not break the middleware chain with a JWT with missing data",
+			middleware: auth.Extract,
+			request: testutils.BuildRequest(
+				testutils.WithAuthHeader(
+					priv,
+					jwt.WithUserID(uuid.Nil),
+					jwt.WithScopeStrings(""),
+					jwt.WithClientID(""),
+					jwt.WithTenantID(""),
+				),
+			),
+			responseChecks: hasStatusCode(http.StatusOK),
 		},
 	} {
 		tc := tc
@@ -938,13 +1010,21 @@ func TestExtract(t *testing.T) {
 				hasBeenCalled = true
 			}))
 
-			handler.ServeHTTP(httptest.NewRecorder(), tc.request)
+			respRecorder := httptest.NewRecorder()
+			handler.ServeHTTP(respRecorder, tc.request)
 
 			if !hasBeenCalled {
 				t.Fatal(errors.New("handler should have been called, was not."))
 			}
-			if err := tc.reqChecks(haveReq); err != nil {
-				t.Error(err)
+			if tc.reqChecks != nil {
+				if err := tc.reqChecks(haveReq); err != nil {
+					t.Error(err)
+				}
+			}
+			if tc.responseChecks != nil {
+				if err := tc.responseChecks(respRecorder); err != nil {
+					t.Error(err)
+				}
 			}
 		})
 	}

@@ -356,20 +356,31 @@ func TestScope_UnmarshalJSON(t *testing.T) {
 			json: `""`,
 			checks: checks(
 				hasError(nil),
+				hasScope(Scope{}),
 			),
 		},
 		{
-			name: "invalid: JSON contains invalid tag delimiter",
+			name: "invalid tag delimiter are treated as unknown tag (ignored)",
 			json: `"tag_bar"`,
 			checks: checks(
-				hasError(ErrUnknownToken),
+				hasError(nil),
+				hasScope(Scope{}),
 			),
 		},
 		{
-			name: "invalid: JSON contains a mix of valid and invalid tokens",
-			json: `"tag_bar foobar user:r"`,
+			name: "ignores invalid token: mix of valid and invalid tokens",
+			json: `"foobar user:r"`,
 			checks: checks(
-				hasSomeError,
+				hasError(nil),
+				hasScope(Scope{[]string{"user:r"}}),
+			),
+		},
+		{
+			name: "ignores invalid token: multiple invalid tokens",
+			json: `"foobar barfoo"`,
+			checks: checks(
+				hasError(nil),
+				hasScope(Scope{}),
 			),
 		},
 		{
