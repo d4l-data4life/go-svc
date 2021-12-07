@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- client: vega v2 client
+
 ### Changed
 
 - [JWT pkg]: unknown scopes are ignored by `Scope`'s `Scan` and `UnmarshalJSON` methods (but not by `NewScope` method).
