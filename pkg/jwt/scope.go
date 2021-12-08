@@ -12,32 +12,40 @@ import (
 
 // constant values for scope tokens
 const (
-	TokenPermissionsRead            = "perm:r"
-	TokenPermissionsWrite           = "perm:w"
-	TokenRecordsRead                = "rec:r"
-	TokenRecordsWrite               = "rec:w"
-	TokenRecordsAppend              = "rec:a"
-	TokenAttachmentsRead            = "attachment:r"
-	TokenAttachmentsWrite           = "attachment:w"
-	TokenAttachmentsAppend          = "attachment:a"
-	TokenUserRead                   = "user:r"
-	TokenUserWrite                  = "user:w"
-	TokenUserQuery                  = "user:q"
-	TokenUserKeysRead               = "ku:r"
-	TokenUserKeysWrite              = "ku:w"
-	TokenUserKeysAppend             = "ku:a"
-	TokenUserKeysMigrate            = "ku:m"
-	TokenAppKeysRead                = "ka:r"
-	TokenAppKeysWrite               = "ka:w"
-	TokenAppKeysAppend              = "ka:a"
-	TokenDeviceRead                 = "dev:r"
-	TokenDeviceWrite                = "dev:w"
-	TokenDeviceAppend               = "dev:a"
+	TokenPermissionsRead   = "perm:r"
+	TokenPermissionsWrite  = "perm:w"
+	TokenRecordsRead       = "rec:r"
+	TokenRecordsWrite      = "rec:w"
+	TokenRecordsAppend     = "rec:a"
+	TokenAttachmentsRead   = "attachment:r"
+	TokenAttachmentsWrite  = "attachment:w"
+	TokenAttachmentsAppend = "attachment:a"
+	TokenUserRead          = "user:r"
+	TokenUserWrite         = "user:w"
+	TokenUserQuery         = "user:q"
+	TokenUserKeysRead      = "ku:r"
+	TokenUserKeysWrite     = "ku:w"
+	TokenUserKeysAppend    = "ku:a"
+	TokenUserKeysMigrate   = "ku:m"
+	TokenAppKeysRead       = "ka:r"
+	TokenAppKeysWrite      = "ka:w"
+	TokenAppKeysAppend     = "ka:a"
+
+	TokenDeviceCreate = "dev:c"
+	TokenDeviceRead   = "dev:r"
+	TokenDeviceUpdate = "dev:u"
+	TokenDeviceDelete = "dev:d"
+
 	TokenUserMailVerify             = "mail:v"
 	TokenUserRecoveryPasswordAppend = "recp:a"
 	TokenTerraDB                    = "terradb"
 	TokenTags                       = "tag:*"
 	TokenExtended                   = "ext:*"
+	TokenPasswordUpdate             = "pwd:u"
+
+	// TokenLoginSecondFactor is an auth internal token that gives access to the second factor
+	// authentication (it means that the first factor authentication was successful)
+	TokenLoginSecondFactor = "login:2nd-factor"
 )
 
 var (
@@ -83,9 +91,10 @@ var (
 		TokenAppKeysWrite:  exists,
 		TokenAppKeysAppend: exists,
 
+		TokenDeviceCreate: exists,
 		TokenDeviceRead:   exists,
-		TokenDeviceWrite:  exists,
-		TokenDeviceAppend: exists,
+		TokenDeviceUpdate: exists,
+		TokenDeviceDelete: exists,
 
 		TokenUserMailVerify: exists,
 
@@ -94,6 +103,8 @@ var (
 		TokenExtended: exists,
 
 		TokenUserRecoveryPasswordAppend: exists,
+		TokenPasswordUpdate:             exists,
+		TokenLoginSecondFactor:          exists,
 	}
 
 	// DeprecatedTokens are recognized but ignored even if the client asks

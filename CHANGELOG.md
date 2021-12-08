@@ -9,7 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- [JWT pkg]: New scopes: `TokenPasswordUpdate`, `TokenLoginSecondFactor`
+
 ### Changed
+
+- [JWT pkg]: Use CRUD operations for device scopes (`TokenDeviceCreate` instead of `TokenDeviceAppend`,
+`TokenDeviceUpdate` and `TokenDeviceDelete` instead of `TokenDeviceWrite`).
 
 ### Deprecated
 
