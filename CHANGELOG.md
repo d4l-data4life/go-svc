@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## [v1.31.0] - 2021-12-08
+
+### Added
+
 - client: vega v2 client
 
 ### Changed
@@ -27,10 +41,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [JWT pkg]: `WithGorillaMux` middleware. Use `WithGorillaOwner` instead.
 - [JWT pkg]: `New` function. Use `NewAuthenticator` instead.
 - [JWT pkg]: `middleware.Auth`. Use `NewAuthenticator` instead.
-
-### Fixed
-
-### Security
 
 ## [v1.30.0] - 2021-11-22
 
@@ -513,7 +523,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial state: standards for Main, HTTP Server, DB access (gorm), Logging, Instrumented-Handler, and K8s Probe
 
-[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.30.0...HEAD
+[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.31.0...HEAD
+[v1.31.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.30.0...v1.31.0
 [v1.30.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.29.0...v1.30.0
 [v1.29.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.28.0...v1.29.0
 [v1.28.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.27.0...v1.28.0
