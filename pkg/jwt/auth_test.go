@@ -11,6 +11,7 @@ import (
 	"math/rand"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"strings"
 	"testing"
 	"time"
@@ -39,13 +40,29 @@ func TestWithGorillaOwner(t *testing.T) {
 
 	for _, tc := range [...]testData{
 		{
-			name: "should succeed with right owner",
+			name: "should succeed with right owner: JWT in authorization header",
 			middleware: auth.Verify(
 				jwt.WithGorillaOwner(ownerFlag),
 			),
 			request: testutils.BuildRequest(
 				testutils.WithTargetURL(fmt.Sprintf("/users/%s/records", ownerUUID)),
 				testutils.WithAuthHeader(
+					priv,
+					jwt.WithUserID(ownerUUID),
+				),
+			),
+			checks: checks(
+				hasStatusCode(http.StatusOK),
+			),
+		},
+		{
+			name: "should succeed with right owner: JWT in form body",
+			middleware: auth.Verify(
+				jwt.WithGorillaOwner(ownerFlag),
+			),
+			request: testutils.BuildRequest(
+				testutils.WithTargetURL(fmt.Sprintf("/users/%s/records", ownerUUID)),
+				testutils.WithFormAccessToken(
 					priv,
 					jwt.WithUserID(ownerUUID),
 				),
@@ -139,13 +156,29 @@ func TestWithChiOwner(t *testing.T) {
 
 	for _, tc := range [...]testData{
 		{
-			name: "should succeed with right owner",
+			name: "should succeed with right owner: JWT in authorization header",
 			middleware: auth.Verify(
 				jwt.WithChiOwner(ownerFlag),
 			),
 			request: testutils.BuildRequest(
 				testutils.WithTargetURL(fmt.Sprintf("/users/%s/records", ownerUUID)),
 				testutils.WithAuthHeader(
+					priv,
+					jwt.WithUserID(ownerUUID),
+				),
+			),
+			checks: checks(
+				hasStatusCode(http.StatusOK),
+			),
+		},
+		{
+			name: "should succeed with right owner: JWT in form body",
+			middleware: auth.Verify(
+				jwt.WithChiOwner(ownerFlag),
+			),
+			request: testutils.BuildRequest(
+				testutils.WithTargetURL(fmt.Sprintf("/users/%s/records", ownerUUID)),
+				testutils.WithFormAccessToken(
 					priv,
 					jwt.WithUserID(ownerUUID),
 				),
@@ -239,7 +272,7 @@ func TestWithOwner(t *testing.T) {
 
 	for _, tc := range [...]testData{
 		{
-			name: "should succeed with right owner",
+			name: "should succeed with right owner: JWT in authorization header",
 			middleware: auth.Verify(
 				jwt.WithOwner(func(r *http.Request) uuid.UUID {
 					return ownerUUID
@@ -248,6 +281,25 @@ func TestWithOwner(t *testing.T) {
 			request: testutils.BuildRequest(
 				testutils.WithTargetURL(fmt.Sprintf("/users/%s/records", ownerUUID)),
 				testutils.WithAuthHeader(
+					priv,
+					jwt.WithUserID(ownerUUID),
+				),
+			),
+			endHandler: testutils.OkHandler,
+			checks: checks(
+				hasStatusCode(http.StatusOK),
+			),
+		},
+		{
+			name: "should succeed with right owner: JWT in form body",
+			middleware: auth.Verify(
+				jwt.WithOwner(func(r *http.Request) uuid.UUID {
+					return ownerUUID
+				}),
+			),
+			request: testutils.BuildRequest(
+				testutils.WithTargetURL(fmt.Sprintf("/users/%s/records", ownerUUID)),
+				testutils.WithFormAccessToken(
 					priv,
 					jwt.WithUserID(ownerUUID),
 				),
@@ -455,6 +507,24 @@ func TestWithAllScopes(t *testing.T) {
 				hasStatusCode(http.StatusUnauthorized),
 			),
 		},
+		{
+			name: "should work with the jwt in form body",
+			middleware: auth.Verify(
+				jwt.WithAllScopes(
+					jwt.TokenAttachmentsWrite,
+				),
+			),
+			request: testutils.BuildRequest(
+				testutils.WithFormAccessToken(
+					priv,
+					jwt.WithScopeStrings(jwt.TokenAttachmentsWrite),
+				),
+			),
+			endHandler: testutils.OkHandler,
+			checks: checks(
+				hasStatusCode(http.StatusOK),
+			),
+		},
 	} {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
@@ -638,6 +708,24 @@ func TestWithAnyScopes(t *testing.T) {
 				hasStatusCode(http.StatusUnauthorized),
 			),
 		},
+		{
+			name: "should work with the jwt in form body",
+			middleware: auth.Verify(
+				jwt.WithAnyScope(
+					jwt.TokenAttachmentsWrite,
+				),
+			),
+			request: testutils.BuildRequest(
+				testutils.WithFormAccessToken(
+					priv,
+					jwt.WithScopeStrings(jwt.TokenAttachmentsWrite),
+				),
+			),
+			endHandler: testutils.OkHandler,
+			checks: checks(
+				hasStatusCode(http.StatusOK),
+			),
+		},
 	} {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
@@ -724,6 +812,45 @@ func TestVerify(t *testing.T) {
 				hasInContextExtract(func(ctx context.Context) (interface{}, error) {
 					return jwt.GetTagsInScope(ctx)
 				}, []jwt.Tag{jwt.TokenAttachmentsWrite}),
+			),
+			checks: checks(
+				hasStatusCode(http.StatusOK),
+			),
+		},
+		{
+			name:       "should fail on broken form access token",
+			middleware: auth.Verify(),
+			request: testutils.BuildRequest(
+				func(r *http.Request) error {
+					r.Form = url.Values{}
+					r.Form.Add("access_token", "wrong")
+					r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+					return nil
+				},
+			),
+			checks: checks(
+				hasStatusCode(http.StatusUnauthorized),
+			),
+		},
+		{
+			name:       "should work with a valid jwt in authorization header",
+			middleware: auth.Verify(),
+			request: testutils.BuildRequest(
+				testutils.WithAuthHeader(
+					priv,
+				),
+			),
+			checks: checks(
+				hasStatusCode(http.StatusOK),
+			),
+		},
+		{
+			name:       "should work with a valid jwt in form body",
+			middleware: auth.Verify(),
+			request: testutils.BuildRequest(
+				testutils.WithFormAccessToken(
+					priv,
+				),
 			),
 			checks: checks(
 				hasStatusCode(http.StatusOK),
