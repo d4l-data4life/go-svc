@@ -279,7 +279,8 @@ func WithAnyScope(scopes ...string) rule {
 			}
 		}
 
-		return ErrMissingScope
+		return fmt.Errorf("%w: expected ANY scope of %v, got %v",
+			ErrMissingScope, scopes, claims.Scope.Tokens)
 	}
 }
 
@@ -293,7 +294,8 @@ func WithAllScopes(scopes ...string) rule {
 
 		for _, scope := range scopes {
 			if !claims.Scope.Contains(scope) {
-				return ErrMissingScope
+				return fmt.Errorf("%w: expected ALL scopes %v, got %v",
+					ErrMissingScope, scopes, claims.Scope.Tokens)
 			}
 		}
 
