@@ -73,6 +73,30 @@ func WithFormAccessToken(key *rsa.PrivateKey, options ...jwt.TokenOption) Reques
 	}
 }
 
+// WithCookieAccessToken creates a valid JWT and adds it to the request cookie with
+// jwt.AccessCookieName as cookie name
+func WithCookieAccessToken(key *rsa.PrivateKey, options ...jwt.TokenOption) RequestBuilder {
+	return func(r *http.Request) error {
+		options = append(
+			// add a default expiration time as the token is not valid without one
+			[]jwt.TokenOption{jwt.WithExpirationTime(time.Now().Add(1 * time.Minute))},
+			options...,
+		)
+		t, err := jwt.CreateAccessToken(key, options...)
+		if err != nil {
+			return err
+		}
+
+		ac := http.Cookie{
+			Name:  jwt.AccessCookieName,
+			Value: t.AccessToken,
+		}
+
+		r.AddCookie(&ac)
+		return nil
+	}
+}
+
 func WithTargetURL(target string) func(*http.Request) error {
 	return func(req *http.Request) error {
 		url, err := url.Parse(target)

@@ -25,15 +25,9 @@ var (
 	ErrRulesVerification  = errors.New("JWT rules verification failed")
 )
 
-// DummyKeyProvider will be used when the deprecated constructor `New` is used
-// We want to prevent setting Authenticator.keyProvider to nil, so instead this struct will be used
-type DummyKeyProvider struct {
-	Key *rsa.PublicKey
-}
-
-func (dkp *DummyKeyProvider) JWTPublicKeys() ([]dynamic.JWTPublicKey, error) {
-	jwtpk := dynamic.JWTPublicKey{Key: dkp.Key, Name: "arbitrary", Comment: "generated in code jwt.New()"}
-	return []dynamic.JWTPublicKey{jwtpk}, nil
+// tokenExtractor is an interface for extracting a token from an HTTP request.
+type tokenExtractor interface {
+	ExtractToken(*http.Request) (string, error)
 }
 
 type JWTPublicKeysProvider interface {
@@ -42,14 +36,51 @@ type JWTPublicKeysProvider interface {
 
 // Authenticator contains the public key necessary to verify the signature.
 type Authenticator struct {
-	keyProvider JWTPublicKeysProvider
-	logger      logger
+	keyProvider    JWTPublicKeysProvider
+	logger         logger
+	tokenExtractor tokenExtractor
 }
 
-// NewAuthenticator creates an Authenticator that creates an auth Middleware for
+// NewAuthenticator creates an Authenticator that can be used for auth Middleware for
 // JWT verification against multiple publick keys provided by a KeyProvider
+// It checks for access tokens in the Authorization header and in the "access_token" parameter
+// in case of a form request body.
 func NewAuthenticator(pkp JWTPublicKeysProvider, l logger) *Authenticator {
-	return &Authenticator{keyProvider: pkp, logger: l}
+	return &Authenticator{
+		keyProvider: pkp,
+		logger:      l,
+		tokenExtractor: jwtReq.MultiExtractor{
+			jwtReq.AuthorizationHeaderExtractor,
+			jwtReq.ArgumentExtractor{"access_token"},
+		},
+	}
+}
+
+type authenticatorOption func(*Authenticator)
+
+// NewAuthenticatorWithOptions creates an Authenticator that creates an auth Middleware for
+// JWT verification against multiple publick keys provided by a KeyProvider
+func NewAuthenticatorWithOptions(pkp JWTPublicKeysProvider, l logger, options ...authenticatorOption) *Authenticator {
+	a := NewAuthenticator(pkp, l)
+
+	for _, option := range options {
+		option(a)
+	}
+
+	return a
+}
+
+// AcceptAccessCookie enables the authenticator to check for access
+// tokens in cookies sent with the request using the jwt.AccessCookieName
+// cookie name.
+// Only use this if you have a proper CSRF protection in place.
+func AcceptAccessCookie(a *Authenticator) {
+	a.tokenExtractor = &jwtReq.MultiExtractor{
+		a.tokenExtractor,
+
+		// the cookie extractor check if the token is included in the access cookie
+		newCookieExtractor(),
+	}
 }
 
 type rule func(*http.Request) error
@@ -158,7 +189,7 @@ func (auth *Authenticator) verifyPubKey(r *http.Request, pubKey *rsa.PublicKey, 
 		_ = auth.logger.ErrUserAuth(r.Context(), errors.Wrap(err, ErrMsgVerifier))
 		return http.StatusInternalServerError, nil, err
 	}
-	rawToken, err := jwtReq.OAuth2Extractor.ExtractToken(r)
+	rawToken, err := auth.tokenExtractor.ExtractToken(r)
 	if err != nil {
 		_ = auth.logger.ErrUserAuth(r.Context(), errors.Wrap(err, ErrMsgVerifier))
 		return http.StatusUnauthorized, nil, fmt.Errorf("cannot extract token from request")

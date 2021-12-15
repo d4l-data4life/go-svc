@@ -33,7 +33,11 @@ func TestWithGorillaOwner(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	auth := jwt.NewAuthenticator(&jwt.DummyKeyProvider{Key: &priv.PublicKey}, &testutils.Logger{})
+	pkp := testutils.DummyKeyProvider{Key: &priv.PublicKey}
+	l := testutils.Logger{}
+	auth := jwt.NewAuthenticator(&pkp, &l)
+	authAcceptingCookie := jwt.NewAuthenticatorWithOptions(&pkp, &l, jwt.AcceptAccessCookie)
+
 	ownerFlag := "owner"
 	ownerUUID := uuid.Must(uuid.NewV4())
 	otherUUID := uuid.Must(uuid.NewV4())
@@ -69,6 +73,38 @@ func TestWithGorillaOwner(t *testing.T) {
 			),
 			checks: checks(
 				hasStatusCode(http.StatusOK),
+			),
+		},
+		{
+			name: "should succeed with right owner: JWT in cookie",
+			middleware: authAcceptingCookie.Verify(
+				jwt.WithGorillaOwner(ownerFlag),
+			),
+			request: testutils.BuildRequest(
+				testutils.WithTargetURL(fmt.Sprintf("/users/%s/records", ownerUUID)),
+				testutils.WithCookieAccessToken(
+					priv,
+					jwt.WithUserID(ownerUUID),
+				),
+			),
+			checks: checks(
+				hasStatusCode(http.StatusOK),
+			),
+		},
+		{
+			name: "should succeed with valid cookie if option is disabled",
+			middleware: auth.Verify(
+				jwt.WithGorillaOwner(ownerFlag),
+			),
+			request: testutils.BuildRequest(
+				testutils.WithTargetURL(fmt.Sprintf("/users/%s/records", ownerUUID)),
+				testutils.WithCookieAccessToken(
+					priv,
+					jwt.WithUserID(ownerUUID),
+				),
+			),
+			checks: checks(
+				hasStatusCode(http.StatusUnauthorized),
 			),
 		},
 		{
@@ -149,7 +185,10 @@ func TestWithChiOwner(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	auth := jwt.NewAuthenticator(&jwt.DummyKeyProvider{Key: &priv.PublicKey}, &testutils.Logger{})
+	pkp := testutils.DummyKeyProvider{Key: &priv.PublicKey}
+	l := testutils.Logger{}
+	auth := jwt.NewAuthenticator(&pkp, &l)
+	authAcceptingCookie := jwt.NewAuthenticatorWithOptions(&pkp, &l, jwt.AcceptAccessCookie)
 	ownerFlag := "owner"
 	ownerUUID := uuid.Must(uuid.NewV4())
 	otherUUID := uuid.Must(uuid.NewV4())
@@ -185,6 +224,38 @@ func TestWithChiOwner(t *testing.T) {
 			),
 			checks: checks(
 				hasStatusCode(http.StatusOK),
+			),
+		},
+		{
+			name: "should succeed with right owner: JWT in cookie and cookie option enabled",
+			middleware: authAcceptingCookie.Verify(
+				jwt.WithChiOwner(ownerFlag),
+			),
+			request: testutils.BuildRequest(
+				testutils.WithTargetURL(fmt.Sprintf("/users/%s/records", ownerUUID)),
+				testutils.WithCookieAccessToken(
+					priv,
+					jwt.WithUserID(ownerUUID),
+				),
+			),
+			checks: checks(
+				hasStatusCode(http.StatusOK),
+			),
+		},
+		{
+			name: "should fail with right owner if cookie option disabled",
+			middleware: auth.Verify(
+				jwt.WithChiOwner(ownerFlag),
+			),
+			request: testutils.BuildRequest(
+				testutils.WithTargetURL(fmt.Sprintf("/users/%s/records", ownerUUID)),
+				testutils.WithCookieAccessToken(
+					priv,
+					jwt.WithUserID(ownerUUID),
+				),
+			),
+			checks: checks(
+				hasStatusCode(http.StatusUnauthorized),
 			),
 		},
 		{
@@ -266,7 +337,10 @@ func TestWithOwner(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	auth := jwt.NewAuthenticator(&jwt.DummyKeyProvider{Key: &priv.PublicKey}, &testutils.Logger{})
+	pkp := testutils.DummyKeyProvider{Key: &priv.PublicKey}
+	l := testutils.Logger{}
+	auth := jwt.NewAuthenticator(&pkp, &l)
+	authAcceptingCookie := jwt.NewAuthenticatorWithOptions(&pkp, &l, jwt.AcceptAccessCookie)
 	ownerUUID := uuid.Must(uuid.NewV4())
 	otherUUID := uuid.Must(uuid.NewV4())
 
@@ -307,6 +381,44 @@ func TestWithOwner(t *testing.T) {
 			endHandler: testutils.OkHandler,
 			checks: checks(
 				hasStatusCode(http.StatusOK),
+			),
+		},
+		{
+			name: "should succeed with right owner: JWT in cookie and option enabled",
+			middleware: authAcceptingCookie.Verify(
+				jwt.WithOwner(func(r *http.Request) uuid.UUID {
+					return ownerUUID
+				}),
+			),
+			request: testutils.BuildRequest(
+				testutils.WithTargetURL(fmt.Sprintf("/users/%s/records", ownerUUID)),
+				testutils.WithCookieAccessToken(
+					priv,
+					jwt.WithUserID(ownerUUID),
+				),
+			),
+			endHandler: testutils.OkHandler,
+			checks: checks(
+				hasStatusCode(http.StatusOK),
+			),
+		},
+		{
+			name: "should fail with right owner if JWT in cookie and option disabled",
+			middleware: auth.Verify(
+				jwt.WithOwner(func(r *http.Request) uuid.UUID {
+					return ownerUUID
+				}),
+			),
+			request: testutils.BuildRequest(
+				testutils.WithTargetURL(fmt.Sprintf("/users/%s/records", ownerUUID)),
+				testutils.WithCookieAccessToken(
+					priv,
+					jwt.WithUserID(ownerUUID),
+				),
+			),
+			endHandler: testutils.OkHandler,
+			checks: checks(
+				hasStatusCode(http.StatusUnauthorized),
 			),
 		},
 		{
@@ -384,7 +496,10 @@ func TestWithAllScopes(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	auth := jwt.NewAuthenticator(&jwt.DummyKeyProvider{Key: &priv.PublicKey}, &testutils.Logger{})
+	pkp := testutils.DummyKeyProvider{Key: &priv.PublicKey}
+	l := testutils.Logger{}
+	auth := jwt.NewAuthenticator(&pkp, &l)
+	authAcceptingCookie := jwt.NewAuthenticatorWithOptions(&pkp, &l, jwt.AcceptAccessCookie)
 
 	for _, tc := range [...]testData{
 		{
@@ -525,6 +640,42 @@ func TestWithAllScopes(t *testing.T) {
 				hasStatusCode(http.StatusOK),
 			),
 		},
+		{
+			name: "should work with the jwt cookie if option is enables",
+			middleware: authAcceptingCookie.Verify(
+				jwt.WithAllScopes(
+					jwt.TokenAttachmentsWrite,
+				),
+			),
+			request: testutils.BuildRequest(
+				testutils.WithCookieAccessToken(
+					priv,
+					jwt.WithScopeStrings(jwt.TokenAttachmentsWrite),
+				),
+			),
+			endHandler: testutils.OkHandler,
+			checks: checks(
+				hasStatusCode(http.StatusOK),
+			),
+		},
+		{
+			name: "should fail with the jwt cookie if option is disabled",
+			middleware: auth.Verify(
+				jwt.WithAllScopes(
+					jwt.TokenAttachmentsWrite,
+				),
+			),
+			request: testutils.BuildRequest(
+				testutils.WithCookieAccessToken(
+					priv,
+					jwt.WithScopeStrings(jwt.TokenAttachmentsWrite),
+				),
+			),
+			endHandler: testutils.OkHandler,
+			checks: checks(
+				hasStatusCode(http.StatusUnauthorized),
+			),
+		},
 	} {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
@@ -549,7 +700,10 @@ func TestWithAnyScopes(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	auth := jwt.NewAuthenticator(&jwt.DummyKeyProvider{Key: &priv.PublicKey}, &testutils.Logger{})
+	pkp := testutils.DummyKeyProvider{Key: &priv.PublicKey}
+	l := testutils.Logger{}
+	auth := jwt.NewAuthenticator(&pkp, &l)
+	authAcceptingCookie := jwt.NewAuthenticatorWithOptions(&pkp, &l, jwt.AcceptAccessCookie)
 
 	for _, tc := range [...]testData{
 		{
@@ -726,6 +880,42 @@ func TestWithAnyScopes(t *testing.T) {
 				hasStatusCode(http.StatusOK),
 			),
 		},
+		{
+			name: "should work with the jwt in cookie if option is enabled",
+			middleware: authAcceptingCookie.Verify(
+				jwt.WithAnyScope(
+					jwt.TokenAttachmentsWrite,
+				),
+			),
+			request: testutils.BuildRequest(
+				testutils.WithCookieAccessToken(
+					priv,
+					jwt.WithScopeStrings(jwt.TokenAttachmentsWrite),
+				),
+			),
+			endHandler: testutils.OkHandler,
+			checks: checks(
+				hasStatusCode(http.StatusOK),
+			),
+		},
+		{
+			name: "should fail with the jwt in cookie if option is disabled",
+			middleware: auth.Verify(
+				jwt.WithAnyScope(
+					jwt.TokenAttachmentsWrite,
+				),
+			),
+			request: testutils.BuildRequest(
+				testutils.WithCookieAccessToken(
+					priv,
+					jwt.WithScopeStrings(jwt.TokenAttachmentsWrite),
+				),
+			),
+			endHandler: testutils.OkHandler,
+			checks: checks(
+				hasStatusCode(http.StatusUnauthorized),
+			),
+		},
 	} {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
@@ -750,7 +940,10 @@ func TestVerify(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	auth := jwt.NewAuthenticator(&jwt.DummyKeyProvider{Key: &priv.PublicKey}, &testutils.Logger{})
+	pkp := testutils.DummyKeyProvider{Key: &priv.PublicKey}
+	l := testutils.Logger{}
+	auth := jwt.NewAuthenticator(&pkp, &l)
+	authAcceptingCookie := jwt.NewAuthenticatorWithOptions(&pkp, &l, jwt.AcceptAccessCookie)
 	ownerUUID := uuid.Must(uuid.NewV4())
 
 	for _, tc := range [...]struct {
@@ -854,6 +1047,30 @@ func TestVerify(t *testing.T) {
 			),
 			checks: checks(
 				hasStatusCode(http.StatusOK),
+			),
+		},
+		{
+			name:       "should work with a valid jwt in cookie if option enabled",
+			middleware: authAcceptingCookie.Verify(),
+			request: testutils.BuildRequest(
+				testutils.WithCookieAccessToken(
+					priv,
+				),
+			),
+			checks: checks(
+				hasStatusCode(http.StatusOK),
+			),
+		},
+		{
+			name:       "should fail with a valid jwt in cookie if option disabled",
+			middleware: auth.Verify(),
+			request: testutils.BuildRequest(
+				testutils.WithCookieAccessToken(
+					priv,
+				),
+			),
+			checks: checks(
+				hasStatusCode(http.StatusUnauthorized),
 			),
 		},
 	} {
@@ -1052,7 +1269,7 @@ func TestExtract(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	auth := jwt.NewAuthenticator(&jwt.DummyKeyProvider{Key: &priv.PublicKey}, &testutils.Logger{})
+	auth := jwt.NewAuthenticator(&testutils.DummyKeyProvider{Key: &priv.PublicKey}, &testutils.Logger{})
 
 	userID := uuid.Must(uuid.NewV4())
 	clientID := uuid.Must(uuid.NewV4())
