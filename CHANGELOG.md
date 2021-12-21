@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Mobile phone number obfuscator
+
 ### Changed
 
 - [JWT pkg]: auth middleware functions support (optionally) the access token being sent in a cookie (with the `phdp-access-token` name)

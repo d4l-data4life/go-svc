@@ -166,6 +166,7 @@ type Field int
 const (
 	Body Field = iota
 	ReqForm
+	URL
 )
 
 type EventType string

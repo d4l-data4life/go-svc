@@ -81,7 +81,7 @@ func processDomain(domain string) string {
 	obfCountEven := obfCount%2 == 0
 	charCountEven := len%2 == 0
 
-	// Check if the range of OBF_CHARs fits symmetrically into the domain
+	// Check if the range of obfuscation characters fits symmetrically into the domain
 	// and if not, emphasize the right side.
 	// Symmetry is possible, when both obfCount and charCount are even or uneven.
 	startPos := (len - obfCount) / 2
