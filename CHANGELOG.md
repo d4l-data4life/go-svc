@@ -9,21 +9,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## [v1.33.0] - 2021-12-22
+
+### Added
+
 - Mobile phone number obfuscator
 
 ### Changed
 
 - [JWT pkg]: auth middleware functions support (optionally) the access token being sent in a cookie (with the `phdp-access-token` name)
 
-### Deprecated
-
 ### Removed
 
 - Offboarding Claas and Piotr
-
-### Fixed
-
-### Security
 
 ## [v1.32.0] - 2021-12-10
 
@@ -539,7 +547,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial state: standards for Main, HTTP Server, DB access (gorm), Logging, Instrumented-Handler, and K8s Probe
 
-[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.32.0...HEAD
+[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.33.0...HEAD
+[v1.33.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.32.0...v1.33.0
 [v1.32.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.31.0...v1.32.0
 [v1.31.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.30.0...v1.31.0
 [v1.30.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.29.0...v1.30.0
