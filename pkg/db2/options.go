@@ -171,3 +171,12 @@ func TXDBPostgresDriver(connectString string) (*gorm.DB, error) {
 	}
 	return gorm.Open(postgres.New(postgres.Config{DriverName: "txdb", DSN: connectString}))
 }
+
+func TXDBPostgresDriverWithoutSavepoint(connectString string) (*gorm.DB, error) {
+	drivers := sql.Drivers()
+	i := sort.SearchStrings(drivers, "txdb")
+	if i >= len(drivers) || drivers[i] != "txdb" {
+		txdb.Register("txdb", "pgx", connectString, txdb.SavePointOption(nil))
+	}
+	return gorm.Open(postgres.New(postgres.Config{DriverName: "txdb", DSN: connectString}))
+}

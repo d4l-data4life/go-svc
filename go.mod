@@ -3,7 +3,7 @@ module github.com/gesundheitscloud/go-svc
 go 1.16
 
 require (
-	github.com/DATA-DOG/go-txdb v0.1.4
+	github.com/DATA-DOG/go-txdb v0.1.5
 	github.com/caarlos0/env v3.5.0+incompatible
 	github.com/fsnotify/fsnotify v1.4.9
 	github.com/go-chi/chi v4.1.2+incompatible
