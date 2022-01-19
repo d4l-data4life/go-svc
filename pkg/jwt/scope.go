@@ -46,6 +46,10 @@ const (
 	// TokenLoginSecondFactor is an auth internal token that gives access to the second factor
 	// authentication (it means that the first factor authentication was successful)
 	TokenLoginSecondFactor = "login:2nd-factor"
+
+	// TokenLoginConsent is an auth internal token that gives access to the login consent endpoint
+	// (it means that the first two authentication factors were successful)
+	TokenLoginConsent = "login:consent"
 )
 
 var (
@@ -105,6 +109,7 @@ var (
 		TokenUserRecoveryPasswordAppend: exists,
 		TokenPasswordUpdate:             exists,
 		TokenLoginSecondFactor:          exists,
+		TokenLoginConsent:               exists,
 	}
 
 	// DeprecatedTokens are recognized but ignored even if the client asks
