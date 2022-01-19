@@ -17,10 +17,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+### Security
+
+## [v1.35.1] - 2022-01-19
+
+### Fixed
+
 - Repair linter pipeline by using newest jenkins pipeline version.
 - Standard: Fix database connection timeout duration
-
-### Security
 
 ## [v1.35.0] - 2022-01-11
 
@@ -562,7 +566,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial state: standards for Main, HTTP Server, DB access (gorm), Logging, Instrumented-Handler, and K8s Probe
 
-[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.35.0...HEAD
+[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.35.1...HEAD
+[v1.35.1]: https://github.com/gesundheitscloud/go-svc/compare/v1.35.0...v1.35.1
 [v1.35.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.34.0...v1.35.0
 [v1.34.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.33.0...v1.34.0
 [v1.33.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.32.0...v1.33.0
