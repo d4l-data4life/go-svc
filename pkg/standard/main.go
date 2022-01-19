@@ -96,7 +96,7 @@ func Main(serviceMain MainFunction, svcName string, options ...MainOption) {
 func waitForDB(ctx context.Context, dbUp <-chan struct{}, redisUp <-chan struct{}, db2Up <-chan struct{}) bool {
 	logging.LogInfof("Waiting up to 2 minutes for DB connection...")
 	mergedChannel := channels.FanIn(ctx.Done(), dbUp, redisUp, db2Up)
-	for range channels.OrDoneTimeout(ctx.Done(), time.After(10*time.Second), mergedChannel) {
+	for range channels.OrDoneTimeout(ctx.Done(), time.After(120*time.Second), mergedChannel) {
 		// a message on dbUp = database is ready
 		return true
 	}
