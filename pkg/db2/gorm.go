@@ -137,7 +137,10 @@ func connect(opts *ConnectionOptions) (*gorm.DB, error) {
 
 	logging.LogDebugf("Attempting to connect to DB: %s", connectString)
 
-	return gorm.Open(postgres.Open(connectString+secretString), &gorm.Config{Logger: NewLogger(opts.LoggerConfig)})
+	return gorm.Open(postgres.Open(connectString+secretString), &gorm.Config{
+		Logger:                 NewLogger(opts.LoggerConfig),
+		SkipDefaultTransaction: opts.SkipDefaultTransaction,
+	})
 }
 
 // retryExponential runc function fn() as long as fn() returns no error, but maximally 'attempts' times

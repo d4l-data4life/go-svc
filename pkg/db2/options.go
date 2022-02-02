@@ -39,11 +39,12 @@ type ConnectionOptions struct {
 	MigrationVersion      uint
 	// SSLRootCertPath represents path to a file containing the root-CA used for Postgres server identity validation
 	// The cert is provided by Jenkins on build under default path "/root.ca.pem"
-	SSLRootCertPath       string
-	MigrationFunc         MigrationFunc
-	DriverFunc            DriverFunc
-	EnableInstrumentation bool
-	LoggerConfig          logger.Config
+	SSLRootCertPath        string
+	MigrationFunc          MigrationFunc
+	DriverFunc             DriverFunc
+	EnableInstrumentation  bool
+	LoggerConfig           logger.Config
+	SkipDefaultTransaction bool
 }
 
 type ConnectionOption func(*ConnectionOptions)
@@ -63,6 +64,7 @@ func WithDefaults() ConnectionOption {
 			SlowThreshold:             500 * time.Millisecond,
 			IgnoreRecordNotFoundError: true,
 		}
+		c.SkipDefaultTransaction = false
 	}
 }
 
@@ -149,6 +151,12 @@ func WithEnableInstrumentation(value bool) ConnectionOption {
 func WithLoggerConfig(conf logger.Config) ConnectionOption {
 	return func(c *ConnectionOptions) {
 		c.LoggerConfig = conf
+	}
+}
+
+func WithSkipDefaultTransaction(value bool) ConnectionOption {
+	return func(c *ConnectionOptions) {
+		c.SkipDefaultTransaction = value
 	}
 }
 
