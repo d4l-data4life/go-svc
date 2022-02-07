@@ -15,9 +15,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
-- [JWT pkg]: `auth.VerifyAny` (use `auth.Verify` instead)
-
 ### Fixed
+
+### Security
+
+## [v1.38.0] - 2022-02-07
+
+### Removed
+
+- [JWT pkg]: `auth.VerifyAny` (use `auth.Verify` instead)
 
 ### Security
 
@@ -582,7 +588,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial state: standards for Main, HTTP Server, DB access (gorm), Logging, Instrumented-Handler, and K8s Probe
 
-[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.37.0...HEAD
+[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.38.0...HEAD
+[v1.38.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.37.0...v1.38.0
 [v1.37.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.36.0...v1.37.0
 [v1.36.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.35.1...v1.36.0
 [v1.35.1]: https://github.com/gesundheitscloud/go-svc/compare/v1.35.0...v1.35.1
