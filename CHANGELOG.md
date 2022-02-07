@@ -15,9 +15,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- [JWT pkg]: `auth.VerifyAny` (use `auth.Verify` instead)
+
 ### Fixed
 
 ### Security
+
+- [JWT pkg]: auth middleware: access cookies are considered only if the CSRF factors are valid (using nosurf's double submit cookie) or if the method is CSRF-safe.
 
 ## [v1.37.0] - 2022-02-02
 

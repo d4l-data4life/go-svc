@@ -19,6 +19,7 @@ require (
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/jackc/pgx/v4 v4.13.0
 	github.com/jinzhu/gorm v1.9.16
+	github.com/justinas/nosurf v1.1.1 // indirect
 	github.com/lib/pq v1.10.2
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible // indirect
 	github.com/pkg/errors v0.9.1
