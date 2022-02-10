@@ -8,6 +8,8 @@ import (
 	"runtime"
 	"sync"
 	"time"
+
+	"github.com/gofrs/uuid"
 )
 
 // Emitter enables business intelligence complaint events.
@@ -28,6 +30,7 @@ type BaseEvent struct {
 	ServiceVersion string    `json:"service-version"`
 	HostName       string    `json:"hostname"`
 	EventType      string    `json:"event-type"`
+	EventID        uuid.UUID `json:"event-id"`
 	Timestamp      time.Time `json:"timestamp"`
 	// Embed Event struct. This will enable Event json to be printed on the same level as BaseEvent during json encoding.
 	Event
@@ -113,6 +116,7 @@ func (e *Emitter) emit(event Event) BaseEvent {
 		ServiceVersion: e.serviceVersion,
 		HostName:       e.hostname,
 		EventType:      "bi-event",
+		EventID:        uuid.Must(uuid.NewV4()),
 		Timestamp:      time.Now().Truncate(time.Second),
 		Event:          event,
 	}

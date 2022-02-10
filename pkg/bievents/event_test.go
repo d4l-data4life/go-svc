@@ -105,6 +105,7 @@ func TestLog(t *testing.T) {
 
 			// Ignore timestamp for comparison.
 			delete(res, "timestamp")
+			delete(res, "event-id")
 
 			if want, have := tc.result, res; !reflect.DeepEqual(want, have) {
 				t.Errorf("expected values to be %q, got %q", want, have)
