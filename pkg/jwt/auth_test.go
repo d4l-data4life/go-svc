@@ -444,7 +444,7 @@ func TestExtract(t *testing.T) {
 			),
 			reqChecks: checkReqAll(
 				hasInContext(d4lcontext.ClientIDContextKey, clientID.String()),
-				hasInContext(d4lcontext.UserIDContextKey, userID.String()),
+				hasInContext(d4lcontext.UserIDContextKey, userID),
 				hasInContext(d4lcontext.TenantIDContextKey, tenantID),
 				hasInContextExtract(func(ctx context.Context) (interface{}, error) {
 					return jwt.GetSubjectID(ctx)
@@ -472,7 +472,7 @@ func TestExtract(t *testing.T) {
 			),
 			reqChecks: checkReqAll(
 				hasInContext(d4lcontext.ClientIDContextKey, clientID.String()),
-				hasInContext(d4lcontext.UserIDContextKey, userID.String()),
+				hasInContext(d4lcontext.UserIDContextKey, userID),
 				hasInContext(d4lcontext.TenantIDContextKey, tenantID),
 				hasInContextExtract(func(ctx context.Context) (interface{}, error) {
 					return jwt.GetSubjectID(ctx)
@@ -503,7 +503,7 @@ func TestExtract(t *testing.T) {
 			),
 			reqChecks: checkReqAll(
 				hasInContext(d4lcontext.ClientIDContextKey, clientID.String()),
-				hasInContext(d4lcontext.UserIDContextKey, userID.String()),
+				hasInContext(d4lcontext.UserIDContextKey, userID),
 				hasInContext(d4lcontext.TenantIDContextKey, tenantID),
 				hasInContextExtract(func(ctx context.Context) (interface{}, error) {
 					return jwt.GetSubjectID(ctx)
@@ -554,7 +554,7 @@ func TestExtract(t *testing.T) {
 			),
 			reqChecks: checkReqAll(
 				hasInContext(d4lcontext.ClientIDContextKey, clientID.String()),
-				hasInContext(d4lcontext.UserIDContextKey, userID.String()),
+				hasInContext(d4lcontext.UserIDContextKey, userID),
 				hasInContext(d4lcontext.TenantIDContextKey, tenantID),
 				hasInContextExtract(func(ctx context.Context) (interface{}, error) {
 					return jwt.GetSubjectID(ctx)

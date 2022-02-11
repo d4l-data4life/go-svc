@@ -10,6 +10,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gofrs/uuid"
+
 	"github.com/gesundheitscloud/go-svc/pkg/d4lcontext"
 )
 
@@ -85,8 +87,8 @@ func (l HTTPLogger) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 	if userID := l.userParser(req); userID != "" {
 		req = req.WithContext(context.WithValue(req.Context(), UserIDContextKey, userID))
-	} else if userID = d4lcontext.GetUserID(req); userID != "" {
-		req = req.WithContext(context.WithValue(req.Context(), UserIDContextKey, userID))
+	} else if userID := d4lcontext.GetUserID(req); userID != uuid.Nil {
+		req = req.WithContext(context.WithValue(req.Context(), UserIDContextKey, userID.String()))
 	}
 
 	if clientID := l.clientParser(req); clientID != "" {

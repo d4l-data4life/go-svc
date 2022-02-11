@@ -236,7 +236,7 @@ func verifyAllRules(r *http.Request, claims *Claims, rules ...rule) error {
 
 func addClaimsToContext(r *http.Request, claims *Claims) *http.Request {
 	newR := d4lcontext.WithClientID(r, claims.ClientID)
-	newR = d4lcontext.WithUserID(newR, claims.Subject.ID.String())
+	newR = d4lcontext.WithUserID(newR, claims.Subject.ID)
 	newR = d4lcontext.WithTenantID(newR, claims.TenantID)
 
 	// also write the claims into the context for services using this package's context keys

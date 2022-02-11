@@ -14,6 +14,7 @@ import (
 
 	"github.com/gesundheitscloud/go-svc/pkg/d4lcontext"
 	"github.com/gesundheitscloud/go-svc/pkg/log"
+	"github.com/gofrs/uuid"
 )
 
 const (
@@ -592,6 +593,8 @@ func TestContextOverriding(t *testing.T) {
 		t.Fatalf("request creation failed: %v", err)
 	}
 
+	userID := uuid.Must(uuid.NewV4())
+
 	for _, tc := range [...]struct {
 		name              string
 		logger            *log.Logger
@@ -603,13 +606,13 @@ func TestContextOverriding(t *testing.T) {
 			name:   "should work with context keys from the d4lcontext package",
 			logger: log.NewLogger("name", "version", "hostname", log.WithWriter(buf)),
 			req: baseReq.WithContext(buildContext(
-				withValue(d4lcontext.UserIDContextKey, "ctx-user-id"),
+				withValue(d4lcontext.UserIDContextKey, userID),
 				withValue(d4lcontext.ClientIDContextKey, "ctx-client-id"),
 				withValue(d4lcontext.TenantIDContextKey, "ctx-tenant-id"),
 			)),
 			httpWrapers: []func(*log.HTTPLogger){},
 			expectedKeyValues: map[string]string{
-				"user-id":   `"ctx-user-id"`,
+				"user-id":   fmt.Sprintf("\"%v\"", userID.String()),
 				"client-id": `"ctx-client-id"`,
 				"tenant-id": `"ctx-tenant-id"`,
 			},
@@ -618,7 +621,7 @@ func TestContextOverriding(t *testing.T) {
 			name:   "explicit values extractors should override the values from the d4lcontext",
 			logger: log.NewLogger("name", "version", "hostname", log.WithWriter(buf)),
 			req: baseReq.WithContext(buildContext(
-				withValue(d4lcontext.UserIDContextKey, "ctx-user-id"),
+				withValue(d4lcontext.UserIDContextKey, userID),
 				withValue(d4lcontext.ClientIDContextKey, "ctx-client-id"),
 				withValue(d4lcontext.TenantIDContextKey, "ctx-tenant-id"),
 			)),

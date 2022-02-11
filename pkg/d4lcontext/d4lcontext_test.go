@@ -14,27 +14,22 @@ func TestGetUserID(t *testing.T) {
 	tests := []struct {
 		name string
 		ctx  context.Context
-		want string
+		want uuid.UUID
 	}{
 		{
 			name: "works with UUID",
 			ctx:  context.WithValue(context.TODO(), UserIDContextKey, someID),
-			want: someID.String(),
-		},
-		{
-			name: "works with string",
-			ctx:  context.WithValue(context.TODO(), UserIDContextKey, someID.String()),
-			want: someID.String(),
+			want: someID,
 		},
 		{
 			name: "works with empty user ID",
 			ctx:  context.WithValue(context.TODO(), UserIDContextKey, ""),
-			want: "",
+			want: uuid.Nil,
 		},
 		{
 			name: "works with missing user ID",
 			ctx:  context.TODO(),
-			want: "",
+			want: uuid.Nil,
 		},
 	}
 	for _, tt := range tests {
