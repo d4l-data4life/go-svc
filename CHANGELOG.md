@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Service Secret Auth middleware (moved from Vega)
+
 ### Changed
 
 - Go version 1.16 -> 1.17
