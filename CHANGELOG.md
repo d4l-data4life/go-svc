@@ -9,17 +9,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Service Secret Auth middleware (moved from Vega)
-
 ### Changed
-
-- Go version 1.16 -> 1.17
 
 ### Deprecated
 
 ### Removed
 
 ### Fixed
+
+### Security
+
+## [v1.41.0] - 2022-02-14
+
+### Added
+
+- Service Secret Auth middleware (moved from Vega)
+
+### Changed
+
+- Go version 1.16 -> 1.17
 
 ### Security
 
@@ -607,7 +615,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial state: standards for Main, HTTP Server, DB access (gorm), Logging, Instrumented-Handler, and K8s Probe
 
-[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.40.0...HEAD
+[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.41.0...HEAD
+[v1.41.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.40.0...v1.41.0
 [v1.40.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.39.0...v1.40.0
 [v1.39.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.38.0...v1.39.0
 [v1.38.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.37.0...v1.38.0
