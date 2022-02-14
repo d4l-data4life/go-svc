@@ -1,7 +1,7 @@
 # syntax = docker/dockerfile:1-experimental
 
 ARG IMG_BASE=phdp-snapshots.hpsgc.de/
-ARG GO_VERSION=1.16
+ARG GO_VERSION=1.17
 
 FROM ${IMG_BASE}golang:${GO_VERSION}-alpine AS code
 

@@ -1,4 +1,4 @@
-ARG GO_VERSION=1.16
+ARG GO_VERSION=1.17
 # Tester
 FROM phdp-snapshots.hpsgc.de/golang:${GO_VERSION}-alpine AS builder
 

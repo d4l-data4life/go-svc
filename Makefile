@@ -1,4 +1,4 @@
-GO_VERSION := 1.16
+GO_VERSION := 1.17
 CILINT_VERSION := v1.42
 
 PKG="./..."

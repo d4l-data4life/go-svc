@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Go version 1.16 -> 1.17
+
 ### Deprecated
 
 ### Removed
@@ -18,6 +20,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Security
+
+- Fixes containerd security vulnerability
+- Fixes image-spec security vulnerability
 
 ## [v1.40.0] - 2022-02-11
 
