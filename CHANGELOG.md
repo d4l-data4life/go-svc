@@ -19,6 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+- Fixes docker/distribution security vulnerability
+
 ## [v1.41.0] - 2022-02-14
 
 ### Added
