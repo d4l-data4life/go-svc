@@ -19,6 +19,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+## [v1.42.0] - 2022-02-15
+
+### Security
+
 - Fixes docker/distribution security vulnerability
 
 ## [v1.41.0] - 2022-02-14
@@ -617,7 +621,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial state: standards for Main, HTTP Server, DB access (gorm), Logging, Instrumented-Handler, and K8s Probe
 
-[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.41.0...HEAD
+[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.42.0...HEAD
+[v1.42.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.41.0...v1.42.0
 [v1.41.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.40.0...v1.41.0
 [v1.40.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.39.0...v1.40.0
 [v1.39.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.38.0...v1.39.0
