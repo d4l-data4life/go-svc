@@ -9,8 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- feature-flagging: simulate cancelled requests and failing service
-
 ### Changed
 
 ### Deprecated
@@ -20,6 +18,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Security
+
+## [v1.44.0] - 2022-02-28
+
+### Added
+
+- feature-flagging: simulate cancelled requests and failing service
 
 ## [v1.43.0] - 2022-02-23
 
@@ -630,7 +634,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial state: standards for Main, HTTP Server, DB access (gorm), Logging, Instrumented-Handler, and K8s Probe
 
-[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.43.0...HEAD
+[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.44.0...HEAD
+[v1.44.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.43.0...v1.44.0
 [v1.43.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.42.0...v1.43.0
 [v1.42.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.41.0...v1.42.0
 [v1.41.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.40.0...v1.41.0
