@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/gesundheitscloud/go-svc/pkg/logging"
 
@@ -29,7 +30,7 @@ var userAgentVega = "cds-notification.client.VegaInternalAPI"
 type VegaInternalAPI struct {
 	svcAddr   string
 	svcSecret string
-	caller    string
+	caller    *caller
 }
 
 func NewVegaInternalAPI(svcAddr, svcSecret, caller string) *VegaInternalAPI {
@@ -39,7 +40,7 @@ func NewVegaInternalAPI(svcAddr, svcSecret, caller string) *VegaInternalAPI {
 	return &VegaInternalAPI{
 		svcAddr:   svcAddr,
 		svcSecret: "Bearer " + svcSecret,
-		caller:    caller,
+		caller:    NewCaller(30*time.Second, caller),
 	}
 }
 
@@ -54,7 +55,7 @@ func (c *VegaInternalAPI) ResolveEmailV2(ctx context.Context, userIDs []uuid.UUI
 	}
 	body := bytes.NewBuffer(bodyBytes)
 	// additionally accept 404s as null-results
-	bReply, statusCode, err := call(ctx, contentURL, "POST", c.svcSecret, userAgentVega, body, http.StatusOK, http.StatusNotFound)
+	bReply, statusCode, err := c.caller.call(ctx, contentURL, "POST", c.svcSecret, userAgentVega, body, http.StatusOK, http.StatusNotFound)
 	if err != nil {
 		logging.LogErrorfCtx(ctx, err, "resolving user email over APIv2 failed")
 		return emailMap, statusCode, err

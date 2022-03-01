@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/gesundheitscloud/go-svc/pkg/logging"
 	uuid "github.com/gofrs/uuid"
@@ -51,7 +52,7 @@ var userAgentConsent = "go-svc.client.ConsentService"
 type ConsentService struct {
 	svcAddr   string
 	svcSecret string
-	caller    string
+	caller    *caller
 }
 
 func NewConsentService(svcAddr, svcSecret, caller string) *ConsentService {
@@ -61,7 +62,7 @@ func NewConsentService(svcAddr, svcSecret, caller string) *ConsentService {
 	return &ConsentService{
 		svcAddr:   svcAddr,
 		svcSecret: "Bearer " + svcSecret, // Service still requires 'Bearer ' prefix for service-secret auth
-		caller:    caller,
+		caller:    NewCaller(30*time.Second, caller),
 	}
 }
 
@@ -77,7 +78,7 @@ func (cs *ConsentService) GetBatchConsents(ctx context.Context, consentKey strin
 	if err != nil {
 		return result, err
 	}
-	body, gotStatus, err := call(ctx, contentURL, "POST", cs.svcSecret, userAgentConsent, bytes.NewBuffer(payload), http.StatusOK)
+	body, gotStatus, err := cs.caller.call(ctx, contentURL, "POST", cs.svcSecret, userAgentConsent, bytes.NewBuffer(payload), http.StatusOK)
 	if err != nil {
 		logging.LogErrorfCtx(ctx, err, "error calling GetBatchConsents")
 		if gotStatus == 404 {

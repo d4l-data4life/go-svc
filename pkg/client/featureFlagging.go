@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/gesundheitscloud/go-svc/pkg/logging"
 )
@@ -23,7 +24,7 @@ var userAgentFeatures = "go-svc.client.FeatureFlaggingService"
 type FeatureFlaggingService struct {
 	svcAddr   string
 	svcSecret string
-	caller    string
+	caller    *caller
 }
 
 func NewFeatureFlaggingService(svcAddr, svcSecret, caller string) *FeatureFlaggingService {
@@ -33,14 +34,14 @@ func NewFeatureFlaggingService(svcAddr, svcSecret, caller string) *FeatureFlaggi
 	return &FeatureFlaggingService{
 		svcAddr:   svcAddr,
 		svcSecret: svcSecret,
-		caller:    caller,
+		caller:    NewCaller(30*time.Second, caller),
 	}
 }
 
 // Get fetches a single setting for a single user
 func (c *FeatureFlaggingService) Get(ctx context.Context, key string) (bool, error) {
 	contentURL := fmt.Sprintf("%s/api/v1/services/%s", c.svcAddr, key)
-	byteSettings, _, err := call(ctx, contentURL, "GET", c.svcSecret, userAgentFeatures, &bytes.Buffer{}, http.StatusOK)
+	byteSettings, _, err := c.caller.call(ctx, contentURL, "GET", c.svcSecret, userAgentFeatures, &bytes.Buffer{}, http.StatusOK)
 	if err != nil {
 		logging.LogErrorfCtx(ctx, err, "fetching feature flag failed")
 		return false, err

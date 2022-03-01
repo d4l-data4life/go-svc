@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 
 	uuid "github.com/gofrs/uuid"
 
@@ -66,7 +67,7 @@ var userAgentUserPrefs = "go-svc.client.UserPreferencesService"
 type UserPreferencesService struct {
 	svcAddr   string
 	svcSecret string
-	caller    string
+	caller    *caller
 }
 
 func NewUserPreferencesService(svcAddr, svcSecret, caller string) *UserPreferencesService {
@@ -76,14 +77,14 @@ func NewUserPreferencesService(svcAddr, svcSecret, caller string) *UserPreferenc
 	return &UserPreferencesService{
 		svcAddr:   svcAddr,
 		svcSecret: svcSecret,
-		caller:    caller,
+		caller:    NewCaller(30*time.Second, caller),
 	}
 }
 
 // Get fetches a single setting for a single user
 func (c *UserPreferencesService) Get(ctx context.Context, accountID uuid.UUID, key string) (string, error) {
 	contentURL := fmt.Sprintf("%s/api/v1/internal/users/%s/settings/%s", c.svcAddr, accountID.String(), key)
-	byteSettings, _, err := call(ctx, contentURL, "GET", c.svcSecret, userAgentUserPrefs, &bytes.Buffer{}, http.StatusOK)
+	byteSettings, _, err := c.caller.call(ctx, contentURL, "GET", c.svcSecret, userAgentUserPrefs, &bytes.Buffer{}, http.StatusOK)
 	if err != nil {
 		logging.LogErrorfCtx(ctx, err, "fetching single setting failed")
 		return "", err
@@ -110,7 +111,7 @@ func (c *UserPreferencesService) GetKeySettings(ctx context.Context, key string)
 func (c *UserPreferencesService) GetAccountSettings(ctx context.Context, accountID uuid.UUID) (UserSettings, error) {
 	contentURL := fmt.Sprintf("%s/api/v1/internal/users/%s/settings/", c.svcAddr, accountID.String())
 	settings := UserSettings{}
-	byteSettings, _, err := call(ctx, contentURL, "GET", c.svcSecret, userAgentUserPrefs, &bytes.Buffer{}, http.StatusOK)
+	byteSettings, _, err := c.caller.call(ctx, contentURL, "GET", c.svcSecret, userAgentUserPrefs, &bytes.Buffer{}, http.StatusOK)
 	if err != nil {
 		logging.LogErrorfCtx(ctx, err, "fetching user settings failed")
 		return UserSettings{}, err
@@ -126,7 +127,7 @@ func (c *UserPreferencesService) GetAccountSettings(ctx context.Context, account
 func (c *UserPreferencesService) GetGlobal(ctx context.Context) (AllSettings, error) {
 	contentURL := fmt.Sprintf("%s/api/v1/internal/global/settings", c.svcAddr)
 	settings := AllSettings{}
-	byteSettings, _, err := call(ctx, contentURL, "GET", c.svcSecret, userAgentUserPrefs, &bytes.Buffer{}, http.StatusOK)
+	byteSettings, _, err := c.caller.call(ctx, contentURL, "GET", c.svcSecret, userAgentUserPrefs, &bytes.Buffer{}, http.StatusOK)
 	if err != nil {
 		logging.LogErrorfCtx(ctx, err, "fetching global settings failed")
 		return AllSettings{}, err
@@ -142,13 +143,13 @@ func (c *UserPreferencesService) GetGlobal(ctx context.Context) (AllSettings, er
 func (c *UserPreferencesService) Set(ctx context.Context, accountID uuid.UUID, key, value string) error {
 	contentURL := fmt.Sprintf("%s/api/v1/internal/users/%s/settings/%s", c.svcAddr, accountID.String(), key)
 	// may feel weird, but PUT returns 204 on success
-	_, _, err := call(ctx, contentURL, "PUT", c.svcSecret, userAgentUserPrefs, bytes.NewBuffer([]byte(value)), http.StatusNoContent)
+	_, _, err := c.caller.call(ctx, contentURL, "PUT", c.svcSecret, userAgentUserPrefs, bytes.NewBuffer([]byte(value)), http.StatusNoContent)
 	return err
 }
 
 func (c *UserPreferencesService) Delete(ctx context.Context, accountID uuid.UUID, key string) error {
 	contentURL := fmt.Sprintf("%s/api/v1/internal/users/%s/settings/%s", c.svcAddr, accountID.String(), key)
-	_, _, err := call(ctx, contentURL, "DELETE", c.svcSecret, userAgentUserPrefs, &bytes.Buffer{}, http.StatusNoContent)
+	_, _, err := c.caller.call(ctx, contentURL, "DELETE", c.svcSecret, userAgentUserPrefs, &bytes.Buffer{}, http.StatusNoContent)
 	if err != nil {
 		logging.LogErrorfCtx(ctx, err, "deleting single setting failed")
 	}
@@ -157,7 +158,7 @@ func (c *UserPreferencesService) Delete(ctx context.Context, accountID uuid.UUID
 
 func (c *UserPreferencesService) DeleteUser(ctx context.Context, accountID uuid.UUID) error {
 	contentURL := fmt.Sprintf("%s/api/v1/internal/users/%s/settings", c.svcAddr, accountID.String())
-	_, _, err := call(ctx, contentURL, "DELETE", c.svcSecret, userAgentUserPrefs, &bytes.Buffer{}, http.StatusNoContent)
+	_, _, err := c.caller.call(ctx, contentURL, "DELETE", c.svcSecret, userAgentUserPrefs, &bytes.Buffer{}, http.StatusNoContent)
 	if err != nil {
 		logging.LogErrorfCtx(ctx, err, "deleting all user settings failed")
 	}

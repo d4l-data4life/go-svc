@@ -7,24 +7,43 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"time"
 
 	"github.com/gesundheitscloud/go-svc/pkg/logging"
-	"github.com/gesundheitscloud/go-svc/pkg/middlewares"
+	"github.com/gesundheitscloud/go-svc/pkg/transport"
 )
 
-func call(ctx context.Context, URL, method, secret, userAgent string, payload *bytes.Buffer, expectedCodes ...int) ([]byte, int, error) {
+type caller struct {
+	client *http.Client
+	name   string
+}
+
+func NewCaller(timeout time.Duration, name string) *caller {
+	return &caller{
+		client: &http.Client{
+			Transport: transport.Chain(
+				transport.Timeout(timeout),
+				transport.Prometheus(name),
+				transport.Log(logging.Logger()),
+				transport.TraceID,
+				transport.JSON,
+			)(nil),
+		},
+		name: name,
+	}
+}
+
+func (c *caller) call(ctx context.Context, URL, method, secret, userAgent string, payload *bytes.Buffer, expectedCodes ...int) ([]byte, int, error) {
 	request, err := http.NewRequestWithContext(ctx, method, URL, payload)
 	if err != nil {
 		logging.LogErrorfCtx(ctx, err, "error creating HTTP request")
 		return nil, 0, err
 	}
 	request.Header.Add("Authorization", secret)
-	request.Header.Set("Content-Type", "application/json")
 	request.Header.Set("User-Agent", userAgent)
 	request.Close = true
 
-	client := &http.Client{Transport: &middlewares.TraceTransport{}}
-	response, err := client.Do(request)
+	response, err := c.client.Do(request)
 	if response != nil {
 		defer response.Body.Close()
 	}

@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 
 	uuid "github.com/gofrs/uuid"
 
@@ -150,7 +151,7 @@ var userAgentNotification = "go-svc.client.NotificationService"
 type NotificationService struct {
 	svcAddr   string
 	svcSecret string
-	caller    string
+	caller    *caller
 	// counter stores state to return the NotifiedUsers information - mainly used in tests
 	counter *notifiedUsersCounter
 }
@@ -162,7 +163,7 @@ func NewNotificationService(svcAddr, svcSecret, caller string) *NotificationServ
 	return &NotificationService{
 		svcAddr:   svcAddr,
 		svcSecret: svcSecret,
-		caller:    caller,
+		caller:    NewCaller(30*time.Second, caller),
 		counter:   newNotifiedUsersCounter(),
 	}
 }
@@ -187,7 +188,7 @@ func (c *NotificationService) SendRaw(ctx context.Context,
 		FromAddress:                  fromAddress,
 		Subject:                      subject,
 		Message:                      message,
-		Caller:                       c.caller,
+		Caller:                       c.caller.name,
 		UseMailJetTemplatingLanguage: payload != nil,
 		TemplatePayload:              payload,
 		TemplateErrorReportingEmail:  "",
@@ -212,7 +213,7 @@ func (c *NotificationService) SendTemplated(ctx context.Context,
 		LanguageSettingKey:           languageSettingKey,
 		ConsentGuardKey:              consentGuardKey,
 		MinConsentVersion:            minConsentVersion,
-		Caller:                       c.caller,
+		Caller:                       c.caller.name,
 		UseMailJetTemplatingLanguage: payload != nil,
 		TemplatePayload:              payload,
 		TemplateErrorReportingEmail:  "",
@@ -225,7 +226,7 @@ func (c *NotificationService) SendTemplated(ctx context.Context,
 func (c *NotificationService) GetJobStatus(ctx context.Context, jobID uuid.UUID) (NotificationStatus, error) {
 	contentURL := fmt.Sprintf("%s/api/v1/jobs/%s", c.svcAddr, jobID.String())
 	reply := NotificationStatus{}
-	byteSettings, _, err := call(ctx, contentURL, "GET", c.svcSecret, userAgentNotification, &bytes.Buffer{}, http.StatusOK, http.StatusAccepted)
+	byteSettings, _, err := c.caller.call(ctx, contentURL, "GET", c.svcSecret, userAgentNotification, &bytes.Buffer{}, http.StatusOK, http.StatusAccepted)
 	if err != nil {
 		logging.LogErrorfCtx(ctx, err, "fetching job status failed")
 		return NotificationStatus{}, err
@@ -239,7 +240,7 @@ func (c *NotificationService) GetJobStatus(ctx context.Context, jobID uuid.UUID)
 
 func (c *NotificationService) DeleteJob(ctx context.Context, jobID uuid.UUID) error {
 	contentURL := fmt.Sprintf("%s/api/v1/jobs/%s", c.svcAddr, jobID.String())
-	_, _, err := call(ctx, contentURL, "DELETE", c.svcSecret, userAgentNotification, &bytes.Buffer{}, http.StatusNoContent)
+	_, _, err := c.caller.call(ctx, contentURL, "DELETE", c.svcSecret, userAgentNotification, &bytes.Buffer{}, http.StatusNoContent)
 	if err != nil {
 		logging.LogErrorfCtx(ctx, err, "canceling notification job failed")
 	}
@@ -254,7 +255,7 @@ func (c *NotificationService) sendTemplatedEmail(ctx context.Context, requestBod
 		logging.LogErrorfCtx(ctx, err, "error transforming notification request to JSON")
 		return reply, err
 	}
-	body, code, err := call(ctx, contentURL, "POST", c.svcSecret, userAgentNotification, bytes.NewBuffer(jsonBytes), http.StatusOK, http.StatusAccepted)
+	body, code, err := c.caller.call(ctx, contentURL, "POST", c.svcSecret, userAgentNotification, bytes.NewBuffer(jsonBytes), http.StatusOK, http.StatusAccepted)
 	if err != nil {
 		logging.LogErrorfCtx(ctx, err, "sendTemplatedEmail failed, code: %d", code)
 	}
@@ -274,7 +275,7 @@ func (c *NotificationService) sendRawEmail(ctx context.Context, requestBody Noti
 		logging.LogErrorfCtx(ctx, err, "error transforming notification request to JSON")
 		return reply, err
 	}
-	body, code, err := call(ctx, contentURL, "POST", c.svcSecret, userAgentNotification, bytes.NewBuffer(jsonBytes), http.StatusOK, http.StatusAccepted)
+	body, code, err := c.caller.call(ctx, contentURL, "POST", c.svcSecret, userAgentNotification, bytes.NewBuffer(jsonBytes), http.StatusOK, http.StatusAccepted)
 	if err != nil {
 		logging.LogErrorfCtx(ctx, err, "sendRawEmail failed, code: %d", code)
 	}
