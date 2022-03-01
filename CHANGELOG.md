@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- client: add http-out logging and monitoring using transport pkg for all clients
+
 ### Changed
 
 ### Deprecated
