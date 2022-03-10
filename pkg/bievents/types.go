@@ -24,6 +24,7 @@ const (
 	RecordBulkRead    ActivityType = "record-bulk-read"
 	RecordCreate      ActivityType = "record-create"
 	PasswordReset     ActivityType = "password-reset"
+	AccountDelete     ActivityType = "account-delete"
 )
 
 type AuthnType string
@@ -103,4 +104,8 @@ type SharingRevokedData struct {
 
 type PasswordResetData struct {
 	AuthenticationType PasswordResetAuthnType `json:"authn-type"`
+}
+
+type AccountDeleteData struct {
+	Source string `json:"source"`
 }
