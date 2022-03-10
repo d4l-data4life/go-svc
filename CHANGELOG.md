@@ -9,8 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- bievents: account-delete activity type and additional properties (for hades)
-
 ### Changed
 
 ### Deprecated
@@ -20,6 +18,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Security
+
+## [v1.48.0] - 2022-03-10
+
+### Added
+
+- bievents: account-delete activity type and additional properties (for hades)
 
 ## [v1.47.0] - 2022-03-10
 
@@ -654,7 +658,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial state: standards for Main, HTTP Server, DB access (gorm), Logging, Instrumented-Handler, and K8s Probe
 
-[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.47.0...HEAD
+[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.48.0...HEAD
+[v1.48.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.47.0...v1.48.0
 [v1.47.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.46.0...v1.47.0
 [v1.46.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.45.0...v1.46.0
 [v1.45.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.44.0...v1.45.0
