@@ -221,6 +221,22 @@ func LogAuditDelete(ctx context.Context, ownerID fmt.Stringer, resourceType stri
 	}
 }
 
+// LogAuditRead logs a successful resource read access with the singleton logger with message and error
+func LogAuditRead(ctx context.Context, ownerID fmt.Stringer, resourceType string, resourceID interface{}, extras ...golog.ExtraAuditInfoProvider) {
+	err := Logger().AuditRead(ctx, ownerID, newStringer(resourceType), newStringer(resourceID), extras...)
+	if err != nil {
+		fmt.Printf("Logging error (LogAuditRead): %s\n", err.Error())
+	}
+}
+
+// LogAuditBulkRead logs a successful resource bulk read access with the singleton logger with message and error
+func LogAuditBulkRead(ctx context.Context, ownerID fmt.Stringer, resourceType string, resourceIDs interface{}, extras ...golog.ExtraAuditInfoProvider) {
+	err := Logger().AuditBulkRead(ctx, ownerID, newStringer(resourceType), newStringer(resourceIDs), extras...)
+	if err != nil {
+		fmt.Printf("Logging error (LogAuditBulkRead): %s\n", err.Error())
+	}
+}
+
 // LogInfo (DEPRECATED in favour of LogInfofCtx) logs an info with the singleton logger with message and error
 func LogInfo(message string) {
 	LogInfof(message)
