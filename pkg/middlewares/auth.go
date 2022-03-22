@@ -28,7 +28,7 @@ var (
 )
 
 type claims struct {
-	jwt.StandardClaims
+	jwt.RegisteredClaims
 	// ClientID is the Client ID claim (gesundheitscloud private claim)
 	ClientID string `json:"ghc:cid"`
 	// UserID is the claim that encodes the user who originally requested the JWT (gesundheitscloud private claim)

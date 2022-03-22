@@ -52,7 +52,7 @@ func TestJWTNewAuthentication(t *testing.T) {
 	assert.NoError(t, err)
 	privateKey := pk.Key
 
-	claims := &jwt.StandardClaims{
+	claims := &jwt.RegisteredClaims{
 		Issuer: "test",
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
@@ -117,7 +117,7 @@ func TestJWTNewAuth(t *testing.T) {
 	assert.NoError(t, err)
 	privateKey := pk.Key
 
-	claims := &jwt.StandardClaims{
+	claims := &jwt.RegisteredClaims{
 		Issuer: "test",
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
