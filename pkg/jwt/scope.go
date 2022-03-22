@@ -92,6 +92,10 @@ const (
 	StudySurveySubscriptionRead      = "survsub:r"
 	StudySurveySubscriptionUpdate    = "survsub:u"
 	StudySurveySubscriptionDelete    = "survsub:d"
+	PushNotifDeviceCreate            = "pudev:c"
+	PushNotifDeviceRead              = "pudev:r"
+	PushNotifDeviceUpdate            = "pudev:u"
+	PushNotifDeviceDelete            = "pudev:d"
 )
 
 var (
@@ -194,6 +198,10 @@ var (
 		StudySurveySubscriptionRead:      exists,
 		StudySurveySubscriptionUpdate:    exists,
 		StudySurveySubscriptionDelete:    exists,
+		PushNotifDeviceCreate:            exists,
+		PushNotifDeviceRead:              exists,
+		PushNotifDeviceUpdate:            exists,
+		PushNotifDeviceDelete:            exists,
 	}
 
 	// DeprecatedTokens are recognized but ignored even if the client asks
