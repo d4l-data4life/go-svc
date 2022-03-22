@@ -9,11 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- [JWT pkg]: New scope: `PushNotifDevice`
-
 ### Changed
-
-- [JWT pkg]: Replace deprecated `StandardClaims` with `RegisteredClaims`
 
 ### Deprecated
 
@@ -22,6 +18,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Security
+
+## [v1.50.0] - 2022-03-22
+
+### Added
+
+- [JWT pkg]: New scope: `PushNotifDevice`
+
+### Changed
+
+- [JWT pkg]: Replace deprecated `StandardClaims` with `RegisteredClaims`
 
 ## [v1.49.0] - 2022-03-16
 
@@ -674,7 +680,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial state: standards for Main, HTTP Server, DB access (gorm), Logging, Instrumented-Handler, and K8s Probe
 
-[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.49.0...HEAD
+[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.50.0...HEAD
+[v1.50.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.49.0...v1.50.0
 [v1.49.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.48.1...v1.49.0
 [v1.48.1]: https://github.com/gesundheitscloud/go-svc/compare/v1.48.0...v1.48.1
 [v1.48.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.47.0...v1.48.0
