@@ -11,8 +11,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- publish channels package
-
 ### Deprecated
 
 ### Removed
@@ -20,6 +18,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Security
+
+## [v1.51.0] - 2022-03-30
+
+### Changed
+
+- publish channels package
 
 ## [v1.50.0] - 2022-03-22
 
@@ -682,7 +686,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial state: standards for Main, HTTP Server, DB access (gorm), Logging, Instrumented-Handler, and K8s Probe
 
-[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.50.0...HEAD
+[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.51.0...HEAD
+[v1.51.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.50.0...v1.51.0
 [v1.50.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.49.0...v1.50.0
 [v1.49.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.48.1...v1.49.0
 [v1.48.1]: https://github.com/gesundheitscloud/go-svc/compare/v1.48.0...v1.48.1
