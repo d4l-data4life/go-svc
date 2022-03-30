@@ -1,5 +1,5 @@
-// Package channels contains unseful functions for concurrent go
-// Most of them orgiginates from the Oreilly's book "Concurrency in Go" - Chapter 4. "Concurrency Patterns in Go"
+// Package channels contains useful functions for concurrent go
+// Most of them originate from the Oreilly's book "Concurrency in Go" - Chapter 4. "Concurrency Patterns in Go"
 package channels
 
 import (
@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-// OrDone iterates over channhel c until it closes or `done` receives a message
+// OrDone iterates over channel c until it closes or `done` receives a message
 func OrDone(done, c <-chan struct{}) <-chan struct{} {
 	valStream := make(chan struct{})
 	go func() {
@@ -30,8 +30,8 @@ func OrDone(done, c <-chan struct{}) <-chan struct{} {
 	return valStream
 }
 
-// OrDoneTimeout iterates over channhel c until: (1) c closes, (2) timeout happens, (3) done receives a message
-// closing c means that the initialisation procedures has finished
+// OrDoneTimeout iterates over channel c until: (1) c closes, (2) timeout happens, (3) done receives a message
+// closing c means that the initialization procedures has finished
 func OrDoneTimeout(done <-chan struct{}, timeout <-chan time.Time, c <-chan struct{}) <-chan struct{} {
 	valStream := make(chan struct{})
 	go func() {

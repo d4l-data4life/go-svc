@@ -7,8 +7,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/gesundheitscloud/go-svc/internal/channels"
 	"github.com/gesundheitscloud/go-svc/pkg/cache"
+	"github.com/gesundheitscloud/go-svc/pkg/channels"
 	"github.com/gesundheitscloud/go-svc/pkg/db"
 	"github.com/gesundheitscloud/go-svc/pkg/db2"
 	"github.com/gesundheitscloud/go-svc/pkg/logging"
@@ -58,10 +58,10 @@ var dboptions *db.ConnectionOptions
 var db2options *db2.ConnectionOptions
 var redisoptions *cache.RedisConnectionOptions
 
-// Main is a wrapper function over main - it handles the typical tasks like starting DB connection, handling OS singnals, etc.
+// Main is a wrapper function over main - it handles the typical tasks like starting DB connection, handling OS signals, etc.
 func Main(serviceMain MainFunction, svcName string, options ...MainOption) {
 	probe.Liveness().SetLive()
-	// runCtx is a running context. Canceling this contexs means that the service should stop running asap
+	// runCtx is a running context. Canceling this context means that the service should stop running asap
 	runCtx, stopService := context.WithCancel(context.Background())
 	defer stopService()
 	go setupSingals(runCtx, stopService)
