@@ -6,10 +6,8 @@ type ActivityType = string
 const (
 	Register          ActivityType = "register"
 	EmailVerify       ActivityType = "email-verify"
-	Login             ActivityType = "login-start"
 	Logout            ActivityType = "logout"
 	TokenRefresh      ActivityType = "token-refresh"
-	PhoneVerify       ActivityType = "phone-verify"
 	DeviceRegister    ActivityType = "device-register"
 	DeviceDelete      ActivityType = "device-delete"
 	EIDEntrance       ActivityType = "eid-saml-entrance"
@@ -25,14 +23,34 @@ const (
 	RecordCreate      ActivityType = "record-create"
 	PasswordReset     ActivityType = "password-reset"
 	AccountDelete     ActivityType = "account-delete"
+	LoginEmail        ActivityType = "login-email"
+	LoginSMS          ActivityType = "login-sms"
+	LoginEID          ActivityType = "login-eid"
+
+	// Login is deprecated. Use LoginEmail, LoginSMS or LoginEID instead
+	Login ActivityType = "login-start"
+
+	// PhoneVerify is deprecated. Use LoginSMS instead
+	PhoneVerify ActivityType = "phone-verify"
 )
 
+// AuthnType is deprecated. Will be removed when the Login activity type is removed.
 type AuthnType string
 
 const (
 	Email AuthnType = "email"
 	SMS   AuthnType = "SMS"
 	EID   AuthnType = "eID"
+)
+
+type LoginFailureType string
+
+const (
+	WrongEmail          LoginFailureType = "unknown-email"
+	WrongPassword       LoginFailureType = "wrong-pwd"
+	EmailNotValidated   LoginFailureType = "email-no-validated"
+	TooManyFailedLogins LoginFailureType = "too-many-failed-logins"
+	Other               LoginFailureType = "other"
 )
 
 type PasswordResetAuthnType string
@@ -49,11 +67,21 @@ type UserRegisterData struct {
 	ClientID    string    `json:"client-id"`
 }
 
-type LoginData struct {
-	AuthenticationType AuthnType `json:"authn-type"`
-	ClientID           string    `json:"client-id"`
-	SourceURL          string    `json:"source-url"`
-	Challenge          string    `json:"eid-challenge,omitempty"` // only for authn type eID
+type LoginEmailData struct {
+	ClientID   string           `json:"client-id"`
+	SourceURL  string           `json:"source-url"`
+	ErrorCause LoginFailureType `json:"failure-cause,omitempty"`
+}
+
+type LoginSMSData struct {
+	ClientID string `json:"client-id"`
+	DeviceID string `json:"device-id"`
+}
+
+type LoginEIDData struct {
+	ClientID  string `json:"client-id"`
+	SourceURL string `json:"source-url"`
+	Challenge string `json:"eid-challenge"`
 }
 
 type LoginCompleteData struct {
@@ -85,10 +113,6 @@ type DeviceDeleteData struct {
 	DeviceID string `json:"device-id"`
 }
 
-type PhoneVerifyData struct {
-	DeviceID string `json:"device-id"`
-}
-
 type SharingStartData struct {
 	SharingSessionID string `json:"sharing-session-id"`
 	ClientID         string `json:"client-id"`
@@ -108,4 +132,17 @@ type PasswordResetData struct {
 
 type AccountDeleteData struct {
 	Source string `json:"source"`
+}
+
+// LoginData is deprecated. Use LoginEmailData, LoginSMSData or LoginEIDData instead
+type LoginData struct {
+	AuthenticationType AuthnType `json:"authn-type"`
+	ClientID           string    `json:"client-id"`
+	SourceURL          string    `json:"source-url"`
+	Challenge          string    `json:"eid-challenge,omitempty"` // only for authn type eID
+}
+
+// PhoneVerifyData is deprecated. Use LoginSMSData instead
+type PhoneVerifyData struct {
+	DeviceID string `json:"device-id"`
 }

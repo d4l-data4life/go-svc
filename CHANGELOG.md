@@ -9,9 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- [bievents pkg]: events `login-email` includes more details about the cause in case of failure
+- [bievents pkg]: events `login-email`, `login-sms` and `login-eid`
+
 ### Changed
 
 ### Deprecated
+
+- [bievents pkg]: events `login-start` and `phone-verify`
 
 ### Removed
 
