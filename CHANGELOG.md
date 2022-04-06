@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - [bievents pkg]: events `login-email` includes more details about the cause in case of failure
 - [bievents pkg]: events `login-email`, `login-sms` and `login-eid`
+- `WithMigrationHaltOnError` to halt on errors during DB migration
 
 ### Changed
 
@@ -21,6 +22,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 ### Fixed
+
+- `waitForDB` didn't halt on connection errors
+- `waitForDB` didn't wait for all connectors, but only the first
 
 ### Security
 

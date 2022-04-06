@@ -10,9 +10,10 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/go-redis/redis/v8"
+
 	"github.com/gesundheitscloud/go-svc/pkg/logging"
 	"github.com/gesundheitscloud/go-svc/pkg/probe"
-	"github.com/go-redis/redis/v8"
 )
 
 var (
@@ -43,6 +44,7 @@ func Initialize(runCtx context.Context, opts *RedisConnectionOptions) <-chan str
 	go func() {
 		defer close(dbUp)
 		if opts == nil {
+			dbUp <- struct{}{} // nothing to be done, so show success
 			return
 		}
 		connectFn := func() (*redis.Client, error) { return connect(opts) }
@@ -51,16 +53,17 @@ func Initialize(runCtx context.Context, opts *RedisConnectionOptions) <-chan str
 			logging.LogErrorf(err, "Could not connect to redis")
 			return
 		}
+
+		go func() {
+			<-runCtx.Done()
+			logging.LogInfof("run context canceled, closing redis connection")
+			defer Close(client)
+			defer logging.LogInfof("redis connection closed")
+		}()
+
 		rdb = client
 		logging.LogInfof("connection to redis succeeded")
 		dbUp <- struct{}{}
-	}()
-
-	go func() {
-		<-runCtx.Done()
-		logging.LogInfof("run context canceled, closing redis connection")
-		defer Close(rdb)
-		defer logging.LogInfof("redis connection closed")
 	}()
 
 	return dbUp

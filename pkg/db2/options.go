@@ -37,6 +37,7 @@ type ConnectionOptions struct {
 	Password              string
 	SSLMode               string
 	MigrationVersion      uint
+	MigrationHaltOnError  bool
 	// SSLRootCertPath represents path to a file containing the root-CA used for Postgres server identity validation
 	// The cert is provided by Jenkins on build under default path "/root.ca.pem"
 	SSLRootCertPath        string
@@ -133,6 +134,12 @@ func WithMigrationFunc(fn MigrationFunc) ConnectionOption {
 func WithMigrationVersion(version uint) ConnectionOption {
 	return func(c *ConnectionOptions) {
 		c.MigrationVersion = version
+	}
+}
+
+func WithMigrationHaltOnError(haltOnError bool) ConnectionOption {
+	return func(c *ConnectionOptions) {
+		c.MigrationHaltOnError = haltOnError
 	}
 }
 

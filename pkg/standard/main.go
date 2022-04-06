@@ -74,6 +74,11 @@ func Main(serviceMain MainFunction, svcName string, options ...MainOption) {
 	dbUp := db.Initialize(runCtx, dboptions)
 	db2Up := db2.Initialize(runCtx, db2options)
 
+	// The above channels use the following convention:
+	// 1. closing means that the initialization procedures has finished (either successfully or with error)
+	// 2. on success: A value has been sent through the channel before closing
+	// 3. on error: No value has been sent before closing
+
 	if waitForDB(runCtx, dbUp, redisUp, db2Up) {
 		logging.LogInfof("dbs connected")
 	} else {
@@ -94,8 +99,8 @@ func Main(serviceMain MainFunction, svcName string, options ...MainOption) {
 
 // waitForDB returns true when DB and/or Redis is up and connected, false when DB connection failed and the service should be shutdown
 func waitForDB(ctx context.Context, dbUp <-chan struct{}, redisUp <-chan struct{}, db2Up <-chan struct{}) bool {
-	logging.LogInfof("Waiting up to 2 minutes for DB connection...")
-	mergedChannel := channels.FanIn(ctx.Done(), dbUp, redisUp, db2Up)
+	logging.LogInfof("Waiting up to 2 minutes for DB connection(s)...")
+	mergedChannel := channels.Barrier(ctx.Done(), dbUp, redisUp, db2Up)
 	for range channels.OrDoneTimeout(ctx.Done(), time.After(120*time.Second), mergedChannel) {
 		// a message on dbUp = database is ready
 		return true

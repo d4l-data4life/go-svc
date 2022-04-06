@@ -39,6 +39,7 @@ func Initialize(runCtx context.Context, opts *ConnectionOptions) <-chan struct{}
 	go func() {
 		defer close(dbUp)
 		if opts == nil {
+			dbUp <- struct{}{} // nothing to be done, so show success
 			return
 		}
 		connectFn := func() (*gorm.DB, error) { return connect(opts) }
@@ -50,8 +51,21 @@ func Initialize(runCtx context.Context, opts *ConnectionOptions) <-chan struct{}
 			return
 		}
 		logging.LogInfof("connection to the database succeeded")
+
+		// goroutine to close DB connection when run context is canceled
+		go func() {
+			<-runCtx.Done()
+			logging.LogInfof("run context canceled, closing database connection")
+			defer Close()
+			defer logging.LogInfof("database connection closed")
+		}()
+
 		err = runMigration(conn, opts.MigrationFunc, opts.MigrationVersion)
 		if err != nil {
+			if opts.MigrationHaltOnError {
+				logging.LogErrorf(err, "database migration failed - aborting")
+				return
+			}
 			logging.LogWarningf(err, "database migration failed - continuing")
 		}
 		logging.LogInfof("database migration finished")
@@ -79,13 +93,6 @@ func Initialize(runCtx context.Context, opts *ConnectionOptions) <-chan struct{}
 		dbUp <- struct{}{} // notify that DB is up now
 	}()
 
-	// goroutine to close DB connection when run context is canceled
-	go func() {
-		<-runCtx.Done()
-		logging.LogInfof("run context canceled, closing database connection")
-		defer Close()
-		defer logging.LogInfof("database connection closed")
-	}()
 	return dbUp
 }
 
