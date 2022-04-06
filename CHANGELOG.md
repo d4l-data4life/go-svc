@@ -9,24 +9,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- [bievents pkg]: events `login-email` includes more details about the cause in case of failure
-- [bievents pkg]: events `login-email`, `login-sms` and `login-eid`
-- `WithMigrationHaltOnError` to halt on errors during DB migration
-
 ### Changed
 
 ### Deprecated
-
-- [bievents pkg]: events `login-start` and `phone-verify`
 
 ### Removed
 
 ### Fixed
 
+### Security
+
+## [v1.52.0] - 2022-04-06
+
+### Added
+
+- [bievents pkg]: events `login-email` includes more details about the cause in case of failure
+- [bievents pkg]: events `login-email`, `login-sms` and `login-eid`
+- `WithMigrationHaltOnError` to halt on errors during DB migration
+
+### Deprecated
+
+- [bievents pkg]: events `login-start` and `phone-verify`
+
+### Fixed
+
 - `waitForDB` didn't halt on connection errors
 - `waitForDB` didn't wait for all connectors, but only the first
-
-### Security
 
 ## [v1.51.0] - 2022-03-30
 
@@ -695,7 +703,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial state: standards for Main, HTTP Server, DB access (gorm), Logging, Instrumented-Handler, and K8s Probe
 
-[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.51.0...HEAD
+[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.52.0...HEAD
+[v1.52.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.51.0...v1.52.0
 [v1.51.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.50.0...v1.51.0
 [v1.50.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.49.0...v1.50.0
 [v1.49.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.48.1...v1.49.0
