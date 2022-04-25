@@ -3,8 +3,9 @@ package client
 import (
 	"context"
 
-	"github.com/gesundheitscloud/go-svc/pkg/log"
 	uuid "github.com/gofrs/uuid"
+
+	"github.com/gesundheitscloud/go-svc/pkg/log"
 )
 
 var _ NotificationV6 = (*NotificationMock)(nil)
@@ -98,7 +99,7 @@ func (c *NotificationMock) SendTemplated(ctx context.Context,
 			}, err
 		}
 		for _, subsID := range subscribers {
-			if prefLang, ok := langSettings[subsID]; ok {
+			if prefLang, ok := langSettings[subsID].(string); ok {
 				c.counter.Count(templateKey, prefLang, subsID)
 			} else {
 				// simulate template-default-language which is always 'en' in mock

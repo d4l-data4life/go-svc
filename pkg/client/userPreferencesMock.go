@@ -4,8 +4,6 @@ import (
 	"context"
 
 	uuid "github.com/gofrs/uuid"
-
-	"github.com/gesundheitscloud/go-svc/pkg/logging"
 )
 
 var _ UserPreferences = (*UserPreferencesMock)(nil)
@@ -36,27 +34,30 @@ func NewUserPreferencesMockWithState(data map[uuid.UUID]struct{ K, V string }) *
 }
 
 // Get fetches a single setting for a single user
-func (c *UserPreferencesMock) Get(ctx context.Context, accountID uuid.UUID, key string) (string, error) {
+func (c *UserPreferencesMock) Get(ctx context.Context, accountID uuid.UUID, key string) (interface{}, error) {
 	return c.storage[accountID][key], nil
 }
 
 // GetKeySettings fetches single setting for all users
 func (c *UserPreferencesMock) GetKeySettings(ctx context.Context, key string) (GlobalSetting, error) {
 	setting := NewGlobalSetting()
-	// there is no such API to get a single setting for all users, so we need to compute it
-	globalSettings, err := c.GetGlobal(ctx)
-	if err != nil {
-		logging.LogErrorfCtx(ctx, err, "error fetching global settings")
-		return setting, err
-	}
-	for accID, usrSettings := range globalSettings {
+	for accID, usrSettings := range c.storage {
 		setting[accID] = usrSettings[key]
 	}
 	return setting, nil
 }
 
+// GetKeySettingsForUsers fetches a specific setting for a set of users
+func (c *UserPreferencesMock) GetKeySettingsForUsers(ctx context.Context, key string, accountIDs []uuid.UUID) (GlobalSetting, error) {
+	setting := NewGlobalSetting()
+	for _, accID := range accountIDs {
+		setting[accID] = c.storage[accID][key]
+	}
+	return setting, nil
+}
+
 // GetAccountSettings fetches all settings for a single user
-func (c *UserPreferencesMock) GetAccountSettings(ctx context.Context, accountID uuid.UUID) (UserSettings, error) {
+func (c *UserPreferencesMock) GetUserSettings(ctx context.Context, accountID uuid.UUID) (UserSettings, error) {
 	return c.storage[accountID], nil
 }
 
@@ -66,7 +67,7 @@ func (c *UserPreferencesMock) GetGlobal(ctx context.Context) (AllSettings, error
 }
 
 // Set sets a single setting for a single user
-func (c *UserPreferencesMock) Set(ctx context.Context, accountID uuid.UUID, key, value string) error {
+func (c *UserPreferencesMock) Set(ctx context.Context, accountID uuid.UUID, key string, value interface{}) error {
 	c.storage.Add(accountID, key, value)
 	return nil
 }
