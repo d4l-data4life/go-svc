@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -11,6 +12,12 @@ import (
 	uuid "github.com/gofrs/uuid"
 
 	"github.com/gesundheitscloud/go-svc/pkg/logging"
+)
+
+// define errors
+var (
+	ErrEmptyKey        = errors.New("required key parameter was empty")
+	ErrEmptyAccountIDs = errors.New("required accountIDs were missing")
 )
 
 // AllSettings store all settings (it is a map-of-maps, so it requires care when adding new entries)
@@ -113,8 +120,14 @@ func (c *UserPreferencesService) GetKeySettings(ctx context.Context, key string)
 // GetKeySettingsForUsers fetches a specific setting for a set of users
 func (c *UserPreferencesService) GetKeySettingsForUsers(ctx context.Context, key string, accountIDs []uuid.UUID) (GlobalSetting, error) {
 	contentURL := fmt.Sprintf("%s/api/v2/internal/global/settings/%s", c.svcAddr, key)
-	jsonBytes, err := json.Marshal(accountIDs)
 	settings := GlobalSetting{}
+	if key == "" {
+		return settings, ErrEmptyKey
+	}
+	if len(accountIDs) == 0 {
+		return settings, ErrEmptyAccountIDs
+	}
+	jsonBytes, err := json.Marshal(accountIDs)
 	if err != nil {
 		logging.LogErrorfCtx(ctx, err, "cannot marshal account array")
 		return settings, nil
@@ -122,7 +135,7 @@ func (c *UserPreferencesService) GetKeySettingsForUsers(ctx context.Context, key
 	byteSettings, _, err := c.caller.call(ctx, contentURL, "POST", c.svcSecret, userAgentUserPrefs, bytes.NewBuffer(jsonBytes), http.StatusOK)
 	if err != nil {
 		logging.LogErrorfCtx(ctx, err, "fetching specific setting of all users failed")
-		return settings, nil
+		return settings, err
 	}
 	if err := json.Unmarshal(byteSettings, &settings); err != nil {
 		logging.LogErrorfCtx(ctx, err, "error transforming user-preferences service reply to an object")
@@ -138,7 +151,7 @@ func (c *UserPreferencesService) GetUserSettings(ctx context.Context, accountID 
 	byteSettings, _, err := c.caller.call(ctx, contentURL, "GET", c.svcSecret, userAgentUserPrefs, &bytes.Buffer{}, http.StatusOK)
 	if err != nil {
 		logging.LogErrorfCtx(ctx, err, "fetching user settings failed")
-		return settings, nil
+		return settings, err
 	}
 	if err := json.Unmarshal(byteSettings, &settings); err != nil {
 		logging.LogErrorfCtx(ctx, err, "error transforming user-preferences service reply to an object")
