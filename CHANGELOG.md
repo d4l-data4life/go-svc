@@ -17,9 +17,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- add missing checks in UserPreferences client
-
 ### Security
+
+## [v1.53.1] - 2022-04-29
+
+### Fixed
+
+- add missing checks in UserPreferences client
 
 ## [v1.53.0] - 2022-04-28
 
@@ -711,7 +715,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial state: standards for Main, HTTP Server, DB access (gorm), Logging, Instrumented-Handler, and K8s Probe
 
-[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.53.0...HEAD
+[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.53.1...HEAD
+[v1.53.1]: https://github.com/gesundheitscloud/go-svc/compare/v1.53.0...v1.53.1
 [v1.53.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.52.0...v1.53.0
 [v1.52.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.51.0...v1.52.0
 [v1.51.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.50.0...v1.51.0
