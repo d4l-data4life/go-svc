@@ -92,19 +92,27 @@ func NewUserPreferencesService(svcAddr, svcSecret, caller string) *UserPreferenc
 
 // Get fetches a setting for a user
 func (c *UserPreferencesService) Get(ctx context.Context, accountID uuid.UUID, key string) (interface{}, error) {
+	if key == "" {
+		return nil, ErrEmptyKey
+	}
 	contentURL := fmt.Sprintf("%s/api/v2/internal/users/%s/settings/%s", c.svcAddr, accountID.String(), key)
 	byteSettings, _, err := c.caller.call(ctx, contentURL, "GET", c.svcSecret, userAgentUserPrefs, &bytes.Buffer{}, http.StatusOK)
 	if err != nil {
 		logging.LogErrorfCtx(ctx, err, "fetching single setting failed")
-		return "", err
+		return nil, err
 	}
-	return string(byteSettings), nil
+	var value interface{}
+	err = json.Unmarshal(byteSettings, &value)
+	return value, err
 }
 
 // GetKeySettings fetches a specific setting for all users
 func (c *UserPreferencesService) GetKeySettings(ctx context.Context, key string) (GlobalSetting, error) {
-	contentURL := fmt.Sprintf("%s/api/v2/internal/global/settings/%s", c.svcAddr, key)
 	settings := GlobalSetting{}
+	if key == "" {
+		return settings, ErrEmptyKey
+	}
+	contentURL := fmt.Sprintf("%s/api/v2/internal/global/settings/%s", c.svcAddr, key)
 	byteSettings, _, err := c.caller.call(ctx, contentURL, "GET", c.svcSecret, userAgentUserPrefs, &bytes.Buffer{}, http.StatusOK)
 	if err != nil {
 		logging.LogErrorfCtx(ctx, err, "fetching specific setting of all users failed")
@@ -119,7 +127,6 @@ func (c *UserPreferencesService) GetKeySettings(ctx context.Context, key string)
 
 // GetKeySettingsForUsers fetches a specific setting for a set of users
 func (c *UserPreferencesService) GetKeySettingsForUsers(ctx context.Context, key string, accountIDs []uuid.UUID) (GlobalSetting, error) {
-	contentURL := fmt.Sprintf("%s/api/v2/internal/global/settings/%s", c.svcAddr, key)
 	settings := GlobalSetting{}
 	if key == "" {
 		return settings, ErrEmptyKey
@@ -127,6 +134,7 @@ func (c *UserPreferencesService) GetKeySettingsForUsers(ctx context.Context, key
 	if len(accountIDs) == 0 {
 		return settings, ErrEmptyAccountIDs
 	}
+	contentURL := fmt.Sprintf("%s/api/v2/internal/global/settings/%s", c.svcAddr, key)
 	jsonBytes, err := json.Marshal(accountIDs)
 	if err != nil {
 		logging.LogErrorfCtx(ctx, err, "cannot marshal account array")
@@ -191,6 +199,9 @@ func (c *UserPreferencesService) Set(ctx context.Context, accountID uuid.UUID, k
 
 // Delete deletes a setting for a user
 func (c *UserPreferencesService) Delete(ctx context.Context, accountID uuid.UUID, key string) error {
+	if key == "" {
+		return ErrEmptyKey
+	}
 	contentURL := fmt.Sprintf("%s/api/v2/internal/users/%s/settings/%s", c.svcAddr, accountID.String(), key)
 	_, _, err := c.caller.call(ctx, contentURL, "DELETE", c.svcSecret, userAgentUserPrefs, &bytes.Buffer{}, http.StatusNoContent)
 	if err != nil {
