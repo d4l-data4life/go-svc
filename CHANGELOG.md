@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- [Transport pkg]: Retry transport mechanism depending on http status codes
+- [bievents pkg]: events `login-email` includes more details about the cause in case of failure
+- [bievents pkg]: events `login-email`, `login-sms` and `login-eid`
+- `WithMigrationHaltOnError` to halt on errors during DB migration
+
 ### Changed
 
 ### Deprecated
