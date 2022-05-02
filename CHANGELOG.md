@@ -9,14 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- [Transport pkg]: Retry transport mechanism depending on http status codes
-- [bievents pkg]: events `login-email` includes more details about the cause in case of failure
-- [bievents pkg]: events `login-email`, `login-sms` and `login-eid`
-- `WithMigrationHaltOnError` to halt on errors during DB migration
-
 ### Changed
-
-- keymgmt scopes adjusted to follow CRUD style (from former read, write, append)
 
 ### Deprecated
 
@@ -25,6 +18,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Security
+
+## [v1.54.0] - 2022-05-02
+
+### Added
+
+- [Transport pkg]: Retry transport mechanism depending on http status codes
+
+### Changed
+
+- [JWT pkg] keymgmt scopes adjusted to follow CRUD style (from former read, write, append)
 
 ## [v1.53.1] - 2022-04-29
 
@@ -722,7 +725,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial state: standards for Main, HTTP Server, DB access (gorm), Logging, Instrumented-Handler, and K8s Probe
 
-[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.53.1...HEAD
+[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.54.0...HEAD
+[v1.54.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.53.1...v1.54.0
 [v1.53.1]: https://github.com/gesundheitscloud/go-svc/compare/v1.53.0...v1.53.1
 [v1.53.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.52.0...v1.53.0
 [v1.52.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.51.0...v1.52.0
