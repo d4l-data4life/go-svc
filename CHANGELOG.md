@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- keymgmt scopes adjusted to follow CRUD style (from former read, write, append)
+
 ### Deprecated
 
 ### Removed

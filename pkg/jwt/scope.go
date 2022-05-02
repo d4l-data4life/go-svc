@@ -23,13 +23,15 @@ const (
 	TokenUserRead          = "user:r"
 	TokenUserWrite         = "user:w"
 	TokenUserQuery         = "user:q"
+	TokenUserKeysCreate    = "ku:c"
 	TokenUserKeysRead      = "ku:r"
-	TokenUserKeysWrite     = "ku:w"
-	TokenUserKeysAppend    = "ku:a"
+	TokenUserKeysUpdate    = "ku:u"
+	TokenUserKeysDelete    = "ku:d"
 	TokenUserKeysMigrate   = "ku:m"
+	TokenAppKeysCreate     = "ka:c"
 	TokenAppKeysRead       = "ka:r"
-	TokenAppKeysWrite      = "ka:w"
-	TokenAppKeysAppend     = "ka:a"
+	TokenAppKeysUpdate     = "ka:u"
+	TokenAppKeysDelete     = "ka:d"
 
 	TokenDeviceCreate = "dev:c"
 	TokenDeviceRead   = "dev:r"
@@ -132,14 +134,16 @@ var (
 		TokenUserWrite: exists,
 		TokenUserQuery: exists,
 
+		TokenUserKeysCreate:  exists,
 		TokenUserKeysRead:    exists,
-		TokenUserKeysWrite:   exists,
-		TokenUserKeysAppend:  exists,
+		TokenUserKeysUpdate:  exists,
+		TokenUserKeysDelete:  exists,
 		TokenUserKeysMigrate: exists,
 
+		TokenAppKeysCreate: exists,
 		TokenAppKeysRead:   exists,
-		TokenAppKeysWrite:  exists,
-		TokenAppKeysAppend: exists,
+		TokenAppKeysUpdate: exists,
+		TokenAppKeysDelete: exists,
 
 		TokenDeviceCreate: exists,
 		TokenDeviceRead:   exists,

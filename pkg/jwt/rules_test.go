@@ -513,7 +513,7 @@ func TestWithAllScopes(t *testing.T) {
 					jwt.WithScopeStrings(
 						jwt.TokenAppKeysRead,
 						jwt.TokenAttachmentsWrite,
-						jwt.TokenAppKeysAppend,
+						jwt.TokenAppKeysCreate,
 					),
 				),
 			),
@@ -700,7 +700,7 @@ func TestWithAnyScopes(t *testing.T) {
 					jwt.WithScopeStrings(
 						jwt.TokenAppKeysRead,
 						jwt.TokenAttachmentsWrite,
-						jwt.TokenAppKeysAppend,
+						jwt.TokenAppKeysCreate,
 					),
 				),
 			),
