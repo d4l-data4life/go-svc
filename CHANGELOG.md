@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- bievents: added `LogCtx` which extracts `sessionID` and `userID` from Context
+- bievents: added default logging of event-source
+
 ### Changed
 
 ### Deprecated

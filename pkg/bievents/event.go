@@ -1,6 +1,8 @@
 package bievents
 
 import (
+	"context"
+	"crypto/sha256"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -9,6 +11,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/gesundheitscloud/go-svc/pkg/jwt"
 	"github.com/gofrs/uuid"
 )
 
@@ -57,6 +60,7 @@ type Event struct {
 	ConsentDocumentKey string       `json:"consent-document-key"`
 	State              State        `json:"state,omitempty"`
 	EventSource        string       `json:"event-source"`
+	SessionID          string       `json:"session-id"`
 }
 
 // WithWriter is an option for NewEventEmitter which lets the caller specify where to
@@ -101,9 +105,38 @@ func NewEventEmitter(serviceName, serviceVersion, hostname string, options ...fu
 // Log is safe for concurrent use.
 // Log logs the event.
 func (e *Emitter) Log(event Event) error {
+	if event.EventSource == "" {
+		event.EventSource = GetEventSource(2)
+	}
+
 	e.Lock()
 	defer e.Unlock()
 	return e.out.Encode(e.emit(event))
+}
+
+// LogCtx Wraps Log(event Event) and extracts userID and SessionID from context
+func (e *Emitter) LogCtx(ctx context.Context, event Event) error {
+	if event.SessionID == "" {
+		appID, err := jwt.GetAppID(ctx)
+		if err != nil {
+			return err
+		}
+		event.SessionID = Hash(appID.Bytes())
+	}
+
+	if event.UserID == "" {
+		userID, err := jwt.GetUserID(ctx)
+		if err != nil {
+			return err
+		}
+		event.UserID = userID.String()
+	}
+
+	if event.EventSource == "" {
+		event.EventSource = GetEventSource(2)
+	}
+
+	return e.Log(event)
 }
 
 func (e *Emitter) emit(event Event) BaseEvent {
@@ -128,4 +161,11 @@ func (e *Emitter) emit(event Event) BaseEvent {
 func GetEventSource(skip int) string {
 	_, fn, line, _ := runtime.Caller(skip)
 	return fmt.Sprintf("%s:%d", fn, line)
+}
+
+// Hash uses SHA 256 to hash data and transform it into a string.
+// It can be used to hash pieces of information that shouldn't be leaked to the
+// BI events.
+func Hash(data []byte) string {
+	return fmt.Sprintf("%x", sha256.Sum256(data))
 }
