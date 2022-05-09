@@ -398,3 +398,83 @@ func TestLogHTTPOutReqRespHeader(t *testing.T) {
 		}
 	})
 }
+
+func TestLogHTTPOutReqRespHeaderLogging(t *testing.T) {
+
+	buf := new(bytes.Buffer)
+	l := log.NewLogger("name", "version", "hostname", log.WithWriter(buf))
+
+	handler := http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		rw.Header().Set("Content-Type", "application/json")
+		rw.Header().Set("authorization", "Bearer TakeMeOn")
+		rw.WriteHeader(400)
+		_, _ = rw.Write([]byte("400 Bad Request"))
+	})
+
+	srv := httptest.NewServer(handler)
+	defer srv.Close()
+
+	req, err := http.NewRequest("GET", srv.URL+"/the-path?query=param", strings.NewReader("Hello, PHDP!"))
+	if err != nil {
+		t.Fatalf("request creation failed: %v", err)
+	}
+
+	req.Header.Add(log.TraceIDHeaderKey, "t1")
+	req.Header.Add("authorization", "Bearer ThinkingAboutYou")
+	client := http.Client{
+		Transport: transport.Log(l)(nil),
+		Timeout:   10 * time.Second,
+	}
+
+	if _, err := client.Do(req); err != nil {
+		t.Fatalf("request failed: %v", err)
+	}
+
+	logs := json.NewDecoder(buf)
+
+	t.Run("request header", func(t *testing.T) {
+		requestLog := make(map[string]json.RawMessage)
+		if err := logs.Decode(&requestLog); err != nil {
+			t.Fatalf("unmarshaling the request log: %v", err)
+		}
+
+		for _, tc := range [...]struct {
+			key   string
+			value string
+		}{
+			{
+				key:   "header",
+				value: `{"Authorization":["Obfuscated{23}"],"Trace-Id":["t1"]}`,
+			},
+		} {
+			t.Run("contains "+tc.key, func(t *testing.T) {
+				if want, have := []byte(tc.value), requestLog[tc.key]; !bytes.Equal(want, have) {
+					t.Errorf("expected %q to be %q, found %q", tc.key, want, have)
+				}
+			})
+		}
+	})
+
+	t.Run("response header", func(t *testing.T) {
+		responseLog := make(map[string]json.RawMessage)
+		if err := logs.Decode(&responseLog); err != nil {
+			t.Fatalf("unmarshaling the response log: %v", err)
+		}
+
+		for _, tc := range [...]struct {
+			key   string
+			value string
+		}{
+			{
+				key:   "header",
+				value: `{"Authorization":["Obfuscated{15}"]}`,
+			},
+		} {
+			t.Run("contains "+tc.key, func(t *testing.T) {
+				if want, have := []byte(tc.value), responseLog[tc.key]; !bytes.Equal(want, have) {
+					t.Errorf("expected %q to be %q, found %q", tc.key, want, have)
+				}
+			})
+		}
+	})
+}

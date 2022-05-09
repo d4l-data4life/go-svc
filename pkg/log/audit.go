@@ -60,7 +60,7 @@ func (l *Logger) Audit(
 	if object != nil && object != struct{}{} {
 		marshaledObject, err := json.Marshal(object)
 		if err != nil {
-			return fmt.Errorf("Cannot marshal audited object '%v' to JSON: %w", object, err)
+			return fmt.Errorf("cannot marshal audited object '%v' to JSON: %w", object, err)
 		}
 		objectString = string(marshaledObject)
 	}

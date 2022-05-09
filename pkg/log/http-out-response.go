@@ -5,23 +5,28 @@ import (
 	"time"
 )
 
+var hlcOutResponse *headerObfuscator = newHeaderObfuscator().
+	obfuscateHeaders([]string{"Authorization", "WWW-Authenticate"}).
+	ignoreHeaders([]string{"X-Real-Ip", "Content-Encoding", "Content-Type", "Accept-Encoding", "Content-Length", "Date"})
+
 type outResponseLog struct {
-	Timestamp       time.Time `json:"timestamp"`
-	LogLevel        logLevel  `json:"log-level"`
-	TraceID         string    `json:"trace-id"`
-	ServiceName     string    `json:"service-name"`
-	ServiceVersion  string    `json:"service-version"`
-	Hostname        string    `json:"hostname"`
-	ReqMethod       string    `json:"req-method"`
-	ReqURL          string    `json:"req-url"`
-	EventType       string    `json:"event-type"`
-	UserID          string    `json:"user-id,omitempty"`
-	ResponseCode    int       `json:"response-code"`
-	ResponseBody    string    `json:"response-body"`
-	PayloadLength   int64     `json:"payload-length"`
-	ContentType     string    `json:"content-type"`
-	ContentEncoding string    `json:"content-encoding"`
-	Duration        int64     `json:"roundtrip-duration"`
+	Timestamp       time.Time           `json:"timestamp"`
+	LogLevel        logLevel            `json:"log-level"`
+	TraceID         string              `json:"trace-id"`
+	ServiceName     string              `json:"service-name"`
+	ServiceVersion  string              `json:"service-version"`
+	Hostname        string              `json:"hostname"`
+	ReqMethod       string              `json:"req-method"`
+	ReqURL          string              `json:"req-url"`
+	EventType       string              `json:"event-type"`
+	UserID          string              `json:"user-id,omitempty"`
+	ResponseCode    int                 `json:"response-code"`
+	ResponseBody    string              `json:"response-body"`
+	PayloadLength   int64               `json:"payload-length"`
+	Header          map[string][]string `json:"header"`
+	ContentType     string              `json:"content-type"`
+	ContentEncoding string              `json:"content-encoding"`
+	Duration        int64               `json:"roundtrip-duration"`
 	// OAuth client ID
 	ClientID string `json:"client-id,omitempty"`
 	// TenantID is the ID of the tenant to which the log belongs to
@@ -73,6 +78,7 @@ func (l *Logger) HttpOutResponse(
 		PayloadLength:   cl,
 		ContentType:     ct,
 		ContentEncoding: ce,
+		Header:          hlcOutResponse.processHeaders(resp.Header),
 		Duration:        now.Sub(requestTimestamp).Milliseconds(),
 		ClientID:        clientID,
 		TenantID:        getFromContextWithDefault(req.Context(), TenantIDContextKey, l.tenantID),

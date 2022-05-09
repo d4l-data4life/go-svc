@@ -256,6 +256,8 @@ func TestHTTPWrapper(t *testing.T) {
 		if err := l.ErrGeneric(req.Context(), http.ErrHijacked); err != nil {
 			t.Fatalf("unexpected log error: %v", err)
 		}
+		// for header obfuscation/ignore
+		rw.Header().Set("Set-Cookie", "jwt=jwt")
 		rw.WriteHeader(409)
 		_, _ = rw.Write([]byte("this is the response. 再见!"))
 	})
@@ -284,6 +286,8 @@ func TestHTTPWrapper(t *testing.T) {
 	req.Header.Set("trace-id", "t1")
 	req.Header.Set("client-id", clientID)
 	req.Header.Set("x-real-ip", "10.0.0.2")
+	req.Header.Set("Authorization", "Bearer PrayThatThisIsObfuscated")
+	req.Header.Set("Cookie", "jwt=jwt")
 
 	if _, err := srv.Client().Do(req); err != nil {
 		t.Fatalf("request failed: %v", err)
@@ -362,6 +366,9 @@ func TestHTTPWrapper(t *testing.T) {
 			{
 				key:   "payload-length",
 				value: `15`,
+			}, {
+				key:   "header",
+				value: `{"Authorization":["Obfuscated{31}"],"Client-Id":["c1"],"Cookie":["jwt=Obfuscated{3};"],"Trace-Id":["t1"],"User-Agent":["Go-http-client/1.1"]}`,
 			},
 		} {
 			t.Run("contains "+tc.key, func(t *testing.T) {
@@ -484,6 +491,9 @@ func TestHTTPWrapper(t *testing.T) {
 			{
 				key:   "payload-length",
 				value: `29`,
+			}, {
+				key:   "header",
+				value: `{"Set-Cookie":["jwt=Obfuscated{3}"]}`,
 			},
 		} {
 			t.Run("contains "+tc.key, func(t *testing.T) {
@@ -678,6 +688,9 @@ func TestFilteredContentType(t *testing.T) {
 			t.Fatalf("unexpected log error: %v", err)
 		}
 		rw.Header().Set("Content-Type", "application/octet-stream")
+		// for header logging
+		rw.Header().Set("trace-id", "t1")
+		rw.Header().Set("client-id", "c1")
 		rw.WriteHeader(http.StatusConflict)
 		_, _ = rw.Write([]byte("this is the response. 再见!"))
 	})
@@ -787,6 +800,9 @@ func TestFilteredContentType(t *testing.T) {
 			{
 				key:   "content-encoding",
 				value: `"gzip"`,
+			}, {
+				key:   "header",
+				value: `{"Client-Id":["c1"],"Trace-Id":["t1"],"User-Agent":["Go-http-client/1.1"]}`,
 			},
 		} {
 			t.Run("contains "+tc.key, func(t *testing.T) {
@@ -917,6 +933,9 @@ func TestFilteredContentType(t *testing.T) {
 			{
 				key:   "req-url",
 				value: `"/the-path?query=param"`,
+			}, {
+				key:   "header",
+				value: `{"Client-Id":["c1"],"Trace-Id":["t1"]}`,
 			},
 		} {
 			t.Run("contains "+tc.key, func(t *testing.T) {

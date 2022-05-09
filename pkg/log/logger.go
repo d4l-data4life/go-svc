@@ -106,8 +106,7 @@ func NewLogger(serviceName, serviceVersion, hostname string, options ...func(*Lo
 		serviceName:    serviceName,
 		serviceVersion: serviceVersion,
 		hostname:       hostname,
-
-		out: NewJSONEncoder(os.Stdout),
+		out:            NewJSONEncoder(os.Stdout),
 	}
 
 	for _, apply := range options {
