@@ -9,15 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- [log pkg]: Logging HTTP headers for in/out requests and responses with options to ignore or obfuscate certain header keys. Obfuscation by replacing the value with its length.
-- [bievents pkg]: events `login-email` includes more details about the cause in case of failure
-- [bievents pkg]: events `login-email`, `login-sms` and `login-eid`
-- `WithMigrationHaltOnError` to halt on errors during DB migration
-- bievents: added `LogCtx` which extracts `sessionID` and `userID` from Context
-- bievents: added default logging of event-source
-- [client pkg] transport middleware for forwarding JWT access token from the context
-- [jwt pkg] extract JWT raw token and store in context
-
 ### Changed
 
 ### Deprecated
@@ -27,6 +18,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Security
+
+## [v1.55.0] - 2022-05-11
+
+### Added
+
+- [log pkg]: Logging HTTP headers for in/out requests and responses with options to ignore or obfuscate certain header keys. Obfuscation by replacing the value with its length.
+- [bievents pkg]: events `login-email` includes more details about the cause in case of failure
+- [bievents pkg]: events `login-email`, `login-sms` and `login-eid`
+- `WithMigrationHaltOnError` to halt on errors during DB migration
+- bievents: added `LogCtx` which extracts `sessionID` and `userID` from Context
+- bievents: added default logging of event-source
+- [client pkg] transport middleware for forwarding JWT access token from the context
+- [jwt pkg] extract JWT raw token and store in context
 
 ## [v1.54.0] - 2022-05-02
 
@@ -734,7 +738,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial state: standards for Main, HTTP Server, DB access (gorm), Logging, Instrumented-Handler, and K8s Probe
 
-[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.54.0...HEAD
+[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.55.0...HEAD
+[v1.55.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.54.0...v1.55.0
 [v1.54.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.53.1...v1.54.0
 [v1.53.1]: https://github.com/gesundheitscloud/go-svc/compare/v1.53.0...v1.53.1
 [v1.53.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.52.0...v1.53.0
