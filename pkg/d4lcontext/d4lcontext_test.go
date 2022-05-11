@@ -3,6 +3,7 @@ package d4lcontext
 import (
 	"context"
 	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	uuid "github.com/gofrs/uuid"
@@ -67,7 +68,7 @@ func TestGetClientID(t *testing.T) {
 	}
 }
 
-func TestGetTennatID(t *testing.T) {
+func TestGetTenantID(t *testing.T) {
 	someID := uuid.Must(uuid.NewV4())
 
 	tests := []struct {
@@ -96,6 +97,34 @@ func TestGetTennatID(t *testing.T) {
 			req, _ := http.NewRequest(http.MethodGet, "", nil)
 			if got := GetTenantID(req.WithContext(tt.ctx)); got != tt.want {
 				t.Errorf("GetTenantID() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestGetAccessToken(t *testing.T) {
+	tests := []struct {
+		name        string
+		accessToken string
+		want        string
+	}{
+		{
+			name:        "success",
+			accessToken: "some-access-token",
+			want:        "some-access-token",
+		},
+		{
+			name:        "empty",
+			accessToken: "",
+			want:        "",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req := httptest.NewRequest(http.MethodGet, "/test", nil)
+			req = WithAccessToken(req, tt.accessToken)
+			if got := GetAccessToken(req); got != tt.want {
+				t.Errorf("GetAccessToken() = %v, want %v", got, tt.want)
 			}
 		})
 	}

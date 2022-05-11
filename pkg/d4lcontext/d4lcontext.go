@@ -18,6 +18,9 @@ const (
 
 	// TenantIDContextKey is the key to store the tenant ID in the context
 	TenantIDContextKey contextKey = "tenant-id"
+
+	// AccessTokenContextKey is the key to store the access token in the context
+	AccessTokenContextKey contextKey = "access-token"
 )
 
 // GetUserID extracts the user id from a request context
@@ -38,6 +41,11 @@ func GetClientID(r *http.Request) string {
 // GetTenantID extracts the tenant id from a request context.
 func GetTenantID(r *http.Request) string {
 	return GetTenantIDFromCtx(r.Context())
+}
+
+// GetAccessToken extracts the access token from a request context.
+func GetAccessToken(r *http.Request) string {
+	return GetAccessTokenFromCtx(r.Context())
 }
 
 // GetUserID extracts the user id from a request context
@@ -65,6 +73,14 @@ func GetTenantIDFromCtx(ctx context.Context) string {
 	return ""
 }
 
+// GetAccessTokenFromCtx extracts the access token from the context.
+func GetAccessTokenFromCtx(ctx context.Context) string {
+	if accessToken, ok := ctx.Value(AccessTokenContextKey).(string); ok {
+		return accessToken
+	}
+	return ""
+}
+
 // WithUserID adds the user id to the request context
 func WithUserID(r *http.Request, userID uuid.UUID) *http.Request {
 	return r.WithContext(context.WithValue(r.Context(), UserIDContextKey, userID))
@@ -79,4 +95,9 @@ func WithClientID(r *http.Request, clientID string) *http.Request {
 // It defaults to 'd4l' if the value is not found in the context.
 func WithTenantID(r *http.Request, tenantID string) *http.Request {
 	return r.WithContext(context.WithValue(r.Context(), TenantIDContextKey, tenantID))
+}
+
+// WithAccessToken adds the access token to the request context.
+func WithAccessToken(r *http.Request, accessToken string) *http.Request {
+	return r.WithContext(context.WithValue(r.Context(), AccessTokenContextKey, accessToken))
 }

@@ -107,7 +107,7 @@ func (auth *Authenticator) Extract(next http.Handler) http.Handler {
 		for _, key := range candidateKeys {
 			claims, err := verifyPubKey(key.Key, rawToken)
 			if err == nil {
-				r = addClaimsToContext(r, claims)
+				r = addClaimsToContext(r, claims, rawToken)
 				break
 			}
 		}
@@ -165,7 +165,7 @@ func (auth *Authenticator) Verify(rules ...rule) func(handler http.Handler) http
 
 				// found valid pub-key that also passed all the rules checks
 				// must write claims into the context - other middleware and handlers depend on the claims being in the context
-				r = addClaimsToContext(r, claims)
+				r = addClaimsToContext(r, claims, rawToken)
 				next.ServeHTTP(w, r)
 				return
 			}
@@ -234,10 +234,11 @@ func verifyAllRules(r *http.Request, claims *Claims, rules ...rule) error {
 	return nil
 }
 
-func addClaimsToContext(r *http.Request, claims *Claims) *http.Request {
+func addClaimsToContext(r *http.Request, claims *Claims, rawToken string) *http.Request {
 	newR := d4lcontext.WithClientID(r, claims.ClientID)
 	newR = d4lcontext.WithUserID(newR, claims.Subject.ID)
 	newR = d4lcontext.WithTenantID(newR, claims.TenantID)
+	newR = d4lcontext.WithAccessToken(newR, rawToken)
 
 	// also write the claims into the context for services using this package's context keys
 	newR = newR.WithContext(NewContext(newR.Context(), claims))
