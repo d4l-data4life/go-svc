@@ -62,6 +62,11 @@ func (l *Logger) HttpOutResponse(
 		level = LevelError
 	}
 
+	var header map[string][]string
+	if resp != nil {
+		header = hlcOutResponse.processHeaders(resp.Header)
+	}
+
 	outLog := outResponseLog{
 		Timestamp:       now,
 		LogLevel:        level,
@@ -78,7 +83,7 @@ func (l *Logger) HttpOutResponse(
 		PayloadLength:   cl,
 		ContentType:     ct,
 		ContentEncoding: ce,
-		Header:          hlcOutResponse.processHeaders(resp.Header),
+		Header:          header,
 		Duration:        now.Sub(requestTimestamp).Milliseconds(),
 		ClientID:        clientID,
 		TenantID:        getFromContextWithDefault(req.Context(), TenantIDContextKey, l.tenantID),
