@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- bug in notification client error handling
 ### Security
 
 ## [v1.57.0] - 2022-06-07

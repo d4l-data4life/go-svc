@@ -231,6 +231,7 @@ func (c *NotificationService) GetJobStatus(ctx context.Context, jobID uuid.UUID)
 		logging.LogErrorfCtx(ctx, err, "fetching job status failed")
 		return NotificationStatus{}, err
 	}
+
 	if err := json.Unmarshal(byteSettings, &reply); err != nil {
 		logging.LogErrorfCtx(ctx, err, "error transforming job status service reply to an object")
 		return reply, err
@@ -258,6 +259,7 @@ func (c *NotificationService) sendTemplatedEmail(ctx context.Context, requestBod
 	body, code, err := c.caller.call(ctx, contentURL, "POST", c.svcSecret, userAgentNotification, bytes.NewBuffer(jsonBytes), http.StatusOK, http.StatusAccepted)
 	if err != nil {
 		logging.LogErrorfCtx(ctx, err, "sendTemplatedEmail failed, code: %d", code)
+		return reply, err
 	}
 
 	err = json.Unmarshal(body, &reply)
@@ -278,6 +280,7 @@ func (c *NotificationService) sendRawEmail(ctx context.Context, requestBody Noti
 	body, code, err := c.caller.call(ctx, contentURL, "POST", c.svcSecret, userAgentNotification, bytes.NewBuffer(jsonBytes), http.StatusOK, http.StatusAccepted)
 	if err != nil {
 		logging.LogErrorfCtx(ctx, err, "sendRawEmail failed, code: %d", code)
+		return reply, err
 	}
 
 	err = json.Unmarshal(body, &reply)
