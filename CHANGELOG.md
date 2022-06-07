@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- [tut pkg] `tut` (a.k.a `test utils`) package with reusable test tools
+
 ### Changed
 
 ### Deprecated

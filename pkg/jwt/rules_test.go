@@ -11,11 +11,20 @@ import (
 
 	"github.com/gesundheitscloud/go-svc/pkg/jwt"
 	"github.com/gesundheitscloud/go-svc/pkg/jwt/testutils"
+	"github.com/gesundheitscloud/go-svc/pkg/tut"
 
 	"github.com/go-chi/chi"
 	"github.com/gofrs/uuid"
 	"github.com/gorilla/mux"
 )
+
+type testData struct {
+	name       string
+	request    *http.Request
+	middleware func(http.Handler) http.Handler
+	checks     tut.ResponseCheckFunc
+	endHandler func(http.ResponseWriter, *http.Request)
+}
 
 func TestWithGorillaOwner(t *testing.T) {
 	read := rand.New(rand.NewSource(time.Now().Unix()))
@@ -38,15 +47,15 @@ func TestWithGorillaOwner(t *testing.T) {
 			middleware: auth.Verify(
 				jwt.WithGorillaOwner(ownerFlag),
 			),
-			request: testutils.BuildRequest(
-				testutils.WithTargetURL(fmt.Sprintf("/users/%s/records", ownerUUID)),
-				testutils.WithAuthHeader(
+			request: tut.Request(
+				tut.ReqWithTargetURL(fmt.Sprintf("/users/%s/records", ownerUUID)),
+				tut.ReqWithAuthHeader(
+					ownerUUID,
 					priv,
-					jwt.WithUserID(ownerUUID),
 				),
 			),
-			checks: checks(
-				hasStatusCode(http.StatusOK),
+			checks: tut.CheckResponse(
+				tut.RespHasStatusCode(http.StatusOK),
 			),
 		},
 		{
@@ -54,15 +63,15 @@ func TestWithGorillaOwner(t *testing.T) {
 			middleware: auth.Verify(
 				jwt.WithGorillaOwner(ownerFlag),
 			),
-			request: testutils.BuildRequest(
-				testutils.WithTargetURL(fmt.Sprintf("/users/%s/records", ownerUUID)),
+			request: tut.Request(
+				tut.ReqWithTargetURL(fmt.Sprintf("/users/%s/records", ownerUUID)),
 				testutils.WithFormAccessToken(
 					priv,
 					jwt.WithUserID(ownerUUID),
 				),
 			),
-			checks: checks(
-				hasStatusCode(http.StatusOK),
+			checks: tut.CheckResponse(
+				tut.RespHasStatusCode(http.StatusOK),
 			),
 		},
 		{
@@ -70,16 +79,16 @@ func TestWithGorillaOwner(t *testing.T) {
 			middleware: authAcceptingCookie.Verify(
 				jwt.WithGorillaOwner(ownerFlag),
 			),
-			request: testutils.BuildRequest(
-				testutils.WithMethod(http.MethodGet),
-				testutils.WithTargetURL(fmt.Sprintf("/users/%s/records", ownerUUID)),
+			request: tut.Request(
+				tut.ReqWithMethod(http.MethodGet),
+				tut.ReqWithTargetURL(fmt.Sprintf("/users/%s/records", ownerUUID)),
 				testutils.WithCookieAccessToken(
 					priv,
 					jwt.WithUserID(ownerUUID),
 				),
 			),
-			checks: checks(
-				hasStatusCode(http.StatusOK),
+			checks: tut.CheckResponse(
+				tut.RespHasStatusCode(http.StatusOK),
 			),
 		},
 		{
@@ -87,15 +96,15 @@ func TestWithGorillaOwner(t *testing.T) {
 			middleware: auth.Verify(
 				jwt.WithGorillaOwner("GG"),
 			),
-			request: testutils.BuildRequest(
-				testutils.WithTargetURL(fmt.Sprintf("/users/%s/records", ownerUUID)),
-				testutils.WithAuthHeader(
+			request: tut.Request(
+				tut.ReqWithTargetURL(fmt.Sprintf("/users/%s/records", ownerUUID)),
+				tut.ReqWithAuthHeader(
+					ownerUUID,
 					priv,
-					jwt.WithUserID(ownerUUID),
 				),
 			),
-			checks: checks(
-				hasStatusCode(http.StatusUnauthorized),
+			checks: tut.CheckResponse(
+				tut.RespHasStatusCode(http.StatusUnauthorized),
 			),
 		},
 		{
@@ -103,15 +112,15 @@ func TestWithGorillaOwner(t *testing.T) {
 			middleware: auth.Verify(
 				jwt.WithGorillaOwner(ownerFlag),
 			),
-			request: testutils.BuildRequest(
-				testutils.WithTargetURL(fmt.Sprintf("/users/%s/records", uuid.Nil.String())),
-				testutils.WithAuthHeader(
+			request: tut.Request(
+				tut.ReqWithTargetURL(fmt.Sprintf("/users/%s/records", uuid.Nil.String())),
+				tut.ReqWithAuthHeader(
+					ownerUUID,
 					priv,
-					jwt.WithUserID(ownerUUID),
 				),
 			),
-			checks: checks(
-				hasStatusCode(http.StatusUnauthorized),
+			checks: tut.CheckResponse(
+				tut.RespHasStatusCode(http.StatusUnauthorized),
 			),
 		},
 		{
@@ -119,15 +128,15 @@ func TestWithGorillaOwner(t *testing.T) {
 			middleware: auth.Verify(
 				jwt.WithGorillaOwner(ownerFlag),
 			),
-			request: testutils.BuildRequest(
-				testutils.WithTargetURL(fmt.Sprintf("/users/%s/records", otherUUID)),
-				testutils.WithAuthHeader(
+			request: tut.Request(
+				tut.ReqWithTargetURL(fmt.Sprintf("/users/%s/records", otherUUID)),
+				tut.ReqWithAuthHeader(
+					ownerUUID,
 					priv,
-					jwt.WithUserID(ownerUUID),
 				),
 			),
-			checks: checks(
-				hasStatusCode(http.StatusUnauthorized),
+			checks: tut.CheckResponse(
+				tut.RespHasStatusCode(http.StatusUnauthorized),
 			),
 		},
 	} {
@@ -144,11 +153,9 @@ func TestWithGorillaOwner(t *testing.T) {
 
 			router.ServeHTTP(res, tc.request)
 
-			for _, check := range tc.checks {
-				if err := check(res); err != nil {
-					t.Error(err)
-					return
-				}
+			if err := tc.checks(res.Result()); err != nil {
+				t.Error(err)
+				return
 			}
 		})
 	}
@@ -174,15 +181,15 @@ func TestWithChiOwner(t *testing.T) {
 			middleware: auth.Verify(
 				jwt.WithChiOwner(ownerFlag),
 			),
-			request: testutils.BuildRequest(
-				testutils.WithTargetURL(fmt.Sprintf("/users/%s/records", ownerUUID)),
-				testutils.WithAuthHeader(
+			request: tut.Request(
+				tut.ReqWithTargetURL(fmt.Sprintf("/users/%s/records", ownerUUID)),
+				tut.ReqWithAuthHeader(
+					ownerUUID,
 					priv,
-					jwt.WithUserID(ownerUUID),
 				),
 			),
-			checks: checks(
-				hasStatusCode(http.StatusOK),
+			checks: tut.CheckResponse(
+				tut.RespHasStatusCode(http.StatusOK),
 			),
 		},
 		{
@@ -190,15 +197,15 @@ func TestWithChiOwner(t *testing.T) {
 			middleware: auth.Verify(
 				jwt.WithChiOwner(ownerFlag),
 			),
-			request: testutils.BuildRequest(
-				testutils.WithTargetURL(fmt.Sprintf("/users/%s/records", ownerUUID)),
+			request: tut.Request(
+				tut.ReqWithTargetURL(fmt.Sprintf("/users/%s/records", ownerUUID)),
 				testutils.WithFormAccessToken(
 					priv,
 					jwt.WithUserID(ownerUUID),
 				),
 			),
-			checks: checks(
-				hasStatusCode(http.StatusOK),
+			checks: tut.CheckResponse(
+				tut.RespHasStatusCode(http.StatusOK),
 			),
 		},
 		{
@@ -206,16 +213,16 @@ func TestWithChiOwner(t *testing.T) {
 			middleware: authAcceptingCookie.Verify(
 				jwt.WithChiOwner(ownerFlag),
 			),
-			request: testutils.BuildRequest(
-				testutils.WithMethod(http.MethodGet),
-				testutils.WithTargetURL(fmt.Sprintf("/users/%s/records", ownerUUID)),
+			request: tut.Request(
+				tut.ReqWithMethod(http.MethodGet),
+				tut.ReqWithTargetURL(fmt.Sprintf("/users/%s/records", ownerUUID)),
 				testutils.WithCookieAccessToken(
 					priv,
 					jwt.WithUserID(ownerUUID),
 				),
 			),
-			checks: checks(
-				hasStatusCode(http.StatusOK),
+			checks: tut.CheckResponse(
+				tut.RespHasStatusCode(http.StatusOK),
 			),
 		},
 		{
@@ -223,15 +230,15 @@ func TestWithChiOwner(t *testing.T) {
 			middleware: auth.Verify(
 				jwt.WithChiOwner("GG"),
 			),
-			request: testutils.BuildRequest(
-				testutils.WithTargetURL(fmt.Sprintf("/users/%s/records", ownerUUID)),
-				testutils.WithAuthHeader(
+			request: tut.Request(
+				tut.ReqWithTargetURL(fmt.Sprintf("/users/%s/records", ownerUUID)),
+				tut.ReqWithAuthHeader(
+					ownerUUID,
 					priv,
-					jwt.WithUserID(ownerUUID),
 				),
 			),
-			checks: checks(
-				hasStatusCode(http.StatusUnauthorized),
+			checks: tut.CheckResponse(
+				tut.RespHasStatusCode(http.StatusUnauthorized),
 			),
 		},
 		{
@@ -239,15 +246,15 @@ func TestWithChiOwner(t *testing.T) {
 			middleware: auth.Verify(
 				jwt.WithChiOwner(ownerFlag),
 			),
-			request: testutils.BuildRequest(
-				testutils.WithTargetURL(fmt.Sprintf("/users/%s/records", uuid.Nil.String())),
-				testutils.WithAuthHeader(
+			request: tut.Request(
+				tut.ReqWithTargetURL(fmt.Sprintf("/users/%s/records", uuid.Nil.String())),
+				tut.ReqWithAuthHeader(
+					ownerUUID,
 					priv,
-					jwt.WithUserID(ownerUUID),
 				),
 			),
-			checks: checks(
-				hasStatusCode(http.StatusUnauthorized),
+			checks: tut.CheckResponse(
+				tut.RespHasStatusCode(http.StatusUnauthorized),
 			),
 		},
 		{
@@ -255,15 +262,15 @@ func TestWithChiOwner(t *testing.T) {
 			middleware: auth.Verify(
 				jwt.WithChiOwner(ownerFlag),
 			),
-			request: testutils.BuildRequest(
-				testutils.WithTargetURL(fmt.Sprintf("/users/%s/records", otherUUID)),
-				testutils.WithAuthHeader(
+			request: tut.Request(
+				tut.ReqWithTargetURL(fmt.Sprintf("/users/%s/records", otherUUID)),
+				tut.ReqWithAuthHeader(
+					ownerUUID,
 					priv,
-					jwt.WithUserID(ownerUUID),
 				),
 			),
-			checks: checks(
-				hasStatusCode(http.StatusUnauthorized),
+			checks: tut.CheckResponse(
+				tut.RespHasStatusCode(http.StatusUnauthorized),
 			),
 		},
 	} {
@@ -281,11 +288,9 @@ func TestWithChiOwner(t *testing.T) {
 
 			router.ServeHTTP(res, tc.request)
 
-			for _, check := range tc.checks {
-				if err := check(res); err != nil {
-					t.Error(err)
-					return
-				}
+			if err := tc.checks(res.Result()); err != nil {
+				t.Error(err)
+				return
 			}
 		})
 	}
@@ -312,16 +317,16 @@ func TestWithOwner(t *testing.T) {
 					return ownerUUID
 				}),
 			),
-			request: testutils.BuildRequest(
-				testutils.WithTargetURL(fmt.Sprintf("/users/%s/records", ownerUUID)),
-				testutils.WithAuthHeader(
+			request: tut.Request(
+				tut.ReqWithTargetURL(fmt.Sprintf("/users/%s/records", ownerUUID)),
+				tut.ReqWithAuthHeader(
+					ownerUUID,
 					priv,
-					jwt.WithUserID(ownerUUID),
 				),
 			),
 			endHandler: testutils.OkHandler,
-			checks: checks(
-				hasStatusCode(http.StatusOK),
+			checks: tut.CheckResponse(
+				tut.RespHasStatusCode(http.StatusOK),
 			),
 		},
 		{
@@ -331,16 +336,16 @@ func TestWithOwner(t *testing.T) {
 					return ownerUUID
 				}),
 			),
-			request: testutils.BuildRequest(
-				testutils.WithTargetURL(fmt.Sprintf("/users/%s/records", ownerUUID)),
+			request: tut.Request(
+				tut.ReqWithTargetURL(fmt.Sprintf("/users/%s/records", ownerUUID)),
 				testutils.WithFormAccessToken(
 					priv,
 					jwt.WithUserID(ownerUUID),
 				),
 			),
 			endHandler: testutils.OkHandler,
-			checks: checks(
-				hasStatusCode(http.StatusOK),
+			checks: tut.CheckResponse(
+				tut.RespHasStatusCode(http.StatusOK),
 			),
 		},
 		{
@@ -350,17 +355,17 @@ func TestWithOwner(t *testing.T) {
 					return ownerUUID
 				}),
 			),
-			request: testutils.BuildRequest(
-				testutils.WithMethod(http.MethodGet),
-				testutils.WithTargetURL(fmt.Sprintf("/users/%s/records", ownerUUID)),
+			request: tut.Request(
+				tut.ReqWithMethod(http.MethodGet),
+				tut.ReqWithTargetURL(fmt.Sprintf("/users/%s/records", ownerUUID)),
 				testutils.WithCookieAccessToken(
 					priv,
 					jwt.WithUserID(ownerUUID),
 				),
 			),
 			endHandler: testutils.OkHandler,
-			checks: checks(
-				hasStatusCode(http.StatusOK),
+			checks: tut.CheckResponse(
+				tut.RespHasStatusCode(http.StatusOK),
 			),
 		},
 		{
@@ -370,16 +375,16 @@ func TestWithOwner(t *testing.T) {
 					return uuid.Must(uuid.NewV4())
 				}),
 			),
-			request: testutils.BuildRequest(
-				testutils.WithTargetURL(fmt.Sprintf("/users/%s/records", ownerUUID)),
-				testutils.WithAuthHeader(
+			request: tut.Request(
+				tut.ReqWithTargetURL(fmt.Sprintf("/users/%s/records", ownerUUID)),
+				tut.ReqWithAuthHeader(
+					otherUUID,
 					priv,
-					jwt.WithUserID(otherUUID),
 				),
 			),
 			endHandler: testutils.OkHandler,
-			checks: checks(
-				hasStatusCode(http.StatusUnauthorized),
+			checks: tut.CheckResponse(
+				tut.RespHasStatusCode(http.StatusUnauthorized),
 			),
 		},
 		{
@@ -389,15 +394,15 @@ func TestWithOwner(t *testing.T) {
 					return ownerUUID
 				}),
 			),
-			request: testutils.BuildRequest(
-				testutils.WithTargetURL(fmt.Sprintf("/users/%s/records", ownerUUID)),
+			request: tut.Request(
+				tut.ReqWithTargetURL(fmt.Sprintf("/users/%s/records", ownerUUID)),
 				func(r *http.Request) {
 					r.Header.Add("Authorization", "I haz master key!")
 				},
 			),
 			endHandler: testutils.OkHandler,
-			checks: checks(
-				hasStatusCode(http.StatusUnauthorized),
+			checks: tut.CheckResponse(
+				tut.RespHasStatusCode(http.StatusUnauthorized),
 			),
 		},
 		{
@@ -409,8 +414,8 @@ func TestWithOwner(t *testing.T) {
 			),
 			request:    &http.Request{},
 			endHandler: testutils.OkHandler,
-			checks: checks(
-				hasStatusCode(http.StatusUnauthorized),
+			checks: tut.CheckResponse(
+				tut.RespHasStatusCode(http.StatusUnauthorized),
 			),
 		},
 	} {
@@ -421,11 +426,9 @@ func TestWithOwner(t *testing.T) {
 
 			handler.ServeHTTP(res, tc.request)
 
-			for _, check := range tc.checks {
-				if err := check(res); err != nil {
-					t.Error(err)
-					return
-				}
+			if err := tc.checks(res.Result()); err != nil {
+				t.Error(err)
+				return
 			}
 		})
 	}
@@ -440,6 +443,8 @@ func TestWithAllScopes(t *testing.T) {
 	pkp := testutils.DummyKeyProvider{Key: &priv.PublicKey}
 	l := testutils.Logger{}
 	auth := jwt.NewAuthenticator(&pkp, &l)
+
+	userID := uuid.Must(uuid.NewV4())
 	authAcceptingCookie := jwt.NewAuthenticatorWithOptions(&pkp, &l, jwt.AcceptAccessCookie)
 
 	for _, tc := range [...]testData{
@@ -450,15 +455,16 @@ func TestWithAllScopes(t *testing.T) {
 					jwt.TokenAttachmentsWrite,
 				),
 			),
-			request: testutils.BuildRequest(
-				testutils.WithAuthHeader(
+			request: tut.Request(
+				tut.ReqWithAuthHeader(
+					userID,
 					priv,
 					jwt.WithScopeStrings(jwt.TokenAttachmentsWrite),
 				),
 			),
 			endHandler: testutils.OkHandler,
-			checks: checks(
-				hasStatusCode(http.StatusOK),
+			checks: tut.CheckResponse(
+				tut.RespHasStatusCode(http.StatusOK),
 			),
 		},
 		{
@@ -468,15 +474,16 @@ func TestWithAllScopes(t *testing.T) {
 					jwt.TokenAttachmentsWrite, jwt.TokenAppKeysRead,
 				),
 			),
-			request: testutils.BuildRequest(
-				testutils.WithAuthHeader(
+			request: tut.Request(
+				tut.ReqWithAuthHeader(
+					userID,
 					priv,
 					jwt.WithScopeStrings(jwt.TokenAttachmentsWrite, jwt.TokenAppKeysRead),
 				),
 			),
 			endHandler: testutils.OkHandler,
-			checks: checks(
-				hasStatusCode(http.StatusOK),
+			checks: tut.CheckResponse(
+				tut.RespHasStatusCode(http.StatusOK),
 			),
 		},
 		{
@@ -486,8 +493,9 @@ func TestWithAllScopes(t *testing.T) {
 					jwt.TokenAttachmentsWrite, jwt.TokenAppKeysRead,
 				),
 			),
-			request: testutils.BuildRequest(
-				testutils.WithAuthHeader(
+			request: tut.Request(
+				tut.ReqWithAuthHeader(
+					userID,
 					priv,
 					jwt.WithScopeStrings(
 						jwt.TokenAppKeysRead,
@@ -496,8 +504,8 @@ func TestWithAllScopes(t *testing.T) {
 				),
 			),
 			endHandler: testutils.OkHandler,
-			checks: checks(
-				hasStatusCode(http.StatusOK),
+			checks: tut.CheckResponse(
+				tut.RespHasStatusCode(http.StatusOK),
 			),
 		},
 		{
@@ -507,8 +515,9 @@ func TestWithAllScopes(t *testing.T) {
 					jwt.TokenAttachmentsWrite, jwt.TokenAppKeysRead,
 				),
 			),
-			request: testutils.BuildRequest(
-				testutils.WithAuthHeader(
+			request: tut.Request(
+				tut.ReqWithAuthHeader(
+					userID,
 					priv,
 					jwt.WithScopeStrings(
 						jwt.TokenAppKeysRead,
@@ -518,8 +527,8 @@ func TestWithAllScopes(t *testing.T) {
 				),
 			),
 			endHandler: testutils.OkHandler,
-			checks: checks(
-				hasStatusCode(http.StatusOK),
+			checks: tut.CheckResponse(
+				tut.RespHasStatusCode(http.StatusOK),
 			),
 		},
 		{
@@ -529,8 +538,9 @@ func TestWithAllScopes(t *testing.T) {
 					jwt.TokenAttachmentsWrite, jwt.TokenAppKeysRead,
 				),
 			),
-			request: testutils.BuildRequest(
-				testutils.WithAuthHeader(
+			request: tut.Request(
+				tut.ReqWithAuthHeader(
+					userID,
 					priv,
 					jwt.WithScopeStrings(
 						jwt.TokenAttachmentsWrite,
@@ -540,8 +550,8 @@ func TestWithAllScopes(t *testing.T) {
 				),
 			),
 			endHandler: testutils.OkHandler,
-			checks: checks(
-				hasStatusCode(http.StatusOK),
+			checks: tut.CheckResponse(
+				tut.RespHasStatusCode(http.StatusOK),
 			),
 		},
 		{
@@ -552,15 +562,16 @@ func TestWithAllScopes(t *testing.T) {
 					jwt.TokenAttachmentsRead,
 				),
 			),
-			request: testutils.BuildRequest(
-				testutils.WithAuthHeader(
+			request: tut.Request(
+				tut.ReqWithAuthHeader(
+					userID,
 					priv,
 					jwt.WithScopeStrings(jwt.TokenAttachmentsRead),
 				),
 			),
 			endHandler: testutils.OkHandler,
-			checks: checks(
-				hasStatusCode(http.StatusUnauthorized),
+			checks: tut.CheckResponse(
+				tut.RespHasStatusCode(http.StatusUnauthorized),
 			),
 		},
 		{
@@ -570,15 +581,15 @@ func TestWithAllScopes(t *testing.T) {
 					jwt.TokenAttachmentsWrite,
 				),
 			),
-			request: testutils.BuildRequest(
+			request: tut.Request(
 				testutils.WithFormAccessToken(
 					priv,
 					jwt.WithScopeStrings(jwt.TokenAttachmentsWrite),
 				),
 			),
 			endHandler: testutils.OkHandler,
-			checks: checks(
-				hasStatusCode(http.StatusOK),
+			checks: tut.CheckResponse(
+				tut.RespHasStatusCode(http.StatusOK),
 			),
 		},
 		{
@@ -588,16 +599,16 @@ func TestWithAllScopes(t *testing.T) {
 					jwt.TokenAttachmentsWrite,
 				),
 			),
-			request: testutils.BuildRequest(
-				testutils.WithMethod(http.MethodGet),
+			request: tut.Request(
+				tut.ReqWithMethod(http.MethodGet),
 				testutils.WithCookieAccessToken(
 					priv,
 					jwt.WithScopeStrings(jwt.TokenAttachmentsWrite),
 				),
 			),
 			endHandler: testutils.OkHandler,
-			checks: checks(
-				hasStatusCode(http.StatusOK),
+			checks: tut.CheckResponse(
+				tut.RespHasStatusCode(http.StatusOK),
 			),
 		},
 	} {
@@ -608,11 +619,9 @@ func TestWithAllScopes(t *testing.T) {
 
 			handler.ServeHTTP(res, tc.request)
 
-			for _, check := range tc.checks {
-				if err := check(res); err != nil {
-					t.Error(err)
-					return
-				}
+			if err := tc.checks(res.Result()); err != nil {
+				t.Error(err)
+				return
 			}
 		})
 	}
@@ -628,6 +637,7 @@ func TestWithAnyScopes(t *testing.T) {
 	l := testutils.Logger{}
 	auth := jwt.NewAuthenticator(&pkp, &l)
 	authAcceptingCookie := jwt.NewAuthenticatorWithOptions(&pkp, &l, jwt.AcceptAccessCookie)
+	userID := uuid.Must(uuid.NewV4())
 
 	for _, tc := range [...]testData{
 		{
@@ -637,15 +647,16 @@ func TestWithAnyScopes(t *testing.T) {
 					jwt.TokenAttachmentsWrite,
 				),
 			),
-			request: testutils.BuildRequest(
-				testutils.WithAuthHeader(
+			request: tut.Request(
+				tut.ReqWithAuthHeader(
+					userID,
 					priv,
 					jwt.WithScopeStrings(jwt.TokenAttachmentsWrite),
 				),
 			),
 			endHandler: testutils.OkHandler,
-			checks: checks(
-				hasStatusCode(http.StatusOK),
+			checks: tut.CheckResponse(
+				tut.RespHasStatusCode(http.StatusOK),
 			),
 		},
 		{
@@ -655,15 +666,16 @@ func TestWithAnyScopes(t *testing.T) {
 					jwt.TokenAttachmentsWrite, jwt.TokenAppKeysRead,
 				),
 			),
-			request: testutils.BuildRequest(
-				testutils.WithAuthHeader(
+			request: tut.Request(
+				tut.ReqWithAuthHeader(
+					userID,
 					priv,
 					jwt.WithScopeStrings(jwt.TokenAttachmentsWrite, jwt.TokenAppKeysRead),
 				),
 			),
 			endHandler: testutils.OkHandler,
-			checks: checks(
-				hasStatusCode(http.StatusOK),
+			checks: tut.CheckResponse(
+				tut.RespHasStatusCode(http.StatusOK),
 			),
 		},
 		{
@@ -673,8 +685,9 @@ func TestWithAnyScopes(t *testing.T) {
 					jwt.TokenAttachmentsWrite, jwt.TokenAppKeysRead,
 				),
 			),
-			request: testutils.BuildRequest(
-				testutils.WithAuthHeader(
+			request: tut.Request(
+				tut.ReqWithAuthHeader(
+					userID,
 					priv,
 					jwt.WithScopeStrings(
 						jwt.TokenAppKeysRead,
@@ -683,8 +696,8 @@ func TestWithAnyScopes(t *testing.T) {
 				),
 			),
 			endHandler: testutils.OkHandler,
-			checks: checks(
-				hasStatusCode(http.StatusOK),
+			checks: tut.CheckResponse(
+				tut.RespHasStatusCode(http.StatusOK),
 			),
 		},
 		{
@@ -694,8 +707,9 @@ func TestWithAnyScopes(t *testing.T) {
 					jwt.TokenAttachmentsWrite, jwt.TokenAppKeysRead,
 				),
 			),
-			request: testutils.BuildRequest(
-				testutils.WithAuthHeader(
+			request: tut.Request(
+				tut.ReqWithAuthHeader(
+					userID,
 					priv,
 					jwt.WithScopeStrings(
 						jwt.TokenAppKeysRead,
@@ -705,8 +719,8 @@ func TestWithAnyScopes(t *testing.T) {
 				),
 			),
 			endHandler: testutils.OkHandler,
-			checks: checks(
-				hasStatusCode(http.StatusOK),
+			checks: tut.CheckResponse(
+				tut.RespHasStatusCode(http.StatusOK),
 			),
 		},
 		{
@@ -717,15 +731,16 @@ func TestWithAnyScopes(t *testing.T) {
 					jwt.TokenAttachmentsRead,
 				),
 			),
-			request: testutils.BuildRequest(
-				testutils.WithAuthHeader(
+			request: tut.Request(
+				tut.ReqWithAuthHeader(
+					userID,
 					priv,
 					jwt.WithScopeStrings(jwt.TokenAttachmentsRead),
 				),
 			),
 			endHandler: testutils.OkHandler,
-			checks: checks(
-				hasStatusCode(http.StatusOK),
+			checks: tut.CheckResponse(
+				tut.RespHasStatusCode(http.StatusOK),
 			),
 		},
 		{
@@ -735,8 +750,9 @@ func TestWithAnyScopes(t *testing.T) {
 					jwt.TokenAttachmentsWrite, jwt.TokenAppKeysRead,
 				),
 			),
-			request: testutils.BuildRequest(
-				testutils.WithAuthHeader(
+			request: tut.Request(
+				tut.ReqWithAuthHeader(
+					userID,
 					priv,
 					jwt.WithScopeStrings(
 						"unknown",
@@ -745,8 +761,8 @@ func TestWithAnyScopes(t *testing.T) {
 				),
 			),
 			endHandler: testutils.OkHandler,
-			checks: checks(
-				hasStatusCode(http.StatusOK),
+			checks: tut.CheckResponse(
+				tut.RespHasStatusCode(http.StatusOK),
 			),
 		},
 		{
@@ -757,15 +773,16 @@ func TestWithAnyScopes(t *testing.T) {
 					jwt.TokenAttachmentsRead,
 				),
 			),
-			request: testutils.BuildRequest(
-				testutils.WithAuthHeader(
+			request: tut.Request(
+				tut.ReqWithAuthHeader(
+					userID,
 					priv,
 					jwt.WithScopeStrings(jwt.TokenRecordsWrite),
 				),
 			),
 			endHandler: testutils.OkHandler,
-			checks: checks(
-				hasStatusCode(http.StatusUnauthorized),
+			checks: tut.CheckResponse(
+				tut.RespHasStatusCode(http.StatusUnauthorized),
 			),
 		},
 		{
@@ -776,14 +793,15 @@ func TestWithAnyScopes(t *testing.T) {
 					jwt.TokenAttachmentsRead,
 				),
 			),
-			request: testutils.BuildRequest(
-				testutils.WithAuthHeader(
+			request: tut.Request(
+				tut.ReqWithAuthHeader(
+					userID,
 					priv,
 				),
 			),
 			endHandler: testutils.OkHandler,
-			checks: checks(
-				hasStatusCode(http.StatusUnauthorized),
+			checks: tut.CheckResponse(
+				tut.RespHasStatusCode(http.StatusUnauthorized),
 			),
 		},
 		{
@@ -793,15 +811,15 @@ func TestWithAnyScopes(t *testing.T) {
 					jwt.TokenAttachmentsWrite,
 				),
 			),
-			request: testutils.BuildRequest(
+			request: tut.Request(
 				testutils.WithFormAccessToken(
 					priv,
 					jwt.WithScopeStrings(jwt.TokenAttachmentsWrite),
 				),
 			),
 			endHandler: testutils.OkHandler,
-			checks: checks(
-				hasStatusCode(http.StatusOK),
+			checks: tut.CheckResponse(
+				tut.RespHasStatusCode(http.StatusOK),
 			),
 		},
 		{
@@ -811,16 +829,16 @@ func TestWithAnyScopes(t *testing.T) {
 					jwt.TokenAttachmentsWrite,
 				),
 			),
-			request: testutils.BuildRequest(
-				testutils.WithMethod(http.MethodGet),
+			request: tut.Request(
+				tut.ReqWithMethod(http.MethodGet),
 				testutils.WithCookieAccessToken(
 					priv,
 					jwt.WithScopeStrings(jwt.TokenAttachmentsWrite),
 				),
 			),
 			endHandler: testutils.OkHandler,
-			checks: checks(
-				hasStatusCode(http.StatusOK),
+			checks: tut.CheckResponse(
+				tut.RespHasStatusCode(http.StatusOK),
 			),
 		},
 	} {
@@ -831,11 +849,9 @@ func TestWithAnyScopes(t *testing.T) {
 
 			handler.ServeHTTP(res, tc.request)
 
-			for _, check := range tc.checks {
-				if err := check(res); err != nil {
-					t.Error(err)
-					return
-				}
+			if err := tc.checks(res.Result()); err != nil {
+				t.Error(err)
+				return
 			}
 		})
 	}

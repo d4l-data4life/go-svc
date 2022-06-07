@@ -1,4 +1,4 @@
-package testutils
+package tut
 
 import (
 	"fmt"
@@ -8,9 +8,7 @@ import (
 	"github.com/justinas/nosurf"
 )
 
-// CSRFValues returns a cookie that is used as a store for the service to evaluate that the
-// CSRF header given by the client is valid. The string returned is the CSRF header value to
-// be set alongside the cookie during requests to protected endpoints.
+// CSRFValues returns a valid CSRF cookie-token pair
 func CSRFValues() (*http.Cookie, string) {
 	handler := nosurf.New(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add(nosurf.HeaderName, nosurf.Token(r))

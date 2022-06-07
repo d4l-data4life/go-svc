@@ -16,9 +16,10 @@ import (
 	"github.com/gesundheitscloud/go-svc/pkg/dynamic"
 	"github.com/gesundheitscloud/go-svc/pkg/jwt"
 	"github.com/gesundheitscloud/go-svc/pkg/jwt/testutils"
-	"github.com/justinas/nosurf"
+	"github.com/gesundheitscloud/go-svc/pkg/tut"
 
 	"github.com/gofrs/uuid"
+	"github.com/justinas/nosurf"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -34,229 +35,228 @@ func TestVerify(t *testing.T) {
 	authAcceptingCookie := jwt.NewAuthenticatorWithOptions(&pkp, &l, jwt.AcceptAccessCookie)
 	ownerUUID := uuid.Must(uuid.NewV4())
 
-	csrfCookie, csrfToken := testutils.CSRFValues()
+	csrfCookie, csrfToken := tut.CSRFValues()
 
 	for _, tc := range [...]struct {
 		name       string
 		middleware func(http.Handler) http.Handler
 		request    *http.Request
-		checks     []checkFunc
-		reqChecks  checkReqFunc
+		checks     tut.ResponseCheckFunc
+		reqChecks  tut.RequestCheckFunc
 	}{
 		{
 			name:       "should fail on broken Authorization header",
 			middleware: auth.Verify(),
-			request: testutils.BuildRequest(
+			request: tut.Request(
 				func(r *http.Request) {
 					r.Header.Add("Authorization", "wrong")
 				},
 			),
-			checks: checks(
-				hasStatusCode(http.StatusUnauthorized),
+			checks: tut.CheckResponse(
+				tut.RespHasStatusCode(http.StatusUnauthorized),
 			),
 		},
 		{
 			name:       "should fail to interpret a broken bearer token",
 			middleware: auth.Verify(),
-			request: testutils.BuildRequest(
+			request: tut.Request(
 				func(r *http.Request) {
 					r.Header.Add("Authorization", "Bearer wrong")
 				},
 			),
-			checks: checks(
-				hasStatusCode(http.StatusUnauthorized),
+			checks: tut.CheckResponse(
+				tut.RespHasStatusCode(http.StatusUnauthorized),
 			),
 		},
 		{
 			name:       "should fail missing Authorization header",
 			middleware: auth.Verify(),
-			request:    testutils.BuildRequest(),
-			checks: checks(
-				hasStatusCode(http.StatusUnauthorized),
+			request:    tut.Request(),
+			checks: tut.CheckResponse(
+				tut.RespHasStatusCode(http.StatusUnauthorized),
 			),
 		},
 
 		{
 			name:       "end handler should receive a request with JWT claims in the context",
 			middleware: auth.Verify(),
-			request: testutils.BuildRequest(
-				testutils.WithAuthHeader(
+			request: tut.Request(
+				tut.ReqWithAuthHeader(
+					ownerUUID,
 					priv,
-					jwt.WithUserID(ownerUUID),
 					jwt.WithScopeStrings(jwt.TokenAttachmentsWrite),
 				),
 			),
-			reqChecks: checkReqAll(
-				hasInContextExtract(func(ctx context.Context) (interface{}, error) {
+			reqChecks: tut.CheckRequest(
+				tut.ReqHasInContextExtract(func(ctx context.Context) (interface{}, error) {
 					return jwt.GetSubjectID(ctx)
 				}, ownerUUID),
-				hasInContextExtract(func(ctx context.Context) (interface{}, error) {
+				tut.ReqHasInContextExtract(func(ctx context.Context) (interface{}, error) {
 					return jwt.GetTagsInScope(ctx)
 				}, []jwt.Tag{jwt.TokenAttachmentsWrite}),
 			),
-			checks: checks(
-				hasStatusCode(http.StatusOK),
+			checks: tut.CheckResponse(
+				tut.RespHasStatusCode(http.StatusOK),
 			),
 		},
 		{
 			name:       "should fail on broken form access token",
 			middleware: auth.Verify(),
-			request: testutils.BuildRequest(
+			request: tut.Request(
 				func(r *http.Request) {
 					r.Form = url.Values{}
 					r.Form.Add("access_token", "wrong")
 					r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 				},
 			),
-			checks: checks(
-				hasStatusCode(http.StatusUnauthorized),
+			checks: tut.CheckResponse(
+				tut.RespHasStatusCode(http.StatusUnauthorized),
 			),
 		},
 		{
 			name:       "should work with a valid jwt in authorization header",
 			middleware: auth.Verify(),
-			request: testutils.BuildRequest(
-				testutils.WithAuthHeader(
+			request: tut.Request(
+				tut.ReqWithAuthHeader(
+					ownerUUID,
 					priv,
 				),
 			),
-			checks: checks(
-				hasStatusCode(http.StatusOK),
+			checks: tut.CheckResponse(
+				tut.RespHasStatusCode(http.StatusOK),
 			),
 		},
 		{
 			name:       "should work with a valid jwt in form body",
 			middleware: auth.Verify(),
-			request: testutils.BuildRequest(
+			request: tut.Request(
 				testutils.WithFormAccessToken(
 					priv,
 				),
 			),
-			checks: checks(
-				hasStatusCode(http.StatusOK),
+			checks: tut.CheckResponse(
+				tut.RespHasStatusCode(http.StatusOK),
 			),
 		},
 		{
 			name:       "should work with a valid jwt in cookie and CSRF safe method",
 			middleware: authAcceptingCookie.Verify(),
-			request: testutils.BuildRequest(
-				testutils.WithMethod(http.MethodGet),
+			request: tut.Request(
+				tut.ReqWithMethod(http.MethodGet),
 				testutils.WithCookieAccessToken(
 					priv,
 				),
 			),
-			checks: checks(
-				hasStatusCode(http.StatusOK),
+			checks: tut.CheckResponse(
+				tut.RespHasStatusCode(http.StatusOK),
 			),
 		},
 		{
 			name:       "should work with a valid jwt in cookie with CSRF protection",
 			middleware: authAcceptingCookie.Verify(),
-			request: testutils.BuildRequest(
-				testutils.WithMethod(http.MethodPost),
+			request: tut.Request(
+				tut.ReqWithMethod(http.MethodPost),
 				testutils.WithCookieAccessToken(
 					priv,
 				),
-				testutils.WithCookie(csrfCookie),
-				testutils.WithHeader(map[string]string{nosurf.HeaderName: csrfToken}),
+				tut.ReqWithCookies(csrfCookie),
+				tut.ReqWithHeader(nosurf.HeaderName, csrfToken),
 			),
-			checks: checks(
-				hasStatusCode(http.StatusOK),
+			checks: tut.CheckResponse(
+				tut.RespHasStatusCode(http.StatusOK),
 			),
 		},
 		{
 			name:       "should fail with a valid jwt but option disabled - POST and CSRF protection",
 			middleware: auth.Verify(),
-			request: testutils.BuildRequest(
-				testutils.WithMethod(http.MethodPost),
+			request: tut.Request(
+				tut.ReqWithMethod(http.MethodPost),
 				testutils.WithCookieAccessToken(
 					priv,
 				),
-				testutils.WithCookie(csrfCookie),
-				testutils.WithHeader(map[string]string{nosurf.HeaderName: csrfToken}),
+				tut.ReqWithCookies(csrfCookie),
+				tut.ReqWithHeader(nosurf.HeaderName, csrfToken),
 			),
-			checks: checks(
-				hasStatusCode(http.StatusUnauthorized),
+			checks: tut.CheckResponse(
+				tut.RespHasStatusCode(http.StatusUnauthorized),
 			),
 		},
 		{
 			name:       "should fail with a valid jwt but option disabled - GET",
 			middleware: auth.Verify(),
-			request: testutils.BuildRequest(
+			request: tut.Request(
 				testutils.WithCookieAccessToken(
 					priv,
 				),
 			),
-			checks: checks(
-				hasStatusCode(http.StatusUnauthorized),
+			checks: tut.CheckResponse(
+				tut.RespHasStatusCode(http.StatusUnauthorized),
 			),
 		},
 		{
 			name:       "should fail with a valid jwt in cookie but missing CSRF cookie",
 			middleware: authAcceptingCookie.Verify(),
-			request: testutils.BuildRequest(
-				testutils.WithMethod(http.MethodPost),
+			request: tut.Request(
+				tut.ReqWithMethod(http.MethodPost),
 				testutils.WithCookieAccessToken(
 					priv,
 				),
-				testutils.WithHeader(map[string]string{nosurf.HeaderName: csrfToken}),
+				tut.ReqWithHeader(nosurf.HeaderName, csrfToken),
 			),
-			checks: checks(
-				hasStatusCode(http.StatusUnauthorized),
+			checks: tut.CheckResponse(
+				tut.RespHasStatusCode(http.StatusUnauthorized),
 			),
 		},
 		{
 			name:       "should fail with a valid jwt in cookie but missing CSRF header",
 			middleware: authAcceptingCookie.Verify(),
-			request: testutils.BuildRequest(
-				testutils.WithMethod(http.MethodPost),
+			request: tut.Request(
+				tut.ReqWithMethod(http.MethodPost),
 				testutils.WithCookieAccessToken(
 					priv,
 				),
-				testutils.WithCookie(csrfCookie),
+				tut.ReqWithCookies(csrfCookie),
 			),
-			checks: checks(
-				hasStatusCode(http.StatusUnauthorized),
+			checks: tut.CheckResponse(
+				tut.RespHasStatusCode(http.StatusUnauthorized),
 			),
 		},
 		{
 			name:       "should work if at least one valid token is found - valid token in header",
 			middleware: authAcceptingCookie.Verify(),
-			request: testutils.BuildRequest(
-				testutils.WithMethod(http.MethodGet),
-				testutils.WithAuthHeader(
+			request: tut.Request(
+				tut.ReqWithMethod(http.MethodGet),
+				tut.ReqWithAuthHeader(
+					ownerUUID,
 					priv,
-					jwt.WithUserID(ownerUUID),
 					jwt.WithScopeStrings(jwt.TokenAttachmentsWrite),
 				),
-				testutils.WithForm(
-					testutils.WithValue(jwt.AccessTokenArgumentName, "wrong"),
-				),
-				testutils.WithCookie(&http.Cookie{
+				tut.ReqWithFormValue(jwt.AccessTokenArgumentName, "wrong"),
+				tut.ReqWithCookies(&http.Cookie{
 					Name:  jwt.AccessCookieName,
 					Value: "wrong",
 				}),
 			),
-			checks: checks(
-				hasStatusCode(http.StatusOK),
+			checks: tut.CheckResponse(
+				tut.RespHasStatusCode(http.StatusOK),
 			),
 		},
 		{
 			name:       "should work if at least one valid token is found - valid token in form argument",
 			middleware: authAcceptingCookie.Verify(),
-			request: testutils.BuildRequest(
-				testutils.WithMethod(http.MethodGet),
+			request: tut.Request(
+				tut.ReqWithMethod(http.MethodGet),
 				// no invalid token in header can be included - that would shadow the token in the form
 				testutils.WithFormAccessToken(
 					priv,
 				),
-				testutils.WithCookie(&http.Cookie{
+				tut.ReqWithCookies(&http.Cookie{
 					Name:  jwt.AccessCookieName,
 					Value: "wrong",
 				}),
 			),
-			checks: checks(
-				hasStatusCode(http.StatusOK),
+			checks: tut.CheckResponse(
+				tut.RespHasStatusCode(http.StatusOK),
 			),
 		},
 	} {
@@ -268,11 +268,9 @@ func TestVerify(t *testing.T) {
 
 			handler.ServeHTTP(res, tc.request)
 
-			for _, check := range tc.checks {
-				if err := check(res); err != nil {
-					t.Error(err)
-					return
-				}
+			if err := tc.checks(res.Result()); err != nil {
+				t.Error(err)
+				return
 			}
 		})
 	}
@@ -327,65 +325,71 @@ JWTPublicKey:
 
 	auth := jwt.NewAuthenticator(kp, &testutils.Logger{})
 
-	for _, tc := range [...]testData{
+	for _, tc := range []struct {
+		name       string
+		request    *http.Request
+		middleware func(http.Handler) http.Handler
+		checks     tut.ResponseCheckFunc
+		endHandler func(http.ResponseWriter, *http.Request)
+	}{
 		{
 			name:       "should succeed with key1",
 			middleware: auth.Verify(),
-			request: testutils.BuildRequest(
-				testutils.WithAuthHeader(
+			request: tut.Request(
+				tut.ReqWithAuthHeader(
+					ownerUUID,
 					priv1,
-					jwt.WithUserID(ownerUUID),
 					jwt.WithScopeStrings(jwt.TokenAttachmentsWrite),
 				),
 			),
 			endHandler: testutils.OkHandler,
-			checks: checks(
-				hasStatusCode(http.StatusOK),
+			checks: tut.CheckResponse(
+				tut.RespHasStatusCode(http.StatusOK),
 			),
 		},
 		{
 			name:       "should succeed with key2",
 			middleware: auth.Verify(),
-			request: testutils.BuildRequest(
-				testutils.WithAuthHeader(
+			request: tut.Request(
+				tut.ReqWithAuthHeader(
+					ownerUUID,
 					priv2,
-					jwt.WithUserID(ownerUUID),
 					jwt.WithScopeStrings(jwt.TokenAttachmentsWrite),
 				),
 			),
 			endHandler: testutils.OkHandler,
-			checks: checks(
-				hasStatusCode(http.StatusOK),
+			checks: tut.CheckResponse(
+				tut.RespHasStatusCode(http.StatusOK),
 			),
 		},
 		{
 			name:       "should ignore metadata and work with key3", // TODO-PR: Change this case when handling of metadata will be implemented
 			middleware: auth.Verify(),
-			request: testutils.BuildRequest(
-				testutils.WithAuthHeader(
+			request: tut.Request(
+				tut.ReqWithAuthHeader(
+					ownerUUID,
 					priv3,
-					jwt.WithUserID(ownerUUID),
 					jwt.WithScopeStrings(jwt.TokenAttachmentsWrite),
 				),
 			),
 			endHandler: testutils.OkHandler,
-			checks: checks(
-				hasStatusCode(http.StatusOK),
+			checks: tut.CheckResponse(
+				tut.RespHasStatusCode(http.StatusOK),
 			),
 		},
 		{
 			name:       "should fail with all 3 keys not matching the private key",
 			middleware: auth.Verify(),
-			request: testutils.BuildRequest(
-				testutils.WithAuthHeader(
+			request: tut.Request(
+				tut.ReqWithAuthHeader(
+					ownerUUID,
 					priv4,
-					jwt.WithUserID(ownerUUID),
 					jwt.WithScopeStrings(jwt.TokenAttachmentsWrite),
 				),
 			),
 			endHandler: testutils.OkHandler,
-			checks: checks(
-				hasStatusCode(http.StatusUnauthorized),
+			checks: tut.CheckResponse(
+				tut.RespHasStatusCode(http.StatusUnauthorized),
 			),
 		},
 	} {
@@ -396,11 +400,9 @@ JWTPublicKey:
 
 			handler.ServeHTTP(res, tc.request)
 
-			for _, check := range tc.checks {
-				if err := check(res); err != nil {
-					t.Error(err)
-					return
-				}
+			if err := tc.checks(res.Result()); err != nil {
+				t.Error(err)
+				return
 			}
 		})
 	}
@@ -421,47 +423,47 @@ func TestExtract(t *testing.T) {
 	clientID := uuid.Must(uuid.NewV4())
 	tenantID := "some-tenant"
 
-	csrfCookie, csrfToken := testutils.CSRFValues()
+	csrfCookie, csrfToken := tut.CSRFValues()
 
 	for _, tc := range [...]struct {
 		name           string
 		middleware     func(http.Handler) http.Handler
 		request        *http.Request
-		reqChecks      checkReqFunc
-		responseChecks checkFunc
+		reqChecks      tut.RequestCheckFunc
+		responseChecks tut.ResponseCheckFunc
 	}{
 		{
 			name:       "should succeed with request with valid JWT in header",
 			middleware: auth.Extract,
-			request: testutils.BuildRequest(
-				testutils.WithAuthHeader(
+			request: tut.Request(
+				tut.ReqWithAuthHeader(
+					userID,
 					priv,
-					jwt.WithUserID(userID),
 					jwt.WithScopeStrings(jwt.TokenAttachmentsWrite),
 					jwt.WithClientID(clientID.String()),
 					jwt.WithTenantID(tenantID),
 				),
 			),
-			reqChecks: checkReqAll(
-				hasInContext(d4lcontext.ClientIDContextKey, clientID.String()),
-				hasInContext(d4lcontext.UserIDContextKey, userID),
-				hasInContext(d4lcontext.TenantIDContextKey, tenantID),
-				hasInContextExtract(func(ctx context.Context) (interface{}, error) {
+			reqChecks: tut.CheckRequest(
+				tut.ReqHasInContext(d4lcontext.ClientIDContextKey, clientID.String()),
+				tut.ReqHasInContext(d4lcontext.UserIDContextKey, userID),
+				tut.ReqHasInContext(d4lcontext.TenantIDContextKey, tenantID),
+				tut.ReqHasInContextExtract(func(ctx context.Context) (interface{}, error) {
 					return jwt.GetSubjectID(ctx)
 				}, userID),
-				hasInContextExtract(func(ctx context.Context) (interface{}, error) {
+				tut.ReqHasInContextExtract(func(ctx context.Context) (interface{}, error) {
 					return jwt.GetTenantID(ctx)
 				}, tenantID),
-				hasInContextExtract(func(ctx context.Context) (interface{}, error) {
+				tut.ReqHasInContextExtract(func(ctx context.Context) (interface{}, error) {
 					return jwt.GetClientID(ctx)
 				}, clientID.String()),
 			),
-			responseChecks: hasStatusCode(http.StatusOK),
+			responseChecks: tut.RespHasStatusCode(http.StatusOK),
 		},
 		{
 			name:       "should succeed with request with valid JWT in form parameter",
 			middleware: auth.Extract,
-			request: testutils.BuildRequest(
+			request: tut.Request(
 				testutils.WithFormAccessToken(
 					priv,
 					jwt.WithUserID(userID),
@@ -470,27 +472,27 @@ func TestExtract(t *testing.T) {
 					jwt.WithTenantID(tenantID),
 				),
 			),
-			reqChecks: checkReqAll(
-				hasInContext(d4lcontext.ClientIDContextKey, clientID.String()),
-				hasInContext(d4lcontext.UserIDContextKey, userID),
-				hasInContext(d4lcontext.TenantIDContextKey, tenantID),
-				hasInContextExtract(func(ctx context.Context) (interface{}, error) {
+			reqChecks: tut.CheckRequest(
+				tut.ReqHasInContext(d4lcontext.ClientIDContextKey, clientID.String()),
+				tut.ReqHasInContext(d4lcontext.UserIDContextKey, userID),
+				tut.ReqHasInContext(d4lcontext.TenantIDContextKey, tenantID),
+				tut.ReqHasInContextExtract(func(ctx context.Context) (interface{}, error) {
 					return jwt.GetSubjectID(ctx)
 				}, userID),
-				hasInContextExtract(func(ctx context.Context) (interface{}, error) {
+				tut.ReqHasInContextExtract(func(ctx context.Context) (interface{}, error) {
 					return jwt.GetTenantID(ctx)
 				}, tenantID),
-				hasInContextExtract(func(ctx context.Context) (interface{}, error) {
+				tut.ReqHasInContextExtract(func(ctx context.Context) (interface{}, error) {
 					return jwt.GetClientID(ctx)
 				}, clientID.String()),
 			),
-			responseChecks: hasStatusCode(http.StatusOK),
+			responseChecks: tut.RespHasStatusCode(http.StatusOK),
 		},
 		{
 			name:       "should succeed with request with valid JWT in access cookie and valid CSRF",
 			middleware: authAcceptingCookie.Extract,
-			request: testutils.BuildRequest(
-				testutils.WithMethod(http.MethodPost),
+			request: tut.Request(
+				tut.ReqWithMethod(http.MethodPost),
 				testutils.WithCookieAccessToken(
 					priv,
 					jwt.WithUserID(userID),
@@ -498,30 +500,30 @@ func TestExtract(t *testing.T) {
 					jwt.WithClientID(clientID.String()),
 					jwt.WithTenantID(tenantID),
 				),
-				testutils.WithCookie(csrfCookie),
-				testutils.WithHeader(map[string]string{nosurf.HeaderName: csrfToken}),
+				tut.ReqWithCookies(csrfCookie),
+				tut.ReqWithHeader(nosurf.HeaderName, csrfToken),
 			),
-			reqChecks: checkReqAll(
-				hasInContext(d4lcontext.ClientIDContextKey, clientID.String()),
-				hasInContext(d4lcontext.UserIDContextKey, userID),
-				hasInContext(d4lcontext.TenantIDContextKey, tenantID),
-				hasInContextExtract(func(ctx context.Context) (interface{}, error) {
+			reqChecks: tut.CheckRequest(
+				tut.ReqHasInContext(d4lcontext.ClientIDContextKey, clientID.String()),
+				tut.ReqHasInContext(d4lcontext.UserIDContextKey, userID),
+				tut.ReqHasInContext(d4lcontext.TenantIDContextKey, tenantID),
+				tut.ReqHasInContextExtract(func(ctx context.Context) (interface{}, error) {
 					return jwt.GetSubjectID(ctx)
 				}, userID),
-				hasInContextExtract(func(ctx context.Context) (interface{}, error) {
+				tut.ReqHasInContextExtract(func(ctx context.Context) (interface{}, error) {
 					return jwt.GetTenantID(ctx)
 				}, tenantID),
-				hasInContextExtract(func(ctx context.Context) (interface{}, error) {
+				tut.ReqHasInContextExtract(func(ctx context.Context) (interface{}, error) {
 					return jwt.GetClientID(ctx)
 				}, clientID.String()),
 			),
-			responseChecks: hasStatusCode(http.StatusOK),
+			responseChecks: tut.RespHasStatusCode(http.StatusOK),
 		},
 		{
 			name:       "should not extract a valid access cookie if cookie option is not enabled",
 			middleware: auth.Extract,
-			request: testutils.BuildRequest(
-				testutils.WithMethod(http.MethodPost),
+			request: tut.Request(
+				tut.ReqWithMethod(http.MethodPost),
 				testutils.WithCookieAccessToken(
 					priv,
 					jwt.WithUserID(userID),
@@ -529,21 +531,21 @@ func TestExtract(t *testing.T) {
 					jwt.WithClientID(clientID.String()),
 					jwt.WithTenantID(tenantID),
 				),
-				testutils.WithCookie(csrfCookie),
-				testutils.WithHeader(map[string]string{nosurf.HeaderName: csrfToken}),
+				tut.ReqWithCookies(csrfCookie),
+				tut.ReqWithHeader(nosurf.HeaderName, csrfToken),
 			),
-			reqChecks: checkReqAll(
-				hasInContext(d4lcontext.ClientIDContextKey, nil),
-				hasInContext(d4lcontext.UserIDContextKey, nil),
-				hasInContext(d4lcontext.TenantIDContextKey, nil),
+			reqChecks: tut.CheckRequest(
+				tut.ReqHasInContext(d4lcontext.ClientIDContextKey, nil),
+				tut.ReqHasInContext(d4lcontext.UserIDContextKey, nil),
+				tut.ReqHasInContext(d4lcontext.TenantIDContextKey, nil),
 			),
-			responseChecks: hasStatusCode(http.StatusOK),
+			responseChecks: tut.RespHasStatusCode(http.StatusOK),
 		},
 		{
 			name:       "should succeed with request with valid JWT in access cookie and CSRF-safe method",
 			middleware: authAcceptingCookie.Extract,
-			request: testutils.BuildRequest(
-				testutils.WithMethod(http.MethodGet),
+			request: tut.Request(
+				tut.ReqWithMethod(http.MethodGet),
 				testutils.WithCookieAccessToken(
 					priv,
 					jwt.WithUserID(userID),
@@ -552,27 +554,27 @@ func TestExtract(t *testing.T) {
 					jwt.WithTenantID(tenantID),
 				),
 			),
-			reqChecks: checkReqAll(
-				hasInContext(d4lcontext.ClientIDContextKey, clientID.String()),
-				hasInContext(d4lcontext.UserIDContextKey, userID),
-				hasInContext(d4lcontext.TenantIDContextKey, tenantID),
-				hasInContextExtract(func(ctx context.Context) (interface{}, error) {
+			reqChecks: tut.CheckRequest(
+				tut.ReqHasInContext(d4lcontext.ClientIDContextKey, clientID.String()),
+				tut.ReqHasInContext(d4lcontext.UserIDContextKey, userID),
+				tut.ReqHasInContext(d4lcontext.TenantIDContextKey, tenantID),
+				tut.ReqHasInContextExtract(func(ctx context.Context) (interface{}, error) {
 					return jwt.GetSubjectID(ctx)
 				}, userID),
-				hasInContextExtract(func(ctx context.Context) (interface{}, error) {
+				tut.ReqHasInContextExtract(func(ctx context.Context) (interface{}, error) {
 					return jwt.GetTenantID(ctx)
 				}, tenantID),
-				hasInContextExtract(func(ctx context.Context) (interface{}, error) {
+				tut.ReqHasInContextExtract(func(ctx context.Context) (interface{}, error) {
 					return jwt.GetClientID(ctx)
 				}, clientID.String()),
 			),
-			responseChecks: hasStatusCode(http.StatusOK),
+			responseChecks: tut.RespHasStatusCode(http.StatusOK),
 		},
 		{
 			name:       "should not extract a valid access cookie with missing CSRF cookie",
 			middleware: authAcceptingCookie.Extract,
-			request: testutils.BuildRequest(
-				testutils.WithMethod(http.MethodPost),
+			request: tut.Request(
+				tut.ReqWithMethod(http.MethodPost),
 				testutils.WithCookieAccessToken(
 					priv,
 					jwt.WithUserID(userID),
@@ -580,20 +582,20 @@ func TestExtract(t *testing.T) {
 					jwt.WithClientID(clientID.String()),
 					jwt.WithTenantID(tenantID),
 				),
-				testutils.WithHeader(map[string]string{nosurf.HeaderName: csrfToken}),
+				tut.ReqWithHeader(nosurf.HeaderName, csrfToken),
 			),
-			reqChecks: checkReqAll(
-				hasInContext(d4lcontext.ClientIDContextKey, nil),
-				hasInContext(d4lcontext.UserIDContextKey, nil),
-				hasInContext(d4lcontext.TenantIDContextKey, nil),
+			reqChecks: tut.CheckRequest(
+				tut.ReqHasInContext(d4lcontext.ClientIDContextKey, nil),
+				tut.ReqHasInContext(d4lcontext.UserIDContextKey, nil),
+				tut.ReqHasInContext(d4lcontext.TenantIDContextKey, nil),
 			),
-			responseChecks: hasStatusCode(http.StatusOK),
+			responseChecks: tut.RespHasStatusCode(http.StatusOK),
 		},
 		{
 			name:       "should not extract a valid access cookie with missing CSRF header",
 			middleware: authAcceptingCookie.Extract,
-			request: testutils.BuildRequest(
-				testutils.WithMethod(http.MethodPost),
+			request: tut.Request(
+				tut.ReqWithMethod(http.MethodPost),
 				testutils.WithCookieAccessToken(
 					priv,
 					jwt.WithUserID(userID),
@@ -601,48 +603,48 @@ func TestExtract(t *testing.T) {
 					jwt.WithClientID(clientID.String()),
 					jwt.WithTenantID(tenantID),
 				),
-				testutils.WithCookie(csrfCookie),
+				tut.ReqWithCookies(csrfCookie),
 			),
-			reqChecks: checkReqAll(
-				hasInContext(d4lcontext.ClientIDContextKey, nil),
-				hasInContext(d4lcontext.UserIDContextKey, nil),
-				hasInContext(d4lcontext.TenantIDContextKey, nil),
+			reqChecks: tut.CheckRequest(
+				tut.ReqHasInContext(d4lcontext.ClientIDContextKey, nil),
+				tut.ReqHasInContext(d4lcontext.UserIDContextKey, nil),
+				tut.ReqHasInContext(d4lcontext.TenantIDContextKey, nil),
 			),
-			responseChecks: hasStatusCode(http.StatusOK),
+			responseChecks: tut.RespHasStatusCode(http.StatusOK),
 		},
 		{
 			name:           "should not break the middleware chain with a request without a JWT",
 			middleware:     auth.Extract,
-			request:        testutils.BuildRequest(),
-			responseChecks: hasStatusCode(http.StatusOK),
+			request:        tut.Request(),
+			responseChecks: tut.RespHasStatusCode(http.StatusOK),
 		},
 		{
 			name:       "should not break the middleware chain with a request with an unknown scope",
 			middleware: auth.Extract,
-			request: testutils.BuildRequest(
-				testutils.WithAuthHeader(
+			request: tut.Request(
+				tut.ReqWithAuthHeader(
+					userID,
 					priv,
-					jwt.WithUserID(userID),
 					jwt.WithScopeStrings("unknown"),
 					jwt.WithClientID(clientID.String()),
 					jwt.WithTenantID(tenantID),
 				),
 			),
-			responseChecks: hasStatusCode(http.StatusOK),
+			responseChecks: tut.RespHasStatusCode(http.StatusOK),
 		},
 		{
 			name:       "should not break the middleware chain with a JWT with missing data",
 			middleware: auth.Extract,
-			request: testutils.BuildRequest(
-				testutils.WithAuthHeader(
+			request: tut.Request(
+				tut.ReqWithAuthHeader(
+					uuid.Nil,
 					priv,
-					jwt.WithUserID(uuid.Nil),
 					jwt.WithScopeStrings(""),
 					jwt.WithClientID(""),
 					jwt.WithTenantID(""),
 				),
 			),
-			responseChecks: hasStatusCode(http.StatusOK),
+			responseChecks: tut.RespHasStatusCode(http.StatusOK),
 		},
 	} {
 		tc := tc
@@ -667,7 +669,7 @@ func TestExtract(t *testing.T) {
 				}
 			}
 			if tc.responseChecks != nil {
-				if err := tc.responseChecks(respRecorder); err != nil {
+				if err := tc.responseChecks(respRecorder.Result()); err != nil {
 					t.Error(err)
 				}
 			}
