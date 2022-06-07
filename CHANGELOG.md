@@ -9,8 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- [tut pkg] `tut` (a.k.a `test utils`) package with reusable test tools
-
 ### Changed
 
 ### Deprecated
@@ -20,6 +18,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Security
+
+## [v1.57.0] - 2022-06-07
+
+### Added
+
+- [tut pkg] `tut` (a.k.a `test utils`) package with reusable test tools
 
 ## [v1.56.0] - 2022-05-24
 
@@ -746,7 +750,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial state: standards for Main, HTTP Server, DB access (gorm), Logging, Instrumented-Handler, and K8s Probe
 
-[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.56.0...HEAD
+[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.57.0...HEAD
+[v1.57.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.56.0...v1.57.0
 [v1.56.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.55.0...v1.56.0
 [v1.55.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.54.0...v1.55.0
 [v1.54.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.53.1...v1.54.0
