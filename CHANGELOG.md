@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Upgraded github.com/onsi/gomega to v1.19.0 to get rid of go mod tidy issues
+
 ### Deprecated
 
 ### Removed
@@ -18,6 +20,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Security
+
+- Uograded containerd too fix security issuue.
 
 ## [v1.58.0] - 2022-06-07
 
