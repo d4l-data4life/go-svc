@@ -7,7 +7,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"reflect"
-	"regexp"
 	"strings"
 )
 
@@ -60,12 +59,12 @@ func RespHasNoCookie(name string) ResponseCheckFunc {
 
 // RespHasSetCookie checks that the response contains the given cookie
 // It optionally allows to pass extra checks for the cookie.
-func RespHasSetCookie(wantName string, valueChecks ...ValueCheckFunc) ResponseCheckFunc {
+func RespHasSetCookie(wantName string, cookieChecks ...CookieCheckFunc) ResponseCheckFunc {
 	return func(res *http.Response) error {
 		for _, cookie := range res.Cookies() {
 			if cookie.Name == wantName {
-				for _, check := range valueChecks {
-					if err := check(cookie.Value); err != nil {
+				for _, check := range cookieChecks {
+					if err := check(cookie); err != nil {
 						return fmt.Errorf("checks for cookie '%s' failed: %v", wantName, err)
 					}
 				}
@@ -89,9 +88,9 @@ func RespHasStatusCode(want int) ResponseCheckFunc {
 	}
 }
 
-// RespBodyEqualsText checks if the response body equals the expected string.
+// RespHasTextBody checks if the response text body passes all passed value checks.
 // It ignores whitespaces from the response body.
-func RespBodyEqualsText(want string) ResponseCheckFunc {
+func RespHasTextBody(checks ...ValueCheckFunc) ResponseCheckFunc {
 	return func(res *http.Response) error {
 		responseData, err := ioutil.ReadAll(MultiReadResponseBody(res))
 		if err != nil {
@@ -100,26 +99,10 @@ func RespBodyEqualsText(want string) ResponseCheckFunc {
 
 		have := strings.TrimSpace(string(responseData))
 
-		if have != want {
-			return fmt.Errorf("expected text body '%v', got '%v'", want, have)
-		}
-
-		return nil
-	}
-}
-
-// RespBodyTextMatchesRegex checks if the response body contains the expected regex.
-// It ignores whitespaces from the response body.
-func RespBodyTextMatchesRegex(want *regexp.Regexp) ResponseCheckFunc {
-	return func(res *http.Response) error {
-		responseData, err := ioutil.ReadAll(MultiReadResponseBody(res))
-		if err != nil {
-			return fmt.Errorf("could not read body: %w", err)
-		}
-
-		have := strings.TrimSpace(string(responseData))
-		if !want.MatchString(have) {
-			return fmt.Errorf("expected text body '%v', got '%v'", want, have)
+		for _, check := range checks {
+			if err := check(have); err != nil {
+				return fmt.Errorf("checks for body '%s' failed: %v", have, err)
+			}
 		}
 
 		return nil

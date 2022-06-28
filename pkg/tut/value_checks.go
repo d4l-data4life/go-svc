@@ -39,6 +39,22 @@ func ValueEquals(wantValue interface{}) ValueCheckFunc {
 	}
 }
 
+// ValueNotContains checks if a string value does not contain an expected value
+func ValueNotContains(wantValue string) ValueCheckFunc {
+	return func(value interface{}) error {
+		strVal, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("expected string, got %v", value)
+		}
+
+		if strings.Contains(strVal, wantValue) {
+			return fmt.Errorf("expected %s to not contain %s", strVal, wantValue)
+		}
+
+		return nil
+	}
+}
+
 // ValuePassesCheck allows to checks that a value passes
 // some custom checks.
 func ValuePassesCheck(check func(interface{}) error) ValueCheckFunc {

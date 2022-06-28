@@ -46,6 +46,14 @@ func ReqWithContextValue(key, value interface{}) func(*http.Request) {
 	}
 }
 
+// ReqWithClaimsInContext returns a function that adds the given claims to the context
+// so that they can be found by the jwt context lib.
+func ReqWithClaimsInContext(claims *jwt.Claims) func(*http.Request) {
+	return func(req *http.Request) {
+		*req = *(req.WithContext(jwt.NewContext(req.Context(), claims)))
+	}
+}
+
 // ReqWithJSONBody returns a function that modifies the given request
 // by setting the marshaling the given interface{} to the request body.
 func ReqWithJSONBody(v interface{}) func(*http.Request) {
@@ -60,12 +68,31 @@ func ReqWithJSONBody(v interface{}) func(*http.Request) {
 	}
 }
 
+// ReqWithJSONBodyString returns a function that modifies the given request
+// by setting the given string to the request body.
+func ReqWithJSONBodyString(json string) func(*http.Request) {
+	return func(req *http.Request) {
+		req.Header.Set("Content-Type", "application/json; charset=utf-8")
+		req.Body = ioutil.NopCloser(strings.NewReader(json))
+	}
+}
+
 // ReqWithTextBody returns a function that modifies the given request
 // by setting request body to the given string.
 func ReqWithTextBody(body string) func(*http.Request) {
 	return func(req *http.Request) {
 		req.Header.Set("Content-Type", "text/plain")
 		req.Body = ioutil.NopCloser(strings.NewReader(body))
+	}
+}
+
+// ReqWithByteArrayBody returns a function that modifies the given request
+// by setting request body to the given byte array.
+// Sets content type to "application/octet-stream".
+func ReqWithByteArrayBody(body []byte) func(*http.Request) {
+	return func(req *http.Request) {
+		req.Header.Set("Content-Type", "application/octet-stream")
+		req.Body = ioutil.NopCloser(bytes.NewReader(body))
 	}
 }
 
