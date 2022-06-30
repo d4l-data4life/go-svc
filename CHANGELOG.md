@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## [v1.59.0] - 2022-06-30
+
+### Added
+
 - [tut pkg] Added some more test util functions
 - [tut pkg] `CookieCheckFunc` type for cookie checks
 
@@ -17,13 +31,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Upgraded github.com/onsi/gomega to v1.19.0 to get rid of go mod tidy issues
 - [tut pkg] `RespHasSetCookie` now takes `CookieCheckFunc` as checks
 
-### Deprecated
-
 ### Removed
 
 - [tut pkg] Removed `RespBodyEqualsText` and `RespBodyTextMatchesRegex`. `RespHasTextBody` should be used instead
-
-### Fixed
 
 ### Security
 
@@ -766,7 +776,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial state: standards for Main, HTTP Server, DB access (gorm), Logging, Instrumented-Handler, and K8s Probe
 
-[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.58.0...HEAD
+[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.59.0...HEAD
+[v1.59.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.58.0...v1.59.0
 [v1.58.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.57.0...v1.58.0
 [v1.57.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.56.0...v1.57.0
 [v1.56.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.55.0...v1.56.0
