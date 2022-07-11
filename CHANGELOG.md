@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- upgrade gopkg.in/yaml.v3 v3.0.1
+
 ### Security
 
 ## [v1.59.0] - 2022-06-30
