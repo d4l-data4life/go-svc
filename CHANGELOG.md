@@ -9,9 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- [errorV2 pkg] New package for ErrorV2 from openapi
-- [tut pkg] Some test utils functions for ErrorV2
-
 ### Changed
 
 ### Deprecated
@@ -20,9 +17,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- upgrade gopkg.in/yaml.v3 v3.0.1
-
 ### Security
+
+## [v1.60.0] - 2022-07-12
+
+### Added
+
+- [errorV2 pkg] New package for ErrorV2 from openapi
+- [tut pkg] Some test utils functions for ErrorV2
+
+### Fixed
+
+- upgrade gopkg.in/yaml.v3 v3.0.1
 
 ## [v1.59.0] - 2022-06-30
 
@@ -781,7 +787,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial state: standards for Main, HTTP Server, DB access (gorm), Logging, Instrumented-Handler, and K8s Probe
 
-[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.59.0...HEAD
+[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.60.0...HEAD
+[v1.60.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.59.0...v1.60.0
 [v1.59.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.58.0...v1.59.0
 [v1.58.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.57.0...v1.58.0
 [v1.57.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.56.0...v1.57.0
