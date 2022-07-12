@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- [errorV2 pkg] New package for ErrorV2 from openapi
+- [tut pkg] Some test utils functions for ErrorV2
+
 ### Changed
 
 ### Deprecated
