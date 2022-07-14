@@ -14,7 +14,7 @@ services:
       dockerfile: build/migrate.Dockerfile
       target: "${TARGET:-code}"
       args:
-        GO_VERSION: "${GO_VERSION:-1.17}"
+        GO_VERSION: "${GO_VERSION:-1.18}"
         APP_VERSION: "${APP_VERSION:-dirty}"
     environment:
       WAIT_HOSTS: postgres:5432

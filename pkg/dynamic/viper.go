@@ -6,6 +6,7 @@ import (
 	"io"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/gesundheitscloud/go-svc/pkg/log"
 	"github.com/golang-jwt/jwt/v4"
@@ -69,8 +70,8 @@ JWTPrivateKey: (5 - the name must match `mapstructure:"jwtprivatekey"`) (6 - rep
 type JWTPublicKey struct {
 	Name      string
 	Comment   string
-	NotBefore string
-	NotAfter  string
+	NotBefore time.Time
+	NotAfter  time.Time
 	Key       *rsa.PublicKey
 }
 
@@ -106,11 +107,11 @@ var _ JWTKeyProvider = (*ViperConfig)(nil)
 // JWTPublicKeyConfig models the structure of the Viper config fragment responsible for defining JWT public keys
 type JWTPublicKeyConfig struct {
 	Entries []struct {
-		Name      string `mapstructure:"name"`
-		Comment   string `mapstructure:"comment"`
-		Key       string `mapstructure:"key"`
-		NotBefore string `mapstructure:"not_before"`
-		NotAfter  string `mapstructure:"not_after"`
+		Name      string    `mapstructure:"name"`
+		Comment   string    `mapstructure:"comment"`
+		Key       string    `mapstructure:"key"`
+		NotBefore time.Time `mapstructure:"not_before"`
+		NotAfter  time.Time `mapstructure:"not_after"`
 	} `mapstructure:"jwtpublickey"`
 }
 

@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Update go 1.17 -> 1.18
+- Update all dependencies
+
 ### Deprecated
 
 ### Removed
