@@ -9,12 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- [client] FeatureFlagging Get with user authorization
-
 ### Changed
-
-- Update go 1.17 -> 1.18
-- Update all dependencies
 
 ### Deprecated
 
@@ -23,6 +18,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Security
+
+## [v1.61.0] - 2022-07-14
+
+### Added
+
+- [client] FeatureFlagging Get with user authorization
+
+### Changed
+
+- Update go 1.17 -> 1.18
+- Update all dependencies
 
 ## [v1.60.0] - 2022-07-12
 
@@ -792,7 +798,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial state: standards for Main, HTTP Server, DB access (gorm), Logging, Instrumented-Handler, and K8s Probe
 
-[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.60.0...HEAD
+[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.61.0...HEAD
+[v1.61.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.60.0...v1.61.0
 [v1.60.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.59.0...v1.60.0
 [v1.59.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.58.0...v1.59.0
 [v1.58.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.57.0...v1.58.0
