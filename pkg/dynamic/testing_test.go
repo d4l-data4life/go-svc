@@ -81,8 +81,8 @@ func keyEntries(t *testing.T, name string, enabled bool) (privEntry, pubEntry st
 	pubEntry = `
 - name: "` + name + `"
   comment: "generated with: rsa.GenerateKey() and MarshalPKIXPublicKey"
-  not_before: 2020-01-01
-  not_after: 2022-01-01
+  not_before: "2020-01-01"
+  not_after: "2022-01-01"
   key: |
     ` + strings.ReplaceAll(pub, "\n", "\n    ")
 	return privEntry, pubEntry

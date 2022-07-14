@@ -6,10 +6,10 @@ import (
 	"io"
 	"strings"
 	"sync"
-	"time"
+
+	"github.com/golang-jwt/jwt/v4"
 
 	"github.com/gesundheitscloud/go-svc/pkg/log"
-	"github.com/golang-jwt/jwt/v4"
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/viper"
@@ -22,24 +22,24 @@ Example Viper config expected to be delivered by `phdp-shared-secrets` with anno
 JWTPublicKey: (1 - the name must match `mapstructure:"jwtpublickey"`) (2 - represented by struct JWTPublicKeyConfig)
 - name: "generated-for-test-1" (3 - represented by struct JWTPublicKey)
   comment: "generated with: openssl rsa -in private.pem -pubout -outform PEM -out public.pem"
-  not_before: 2020-01-01
-  not_after: 2022-01-01
+  not_before: "2020-01-01"
+  not_after: "2022-01-01"
   key: |
     -----BEGIN PUBLIC KEY-----
     MIIBIjANBg...
     -----END PUBLIC KEY-----
 - name: "dev-vault-previous"
   comment: "copied from somewhere"
-  not_before: 2020-01-01
-  not_after: 2022-01-01
+  not_before: "2020-01-01"
+  not_after: "2022-01-01"
   key: |
     -----BEGIN PUBLIC KEY-----
     MIICIjAN...
     -----END PUBLIC KEY-----
 - name: "integrationTest"
   comment: "copied from this repo: /test/config"
-  not_before: 2020-01-01
-  not_after: 2022-01-01
+  not_before: "2020-01-01"
+  not_after: "2022-01-01"
   key: |
     -----BEGIN PUBLIC KEY-----
     MIICI...
@@ -70,8 +70,8 @@ JWTPrivateKey: (5 - the name must match `mapstructure:"jwtprivatekey"`) (6 - rep
 type JWTPublicKey struct {
 	Name      string
 	Comment   string
-	NotBefore time.Time
-	NotAfter  time.Time
+	NotBefore string
+	NotAfter  string
 	Key       *rsa.PublicKey
 }
 
@@ -107,11 +107,11 @@ var _ JWTKeyProvider = (*ViperConfig)(nil)
 // JWTPublicKeyConfig models the structure of the Viper config fragment responsible for defining JWT public keys
 type JWTPublicKeyConfig struct {
 	Entries []struct {
-		Name      string    `mapstructure:"name"`
-		Comment   string    `mapstructure:"comment"`
-		Key       string    `mapstructure:"key"`
-		NotBefore time.Time `mapstructure:"not_before"`
-		NotAfter  time.Time `mapstructure:"not_after"`
+		Name      string `mapstructure:"name"`
+		Comment   string `mapstructure:"comment"`
+		Key       string `mapstructure:"key"`
+		NotBefore string `mapstructure:"not_before"`
+		NotAfter  string `mapstructure:"not_after"`
 	} `mapstructure:"jwtpublickey"`
 }
 

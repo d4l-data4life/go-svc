@@ -284,8 +284,8 @@ func fixturePubKeyEntry(name string) string {
 	return `
 - name: "` + name + `"
   comment: "generated with: openssl rsa -in private.pem -pubout -outform PEM -out public.pem"
-  not_before: 2020-01-01
-  not_after: 2022-01-01
+  not_before: "2020-01-01"
+  not_after: "2022-01-01"
   key: |
     -----BEGIN PUBLIC KEY-----
     MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAterVQa0ygpUkQXdvKtXC
@@ -298,16 +298,16 @@ func fixturePubKeyEntry(name string) string {
     -----END PUBLIC KEY-----
 - name: "broken-` + name + `"
   comment: "broken, not parsable key"
-  not_before: 2020-01-01
-  not_after: 2022-01-01
+  not_before: "2020-01-01"
+  not_after: "2022-01-01"
   key: |
     -----BEGIN PUBLIC KEY-----
     gibberish
     -----END PUBLIC KEY-----
 - name: "other-` + name + `"
   comment: "not matching any private key, but fully valid public key"
-  not_before: 2020-01-01
-  not_after: 2022-01-01
+  not_before: "2020-01-01"
+  not_after: "2022-01-01"
   key: |
     -----BEGIN PUBLIC KEY-----
     MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAw7NCc5g910XRqfgIfue0

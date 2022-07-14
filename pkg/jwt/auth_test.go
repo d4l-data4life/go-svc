@@ -293,20 +293,20 @@ func TestNewAuthenticator_MultiplePubKeys(t *testing.T) {
 JWTPublicKey:
 - name: "key1"
   comment: "valid test key1"
-  not_before: 1410-01-01
-  not_after: 2099-01-01
+  not_before: "1410-01-01"
+  not_after: "2099-01-01"
   key: |
     ` + string(testutils.GeneratePEMPublicKey(t, &priv1.PublicKey, 4)) + `
 - name: "key2"
   comment: "valid test key2"
-  not_before: 1410-01-01
-  not_after: 2099-01-01
+  not_before: "1410-01-01"
+  not_after: "2099-01-01"
   key: |
     ` + string(testutils.GeneratePEMPublicKey(t, &priv2.PublicKey, 4)) + `
 - name: "expiredKey3"
   comment: "valid key but metadata says it should not be used"
-  not_before: 1999-01-01
-  not_after: 1999-01-02
+  not_before: "1999-01-01"
+  not_after: "1999-01-02"
   key: |
     ` + string(testutils.GeneratePEMPublicKey(t, &priv3.PublicKey, 4)) + `
 `)

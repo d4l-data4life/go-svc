@@ -17,6 +17,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Revert not_before and not_after in jwt from time.Time to string
+- JWT test files format to match actual format from vault
+
 ### Security
 
 ## [v1.61.0] - 2022-07-14
