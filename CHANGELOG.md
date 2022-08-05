@@ -1,3 +1,4 @@
+
 # Changelog
 
 All notable changes to this project will be documented in this file.
@@ -10,6 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Changed
+
+- Upgraded github.com/onsi/gomega to v1.19.0 to get rid of go mod tidy issues
+- Updated header obfuscation configuration
 
 ### Deprecated
 
@@ -898,3 +902,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [v0.3.0]: https://github.com/gesundheitscloud/go-svc/compare/v0.2.0...v0.3.0
 [v0.2.0]: https://github.com/gesundheitscloud/go-svc/compare/v0.1.0...v0.2.0
 [v0.1.0]: https://github.com/gesundheitscloud/go-svc/releases/tag/v0.1.0
+

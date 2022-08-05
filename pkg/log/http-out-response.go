@@ -5,10 +5,6 @@ import (
 	"time"
 )
 
-var hlcOutResponse *headerObfuscator = newHeaderObfuscator().
-	obfuscateHeaders([]string{"Authorization", "WWW-Authenticate"}).
-	ignoreHeaders([]string{"X-Real-Ip", "Content-Encoding", "Content-Type", "Accept-Encoding", "Content-Length", "Date"})
-
 type outResponseLog struct {
 	Timestamp       time.Time           `json:"timestamp"`
 	LogLevel        logLevel            `json:"log-level"`

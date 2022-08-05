@@ -444,7 +444,7 @@ func TestLogHTTPOutReqRespHeaderLogging(t *testing.T) {
 		}{
 			{
 				key:   "header",
-				value: `{"Authorization":["Obfuscated{23}"],"Trace-Id":["t1"]}`,
+				value: `{"Authorization":["Obfuscated{23}"]}`,
 			},
 		} {
 			t.Run("contains "+tc.key, func(t *testing.T) {

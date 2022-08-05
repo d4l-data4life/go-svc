@@ -368,7 +368,7 @@ func TestHTTPWrapper(t *testing.T) {
 				value: `15`,
 			}, {
 				key:   "header",
-				value: `{"Authorization":["Obfuscated{31}"],"Client-Id":["c1"],"Cookie":["jwt=Obfuscated{3};"],"Trace-Id":["t1"],"User-Agent":["Go-http-client/1.1"]}`,
+				value: `{"Authorization":["Obfuscated{31}"],"Client-Id":["c1"],"Cookie":["jwt=Obfuscated{3};"],"User-Agent":["Go-http-client/1.1"]}`,
 			},
 		} {
 			t.Run("contains "+tc.key, func(t *testing.T) {
@@ -802,7 +802,7 @@ func TestFilteredContentType(t *testing.T) {
 				value: `"gzip"`,
 			}, {
 				key:   "header",
-				value: `{"Client-Id":["c1"],"Trace-Id":["t1"],"User-Agent":["Go-http-client/1.1"]}`,
+				value: `{"Client-Id":["c1"],"User-Agent":["Go-http-client/1.1"]}`,
 			},
 		} {
 			t.Run("contains "+tc.key, func(t *testing.T) {
@@ -935,7 +935,7 @@ func TestFilteredContentType(t *testing.T) {
 				value: `"/the-path?query=param"`,
 			}, {
 				key:   "header",
-				value: `{"Client-Id":["c1"],"Trace-Id":["t1"]}`,
+				value: `{"Client-Id":["c1"]}`,
 			},
 		} {
 			t.Run("contains "+tc.key, func(t *testing.T) {

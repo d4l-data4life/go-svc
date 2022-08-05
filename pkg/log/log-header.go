@@ -3,12 +3,11 @@ package log
 import (
 	"fmt"
 	"net/http"
-	"net/textproto"
 	"strings"
 )
 
-var headerSetCookie string = textproto.CanonicalMIMEHeaderKey("Set-Cookie")
-var headerCookie string = textproto.CanonicalMIMEHeaderKey("Cookie")
+var headerSetCookie string = http.CanonicalHeaderKey("Set-Cookie")
+var headerCookie string = http.CanonicalHeaderKey("Cookie")
 
 type headerObfuscator struct {
 	obfuscateHeader map[string]bool
@@ -25,7 +24,7 @@ func newHeaderObfuscator() *headerObfuscator {
 // Add header keys that should be obfuscated by the value of its length. An already ignored header can not be obfuscated. `Set-Cookie` and `Cookie` is handled by default
 func (heob *headerObfuscator) obfuscateHeaders(keys []string) *headerObfuscator {
 	for _, key := range keys {
-		if canon := textproto.CanonicalMIMEHeaderKey(key); canon != headerSetCookie && canon != headerCookie && !heob.ignoreHeader[canon] {
+		if canon := http.CanonicalHeaderKey(key); canon != headerSetCookie && canon != headerCookie && !heob.ignoreHeader[canon] {
 			heob.obfuscateHeader[canon] = true
 		}
 	}
@@ -35,7 +34,7 @@ func (heob *headerObfuscator) obfuscateHeaders(keys []string) *headerObfuscator 
 // Add header keys that should be ignored. An already obfuscated header can not be ignored. `Set-Cookie` and `Cookie` is handled by default
 func (heob *headerObfuscator) ignoreHeaders(keys []string) *headerObfuscator {
 	for _, key := range keys {
-		if canon := textproto.CanonicalMIMEHeaderKey(key); canon != headerSetCookie && canon != headerCookie && !heob.obfuscateHeader[canon] {
+		if canon := http.CanonicalHeaderKey(key); canon != headerSetCookie && canon != headerCookie && !heob.obfuscateHeader[canon] {
 			heob.ignoreHeader[canon] = true
 		}
 	}
