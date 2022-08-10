@@ -11,18 +11,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Upgraded github.com/onsi/gomega to v1.19.0 to get rid of go mod tidy issues
-- Updated header obfuscation configuration
-
 ### Deprecated
 
 ### Removed
 
 ### Fixed
 
-- [db2] Using gorm default logger in test DB connections
-
 ### Security
+
+## [v1.61.2] - 2022-08-10
+
+### Changed
+
+- Upgraded github.com/onsi/gomega to v1.19.0 to get rid of go mod tidy issues
+- Updated header obfuscation configuration
+
+### Fixed
+
+- [db2] Using gorm default logger in test DB connections
 
 ## [v1.61.1] - 2022-07-14
 
@@ -810,7 +816,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial state: standards for Main, HTTP Server, DB access (gorm), Logging, Instrumented-Handler, and K8s Probe
 
-[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.61.1...HEAD
+[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.61.2...HEAD
+[v1.61.2]: https://github.com/gesundheitscloud/go-svc/compare/v1.61.1...v1.61.2
 [v1.61.1]: https://github.com/gesundheitscloud/go-svc/compare/v1.61.0...v1.61.1
 [v1.61.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.60.0...v1.61.0
 [v1.60.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.59.0...v1.60.0
@@ -903,4 +910,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [v0.3.0]: https://github.com/gesundheitscloud/go-svc/compare/v0.2.0...v0.3.0
 [v0.2.0]: https://github.com/gesundheitscloud/go-svc/compare/v0.1.0...v0.2.0
 [v0.1.0]: https://github.com/gesundheitscloud/go-svc/releases/tag/v0.1.0
-
