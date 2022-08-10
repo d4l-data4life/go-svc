@@ -12,7 +12,7 @@ import (
 )
 
 type MigrationFunc func(do *gorm.DB) error
-type DriverFunc func(connectString string) (*gorm.DB, error)
+type DriverFunc func(connectString string, opts *ConnectionOptions) (*gorm.DB, error)
 
 func NewConnection(opts ...ConnectionOption) *ConnectionOptions {
 	o := &ConnectionOptions{}
@@ -171,27 +171,36 @@ func WithSkipDefaultTransaction(value bool) ConnectionOption {
 // To be used in options as argument for db.WithDriverFunc()
 // Is default, hence will be used when db.WithDriverFunc() is not used in options
 // Example: db.InitializeTestPostgres(db.NewConnection(db.WithDriverFunc(db.DefaultPostgresDriver)))
-func DefaultPostgresDriver(connectString string) (*gorm.DB, error) {
-	return gorm.Open(postgres.Open(connectString))
+func DefaultPostgresDriver(connectString string, opts *ConnectionOptions) (*gorm.DB, error) {
+	return gorm.Open(postgres.Open(connectString), &gorm.Config{
+		Logger:                 NewLogger(opts.LoggerConfig),
+		SkipDefaultTransaction: opts.SkipDefaultTransaction,
+	})
 }
 
 // TXDBPostgresDriver defines the TXDB DB driver which treats every operation as transaction, and does rollback on disconnect.
 // To be used in options as argument for db.WithDriverFunc()
 // Example: db.InitializeTestPostgres(db.NewConnection(db.WithDriverFunc(db.TXDBPostgresDriver)))
-func TXDBPostgresDriver(connectString string) (*gorm.DB, error) {
+func TXDBPostgresDriver(connectString string, opts *ConnectionOptions) (*gorm.DB, error) {
 	drivers := sql.Drivers()
 	i := sort.SearchStrings(drivers, "txdb")
 	if i >= len(drivers) || drivers[i] != "txdb" {
 		txdb.Register("txdb", "pgx", connectString)
 	}
-	return gorm.Open(postgres.New(postgres.Config{DriverName: "txdb", DSN: connectString}))
+	return gorm.Open(postgres.New(postgres.Config{DriverName: "txdb", DSN: connectString}), &gorm.Config{
+		Logger:                 NewLogger(opts.LoggerConfig),
+		SkipDefaultTransaction: opts.SkipDefaultTransaction,
+	})
 }
 
-func TXDBPostgresDriverWithoutSavepoint(connectString string) (*gorm.DB, error) {
+func TXDBPostgresDriverWithoutSavepoint(connectString string, opts *ConnectionOptions) (*gorm.DB, error) {
 	drivers := sql.Drivers()
 	i := sort.SearchStrings(drivers, "txdb")
 	if i >= len(drivers) || drivers[i] != "txdb" {
 		txdb.Register("txdb", "pgx", connectString, txdb.SavePointOption(nil))
 	}
-	return gorm.Open(postgres.New(postgres.Config{DriverName: "txdb", DSN: connectString}))
+	return gorm.Open(postgres.New(postgres.Config{DriverName: "txdb", DSN: connectString}), &gorm.Config{
+		Logger:                 NewLogger(opts.LoggerConfig),
+		SkipDefaultTransaction: opts.SkipDefaultTransaction,
+	})
 }

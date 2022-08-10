@@ -54,7 +54,7 @@ func InitializeTestPostgres(opts *ConnectionOptions) {
 	if opts.DriverFunc == nil {
 		opts.DriverFunc = DefaultPostgresDriver
 	}
-	conn, err := opts.DriverFunc(connectString)
+	conn, err := opts.DriverFunc(connectString, opts)
 
 	db = conn
 	if err != nil {

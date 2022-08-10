@@ -5,9 +5,10 @@ import (
 	"errors"
 	"time"
 
-	"github.com/gesundheitscloud/go-svc/pkg/logging"
 	"gorm.io/gorm/logger"
 	"gorm.io/gorm/utils"
+
+	"github.com/gesundheitscloud/go-svc/pkg/logging"
 )
 
 var (
@@ -42,8 +43,10 @@ func NewLogger(config logger.Config) *Logger {
 
 // LogMode is needed for implementing the logger.Interface
 // dummy replacement, as log level is handeld by our logger implementation go-svc/pkg/logging
-func (l Logger) LogMode(level logger.LogLevel) logger.Interface {
-	return l
+func (l *Logger) LogMode(level logger.LogLevel) logger.Interface {
+	newlogger := *l
+	newlogger.LogLevel = level
+	return &newlogger
 }
 
 func (l Logger) Info(ctx context.Context, msg string, fields ...interface{}) {

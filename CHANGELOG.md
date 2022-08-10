@@ -21,6 +21,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- [db2] Using gorm default logger in test DB connections
+
 ### Security
 
 ## [v1.61.1] - 2022-07-14
