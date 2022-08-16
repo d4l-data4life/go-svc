@@ -9,8 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- [tut pkg] `ValueEqualsAnyOrder` value check
-
 ### Changed
 
 ### Deprecated
@@ -20,6 +18,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Security
+
+## [v1.62.0] - 2022-08-16
+
+### Added
+
+- [tut pkg] `ValueEqualsAnyOrder` value check
 
 ## [v1.61.2] - 2022-08-10
 
@@ -818,7 +822,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial state: standards for Main, HTTP Server, DB access (gorm), Logging, Instrumented-Handler, and K8s Probe
 
-[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.61.2...HEAD
+[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.62.0...HEAD
+[v1.62.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.61.2...v1.62.0
 [v1.61.2]: https://github.com/gesundheitscloud/go-svc/compare/v1.61.1...v1.61.2
 [v1.61.1]: https://github.com/gesundheitscloud/go-svc/compare/v1.61.0...v1.61.1
 [v1.61.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.60.0...v1.61.0
