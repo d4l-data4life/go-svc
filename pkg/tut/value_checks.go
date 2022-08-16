@@ -39,6 +39,53 @@ func ValueEquals(wantValue interface{}) ValueCheckFunc {
 	}
 }
 
+// ValueEqualsAnyOrder allows to check the equality of a value slice with an expected value slice disregarding the ordering.
+// The equality of value elements is checked using reflect.DeepEqual
+func ValueEqualsAnyOrder(wantValue interface{}) ValueCheckFunc {
+	return func(value interface{}) error {
+		wantValueSlice, err := interfaceSlice(wantValue)
+		if err != nil {
+			return fmt.Errorf("want value: '%v' not a slice", wantValue)
+		}
+
+		valueSlice, err := interfaceSlice(value)
+		if err != nil {
+			return fmt.Errorf("have value: '%v' not a slice", value)
+		}
+
+		if len(wantValueSlice) != len(valueSlice) {
+			return fmt.Errorf("want value: '%v', have: '%v'", wantValue, value)
+		}
+		for _, e1 := range wantValueSlice {
+			found := false
+			for _, e2 := range valueSlice {
+				if reflect.DeepEqual(e1, e2) {
+					found = true
+					break
+				}
+			}
+			if !found {
+				return fmt.Errorf("want value: '%v', have: '%v'", wantValue, value)
+			}
+		}
+		return nil
+	}
+}
+
+func interfaceSlice(value interface{}) ([]interface{}, error) {
+	s := reflect.ValueOf(value)
+	if s.Kind() != reflect.Slice {
+		return nil, fmt.Errorf("not a slice")
+	}
+	valueSlice := make([]interface{}, s.Len())
+
+	for i := 0; i < s.Len(); i++ {
+		valueSlice[i] = s.Index(i).Interface()
+	}
+
+	return valueSlice, nil
+}
+
 // ValueNotContains checks if a string value does not contain an expected value
 func ValueNotContains(wantValue string) ValueCheckFunc {
 	return func(value interface{}) error {
