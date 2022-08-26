@@ -19,7 +19,17 @@ type Logger struct {
 	logger.Config
 	infoStr, warnStr, errStr            string
 	traceStr, traceErrStr, traceWarnStr string
+	LogLevel                            LogLevel
 }
+
+type LogLevel int
+
+const (
+	Silent LogLevel = iota + 1
+	Error
+	Warn
+	Info
+)
 
 func NewLogger(config logger.Config) *Logger {
 	var (
@@ -38,6 +48,7 @@ func NewLogger(config logger.Config) *Logger {
 		traceStr:     traceStr,
 		traceWarnStr: traceWarnStr,
 		traceErrStr:  traceErrStr,
+		LogLevel:     LogLevel(config.LogLevel),
 	}
 }
 
@@ -45,24 +56,34 @@ func NewLogger(config logger.Config) *Logger {
 // dummy replacement, as log level is handeld by our logger implementation go-svc/pkg/logging
 func (l *Logger) LogMode(level logger.LogLevel) logger.Interface {
 	newlogger := *l
-	newlogger.LogLevel = level
+	newlogger.LogLevel = LogLevel(level)
 	return &newlogger
 }
 
 func (l Logger) Info(ctx context.Context, msg string, fields ...interface{}) {
-	logging.LogInfofCtx(ctx, msg, fields...)
+	if l.LogLevel >= Info {
+		logging.LogInfofCtx(ctx, msg, fields...)
+	}
 }
 func (l Logger) Warn(ctx context.Context, msg string, fields ...interface{}) {
-	logging.LogWarningfCtx(ctx, nil, msg, fields...)
+	if l.LogLevel >= Warn {
+		logging.LogWarningfCtx(ctx, nil, msg, fields...)
+	}
 }
 
 func (l Logger) Error(ctx context.Context, msg string, fields ...interface{}) {
-	logging.LogErrorfCtx(ctx, nil, msg, fields...)
+	if l.LogLevel >= Error {
+		logging.LogErrorfCtx(ctx, nil, msg, fields...)
+	}
 }
 func (l Logger) Trace(ctx context.Context, begin time.Time, fc func() (sql string, rowsAffected int64), err error) {
+	if l.LogLevel <= Silent {
+		return
+	}
+
 	elapsed := time.Since(begin)
 	switch {
-	case err != nil && (!errors.Is(err, logger.ErrRecordNotFound) || !l.IgnoreRecordNotFoundError):
+	case err != nil && (!errors.Is(err, logger.ErrRecordNotFound) || !l.IgnoreRecordNotFoundError) && l.LogLevel >= Error:
 		sql, rows := fc()
 		if rows == -1 {
 			logging.LogErrorfCtx(ctx, err, l.traceErrStr, utils.FileWithLineNum(), err, float64(elapsed.Nanoseconds())/1e6, "-", sql)
@@ -70,19 +91,19 @@ func (l Logger) Trace(ctx context.Context, begin time.Time, fc func() (sql strin
 		} else {
 			logging.LogErrorfCtx(ctx, err, l.traceErrStr, utils.FileWithLineNum(), err, float64(elapsed.Nanoseconds())/1e6, rows, sql)
 		}
-	case elapsed > l.SlowThreshold && l.SlowThreshold != 0:
+	case elapsed > l.SlowThreshold && l.SlowThreshold != 0 && l.LogLevel >= Warn:
 		sql, rows := fc()
 		if rows == -1 {
 			logging.LogWarningfCtx(ctx, errSlowSQL, l.traceWarnStr, utils.FileWithLineNum(), float64(elapsed.Nanoseconds())/1e6, "-", sql)
 		} else {
 			logging.LogWarningfCtx(ctx, errSlowSQL, l.traceWarnStr, utils.FileWithLineNum(), float64(elapsed.Nanoseconds())/1e6, rows, sql)
 		}
-	default:
+	case l.LogLevel >= Info:
 		sql, rows := fc()
 		if rows == -1 {
-			logging.LogDebugfCtx(ctx, l.traceStr, utils.FileWithLineNum(), float64(elapsed.Nanoseconds())/1e6, "-", sql)
+			logging.LogInfofCtx(ctx, l.traceStr, utils.FileWithLineNum(), float64(elapsed.Nanoseconds())/1e6, "-", sql)
 		} else {
-			logging.LogDebugfCtx(ctx, l.traceStr, utils.FileWithLineNum(), float64(elapsed.Nanoseconds())/1e6, rows, sql)
+			logging.LogInfofCtx(ctx, l.traceStr, utils.FileWithLineNum(), float64(elapsed.Nanoseconds())/1e6, rows, sql)
 		}
 	}
 }

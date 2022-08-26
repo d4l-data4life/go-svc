@@ -64,6 +64,7 @@ func WithDefaults() ConnectionOption {
 		c.LoggerConfig = logger.Config{
 			SlowThreshold:             500 * time.Millisecond,
 			IgnoreRecordNotFoundError: true,
+			LogLevel:                  logger.Silent,
 		}
 		c.SkipDefaultTransaction = false
 	}
@@ -158,6 +159,12 @@ func WithEnableInstrumentation(value bool) ConnectionOption {
 func WithLoggerConfig(conf logger.Config) ConnectionOption {
 	return func(c *ConnectionOptions) {
 		c.LoggerConfig = conf
+	}
+}
+
+func WithLogLevel(logLevel LogLevel) ConnectionOption {
+	return func(c *ConnectionOptions) {
+		c.LoggerConfig.LogLevel = logger.LogLevel(logLevel)
 	}
 }
 
