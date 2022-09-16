@@ -85,8 +85,9 @@ type LoginEIDData struct {
 }
 
 type LoginCompleteData struct {
-	SessionID string `json:"session-id"` // a session identifier: it allows to connect a login and a logout event
-	ClientID  string `json:"client-id"`
+	SessionID     string `json:"session-id"` // a session identifier: it allows to connect a login and a logout event
+	ClientID      string `json:"client-id"`
+	ClientVersion string `json:"client-version"`
 }
 
 type LogoutData struct {
