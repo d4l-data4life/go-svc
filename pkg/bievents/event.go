@@ -11,8 +11,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gesundheitscloud/go-svc/pkg/jwt"
 	"github.com/gofrs/uuid"
+
+	"github.com/gesundheitscloud/go-svc/pkg/jwt"
 )
 
 // Emitter enables business intelligence complaint events.
@@ -34,7 +35,6 @@ type BaseEvent struct {
 	HostName       string    `json:"hostname"`
 	EventType      string    `json:"event-type"`
 	EventID        uuid.UUID `json:"event-id"`
-	Timestamp      time.Time `json:"timestamp"`
 	// Embed Event struct. This will enable Event json to be printed on the same level as BaseEvent during json encoding.
 	Event
 }
@@ -61,6 +61,7 @@ type Event struct {
 	State              State        `json:"state,omitempty"`
 	EventSource        string       `json:"event-source"`
 	SessionID          string       `json:"session-id"`
+	Timestamp          time.Time    `json:"timestamp"`
 }
 
 // WithWriter is an option for NewEventEmitter which lets the caller specify where to
@@ -143,6 +144,10 @@ func (e *Emitter) emit(event Event) BaseEvent {
 	if event.TenantID == "" {
 		event.TenantID = e.tenantID
 	}
+	if event.Timestamp.IsZero() {
+		event.Timestamp = time.Now()
+	}
+	event.Timestamp = event.Timestamp.Truncate(time.Second)
 
 	return BaseEvent{
 		ServiceName:    e.serviceName,
@@ -150,7 +155,6 @@ func (e *Emitter) emit(event Event) BaseEvent {
 		HostName:       e.hostname,
 		EventType:      "bi-event",
 		EventID:        uuid.Must(uuid.NewV4()),
-		Timestamp:      time.Now().Truncate(time.Second),
 		Event:          event,
 	}
 }

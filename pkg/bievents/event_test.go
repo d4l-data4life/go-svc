@@ -10,9 +10,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/gesundheitscloud/go-svc/pkg/jwt"
 	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/gesundheitscloud/go-svc/pkg/jwt"
 )
 
 func TestLog(t *testing.T) {
