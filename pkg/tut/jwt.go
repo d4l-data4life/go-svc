@@ -94,3 +94,13 @@ func HasSubject(userID uuid.UUID) JWTCheckFunc {
 		return nil
 	}
 }
+
+func HasAppID(appID uuid.UUID) JWTCheckFunc {
+	return func(t *jwtgo.Token) error {
+		claims := t.Claims.(*jwt.Claims)
+		if claims.AppID != appID {
+			return fmt.Errorf("unexpected appID: want %s, have %s", appID, claims.AppID)
+		}
+		return nil
+	}
+}
