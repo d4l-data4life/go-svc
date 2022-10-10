@@ -23,7 +23,12 @@ type Emitter struct {
 	hostname       string
 	tenantID       string
 	sync.Mutex
-	out *json.Encoder
+	out     *json.Encoder
+	httpOut HttpOut
+}
+
+type HttpOut interface {
+	Send(interface{}) error
 }
 
 // BaseEvent is the concrete event which is common to all the events.
@@ -84,6 +89,12 @@ func WithTenantID(tenantID string) func(*Emitter) {
 	}
 }
 
+func WithHttpOut(hs HttpOut) func(*Emitter) {
+	return func(l *Emitter) {
+		l.httpOut = hs
+	}
+}
+
 // NewEventEmitter creates a new event emitter
 // All events will be dumped to os.Stdout, unless a WithWriter option is passed.
 func NewEventEmitter(serviceName, serviceVersion, hostname string, options ...func(*Emitter)) *Emitter {
@@ -112,7 +123,19 @@ func (e *Emitter) Log(event Event) error {
 
 	e.Lock()
 	defer e.Unlock()
-	return e.out.Encode(e.emit(event))
+	err := e.out.Encode(e.emit(event))
+	if err != nil {
+		return err
+	}
+
+	if e.httpOut != nil {
+		err := e.httpOut.Send(e.emit(event))
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // LogCtx Wraps Log(event Event) and extracts userID and SessionID from context
