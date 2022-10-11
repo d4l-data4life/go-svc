@@ -22,17 +22,19 @@ func ListenAndServe(runCtx context.Context, mux *chi.Mux, port string) <-chan st
 	// goroutine that runs the server
 	go func() {
 		defer close(serverStopped)
-		if err := server.ListenAndServe(); err != http.ErrServerClosed {
+		if err := server.ListenAndServe(); err != nil {
+			if err == http.ErrServerClosed {
+				logging.LogInfof("HTTP server shut down")
+				return
+			}
 			logging.LogErrorf(err, "HTTP server error")
 		}
 	}()
 
 	// goroutine that waits for the run context to be canceled
 	go func(runCtx context.Context) {
-		for range runCtx.Done() {
-			gracefulStop(server)
-			return
-		}
+		<-runCtx.Done()
+		gracefulStop(server)
 	}(runCtx)
 
 	return serverStopped

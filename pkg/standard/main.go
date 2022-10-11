@@ -62,9 +62,9 @@ var redisoptions *cache.RedisConnectionOptions
 func Main(serviceMain MainFunction, svcName string, options ...MainOption) {
 	probe.Liveness().SetLive()
 	// runCtx is a running context. Canceling this context means that the service should stop running asap
-	runCtx, stopService := context.WithCancel(context.Background())
-	defer stopService()
-	go setupSingals(runCtx, stopService)
+	runCtx, runCtxCancelFunc := context.WithCancel(context.Background())
+	defer runCtxCancelFunc()
+	go setupSingals(runCtx, runCtxCancelFunc)
 
 	for _, option := range options {
 		option(runCtx)
@@ -82,7 +82,7 @@ func Main(serviceMain MainFunction, svcName string, options ...MainOption) {
 	if waitForDB(runCtx, dbUp, redisUp, db2Up) {
 		logging.LogInfof("dbs connected")
 	} else {
-		stopService()
+		runCtxCancelFunc()
 	}
 
 	mainStopped := serviceMain(runCtx, svcName)
@@ -90,7 +90,8 @@ func Main(serviceMain MainFunction, svcName string, options ...MainOption) {
 
 	logging.LogInfof("%s: waiting for: (1) error, (2) HTTP server to stop, (3) run context canceled by the user", svcName)
 
-	for range channels.OrDone(runCtx.Done(), mainStopped) {
+	// Block until serviceMain closes the channel
+	for range mainStopped {
 		logging.LogInfof("%s exits - HTTP server stopped", svcName)
 		return
 	}

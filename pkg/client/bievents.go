@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"sync"
 	"time"
+
+	"github.com/gesundheitscloud/go-svc/pkg/logging"
 )
 
 type BIEventsFilter struct {
@@ -56,7 +58,9 @@ func NewBIEventsFilter(runCtx context.Context, svcAddr, svcSecret, caller string
 	// another goroutine can block until the channel is closed
 	go func(wg *sync.WaitGroup) {
 		<-runCtx.Done()
+		logging.LogInfof("Sending remaining bi events")
 		wg.Wait()
+		logging.LogInfof("Done sending remaining bi events")
 		close(done)
 	}(bic.wg)
 
