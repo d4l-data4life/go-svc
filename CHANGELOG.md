@@ -9,8 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- [bi] Add async http bi-event sender
-
 ### Changed
 
 ### Deprecated
@@ -19,9 +17,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- [standard] Wait for serviceMain done on runCtx cancellation
-
 ### Security
+
+## [v1.67.0] - 2022-10-11
+
+### Added
+
+- [bi] Add async http bi-event sender
+
+### Fixed
+
+- [standard] Wait for serviceMain done on runCtx cancellation
 
 ## [v1.66.0] - 2022-09-29
 
@@ -850,7 +856,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial state: standards for Main, HTTP Server, DB access (gorm), Logging, Instrumented-Handler, and K8s Probe
 
-[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.66.0...HEAD
+[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.67.0...HEAD
+[v1.67.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.66.0...v1.67.0
 [v1.66.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.65.0...v1.66.0
 [v1.65.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.64.0...v1.65.0
 [v1.64.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.63.0...v1.64.0
