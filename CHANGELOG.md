@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- [bi] Stop repeating sending after 5 Attempts with exponential backoff
+
 ### Deprecated
 
 ### Removed
