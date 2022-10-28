@@ -11,8 +11,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- [bi] Stop repeating sending after 5 Attempts with exponential backoff
-
 ### Deprecated
 
 ### Removed
@@ -20,6 +18,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Security
+
+## [v1.69.0] - 2022-10-28
+
+### Changed
+
+- [bi] Stop repeating sending after 5 Attempts with exponential backoff
 
 ## [v1.68.0] - 2022-10-18
 
@@ -864,7 +868,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial state: standards for Main, HTTP Server, DB access (gorm), Logging, Instrumented-Handler, and K8s Probe
 
-[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.68.0...HEAD
+[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.69.0...HEAD
+[v1.69.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.68.0...v1.69.0
 [v1.68.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.67.0...v1.68.0
 [v1.67.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.66.0...v1.67.0
 [v1.66.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.65.0...v1.66.0
