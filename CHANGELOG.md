@@ -17,9 +17,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- [bi] Log and HTTP out have different event-id
-
 ### Security
+
+## [v1.69.1] - 2022-11-16
+
+### Fixed
+
+- [bi] Log and HTTP out have different event-id
 
 ## [v1.69.0] - 2022-10-28
 
@@ -870,7 +874,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial state: standards for Main, HTTP Server, DB access (gorm), Logging, Instrumented-Handler, and K8s Probe
 
-[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.69.0...HEAD
+[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.69.1...HEAD
+[v1.69.1]: https://github.com/gesundheitscloud/go-svc/compare/v1.69.0...v1.69.1
 [v1.69.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.68.0...v1.69.0
 [v1.68.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.67.0...v1.68.0
 [v1.67.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.66.0...v1.67.0
