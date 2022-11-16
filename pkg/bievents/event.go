@@ -123,13 +123,14 @@ func (e *Emitter) Log(event Event) error {
 
 	e.Lock()
 	defer e.Unlock()
-	err := e.out.Encode(e.emit(event))
+	baseEvent := e.emit(event)
+	err := e.out.Encode(baseEvent)
 	if err != nil {
 		return err
 	}
 
 	if e.httpOut != nil {
-		err := e.httpOut.Send(e.emit(event))
+		err := e.httpOut.Send(baseEvent)
 		if err != nil {
 			return err
 		}

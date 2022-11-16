@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- [bi] Log and HTTP out have different event-id
+
 ### Security
 
 ## [v1.69.0] - 2022-10-28
