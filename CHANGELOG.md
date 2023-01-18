@@ -9,21 +9,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## [v1.70.0] - 2023-01-18
+
+### Added
+
 - [clients] fromName to Listmonk Transactional Message
 
 ### Changed
 
 - [clients] cleanup cds-notification client
 
-### Deprecated
-
 ### Removed
 
 - [clients] very old cds-notification clients
-
-### Fixed
-
-### Security
 
 ## [v1.69.1] - 2022-11-16
 
@@ -880,7 +888,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial state: standards for Main, HTTP Server, DB access (gorm), Logging, Instrumented-Handler, and K8s Probe
 
-[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.69.1...HEAD
+[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.70.0...HEAD
+[v1.70.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.69.1...v1.70.0
 [v1.69.1]: https://github.com/gesundheitscloud/go-svc/compare/v1.69.0...v1.69.1
 [v1.69.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.68.0...v1.69.0
 [v1.68.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.67.0...v1.68.0
