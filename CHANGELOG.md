@@ -9,11 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- [clients] fromName to Listmonk Transactional Message
+
 ### Changed
+
+- [clients] cleanup cds-notification client
 
 ### Deprecated
 
 ### Removed
+
+- [clients] very old cds-notification clients
 
 ### Fixed
 

@@ -15,114 +15,33 @@ import (
 
 // NotificationServiceRequest is a copy of `NotificationRequest` from `cds-notification`
 type NotificationServiceRequest struct {
-	AccountIDs                   []uuid.UUID            `json:"accountIDs"`
-	ArbitraryEmailAddress        string                 `json:"arbitraryEmailAddress"`
-	FromName                     string                 `json:"fromName"`
-	FromAddress                  string                 `json:"fromAddress"`
-	Subject                      string                 `json:"subject"`
-	Message                      string                 `json:"message"`
-	TemplateKey                  string                 `json:"templateKey"`
-	LanguageSettingKey           string                 `json:"languageSettingKey"`
-	ConsentGuardKey              string                 `json:"consentGuardKey"`             // optional parameter - default = ""
-	MinConsentVersion            string                 `json:"minConsentVersion,omitempty"` // optional parameter - default = "0"
-	TemplateLanguage             string                 `json:"templateLanguage"`
-	UseMailJetTemplatingLanguage bool                   `json:"useMailJetTemplatingLanguage"`
-	TemplateErrorReportingEmail  string                 `json:"templateErrorReportingEmail"`
-	Caller                       string                 `json:"caller"`
-	TraceID                      uuid.UUID              `json:"traceID"` // ignored - kept here for backwards-compatibility of the client
-	TemplatePayload              map[string]interface{} `json:"templatePayload,omitempty"`
-	MailjetParams                MailjetParams          `json:"mailjetParams,omitempty"`
-}
-
-// MailjetParams holds fields that are directly pushed to MJ APIs without being processed in the notification-service
-// duplicated in NotificationServiceRequest for backwards-compatibility
-type MailjetParams struct {
-	UseMailJetTemplatingLanguage bool                   `json:"useMailJetTemplatingLanguage"`
-	TemplateErrorReportingEmail  string                 `json:"templateErrorReportingEmail"`
-	TemplatePayload              map[string]interface{} `json:"templatePayload,omitempty"`
-	// used in raw notifications
-	Message     string `json:"message"`
-	FromName    string `json:"fromName"`
-	FromAddress string `json:"fromAddress"`
-	Subject     string `json:"subject"`
+	AccountIDs            []uuid.UUID            `json:"accountIDs"`
+	ArbitraryEmailAddress string                 `json:"arbitraryEmailAddress"`
+	FromName              string                 `json:"fromName"`
+	FromAddress           string                 `json:"fromAddress"`
+	Subject               string                 `json:"subject"`
+	Message               string                 `json:"message"`
+	TemplateKey           string                 `json:"templateKey"`
+	LanguageSettingKey    string                 `json:"languageSettingKey"`
+	ConsentGuardKey       string                 `json:"consentGuardKey"`             // optional parameter - default = ""
+	MinConsentVersion     string                 `json:"minConsentVersion,omitempty"` // optional parameter - default = "0"
+	TemplateLanguage      string                 `json:"templateLanguage"`
+	Caller                string                 `json:"caller"`
+	TemplatePayload       map[string]interface{} `json:"templatePayload,omitempty"`
 }
 
 // NotificationStatus object is returned by 'SendTemplated' and 'GetJobStatus' to the caller
 type NotificationStatus struct {
-	JobIDs          []uuid.UUID    `json:"jobIDs"`
-	StateQueue      string         `json:"stateQueue"`
-	StateProcessing string         `json:"stateProcessing"`
-	Result          string         `json:"result"`
-	Error           string         `json:"error"`
-	Caller          string         `json:"caller"`
-	TraceID         string         `json:"traceID"`
-	ConsentStats    map[string]int `json:"consentStats"`
+	JobIDs          []uuid.UUID `json:"jobIDs"`
+	StateQueue      string      `json:"stateQueue"`
+	StateProcessing string      `json:"stateProcessing"`
+	Result          string      `json:"result"`
+	Error           string      `json:"error"`
+	Caller          string      `json:"caller"`
+	TraceID         string      `json:"traceID"`
 }
 
 type Notification interface {
-	// SendTemplated sends a templated email and returns error
-	SendTemplated(templateKey, language string, payload map[string]interface{}, subscribers ...uuid.UUID) error
-}
-
-// NotificationV2 is an extension of Notification(V1) interface
-// It adds new method(s) and is compatible with NotificationV1
-type NotificationV2 interface {
-	// SendTemplated sends a templated email and returns error
-	SendTemplated(templateKey, language string, payload map[string]interface{}, subscribers ...uuid.UUID) error
-	// GetNotifiedUsers returns basic info about notified users and error
-	GetNotifiedUsers() NotifiedUsers
-}
-
-// NotificationV3 is an extension of Notification(V2) interface
-// It changes a method signature and is not backwards-compatible with NotificationV2 and NotificationV1
-// However, NotificationV2 and NotificationV1 remain compatible with cds-notification v0.6.x
-type NotificationV3 interface {
-	// SendTemplated sends a templated email and returns error
-	SendTemplated(ctx context.Context,
-		templateKey, language, languageSettingKey string, payload map[string]interface{}, subscribers ...uuid.UUID) error
-	// GetNotifiedUsers returns basic info about notified users and error
-	GetNotifiedUsers() NotifiedUsers
-}
-
-// NotificationV4 is an extension of Notification(V3) interface
-// It changes the signature of 'SendTemplated' and is not backwards-compatible with previous 'Notification' interfaces
-// However, NotificationV3, NotificationV2 and NotificationV1 remain compatible with cds-notification v0.6.x
-type NotificationV4 interface {
-	// SendTemplated sends a templated email and returns error
-	SendTemplated(ctx context.Context,
-		templateKey, language, languageSettingKey string,
-		consentGuardKey string, minConsentVersion int,
-		payload map[string]interface{}, subscribers ...uuid.UUID) (NotificationStatus, error)
-	// GetJobStatus returns the status of a notification job submitted asynchronously before
-	GetJobStatus(ctx context.Context, jobID uuid.UUID) (NotificationStatus, error)
-	// DeleteJob cancels job processing
-	DeleteJob(ctx context.Context, jobID uuid.UUID) error
-	// GetNotifiedUsers returns basic info about notified users and error
-	GetNotifiedUsers() NotifiedUsers
-}
-
-// NotificationV5 is an extension of Notification(V4) interface
-// It changes the signature of 'SendTemplated' and is not backwards-compatible with previous 'Notification' interfaces
-// However, NotificationV4 can still be used if sending emails to arbitrary address is not required
-type NotificationV5 interface {
-	// SendTemplated sends a templated email and returns error
-	SendTemplated(ctx context.Context,
-		templateKey, language, languageSettingKey string,
-		consentGuardKey string, minConsentVersion int,
-		arbitraryEmailAddress string,
-		payload map[string]interface{}, subscribers ...uuid.UUID) (NotificationStatus, error)
-	// GetJobStatus returns the status of a notification job submitted asynchronously before
-	GetJobStatus(ctx context.Context, jobID uuid.UUID) (NotificationStatus, error)
-	// DeleteJob cancels job processing
-	DeleteJob(ctx context.Context, jobID uuid.UUID) error
-	// GetNotifiedUsers returns basic info about notified users and error
-	GetNotifiedUsers() NotifiedUsers
-}
-
-// NotificationV6 is an extension of Notification(V5) interface
-// It changes the signature of 'SendTemplated' and is not backwards-compatible with previous 'Notification' interfaces
-// However, NotificationV5 can still be used if minConsentVersion only targets major versions of the consent documents
-type NotificationV6 interface {
 	// SendTemplated sends a templated email and returns error
 	SendTemplated(ctx context.Context,
 		templateKey, language, languageSettingKey string,
@@ -143,7 +62,7 @@ type NotificationV6 interface {
 	GetNotifiedUsers() NotifiedUsers
 }
 
-var _ NotificationV6 = (*NotificationService)(nil)
+var _ Notification = (*NotificationService)(nil)
 var userAgentNotification = "go-svc.client.NotificationService"
 
 // NotificationService is a client for the cds-notification
@@ -180,18 +99,16 @@ func (c *NotificationService) SendRaw(ctx context.Context,
 	subscribers ...uuid.UUID,
 ) (NotificationStatus, error) {
 	requestBody := NotificationServiceRequest{
-		AccountIDs:                   subscribers,
-		ArbitraryEmailAddress:        arbitraryEmailAddress,
-		ConsentGuardKey:              consentGuardKey,
-		MinConsentVersion:            minConsentVersion,
-		FromName:                     fromName,
-		FromAddress:                  fromAddress,
-		Subject:                      subject,
-		Message:                      message,
-		Caller:                       c.caller.name,
-		UseMailJetTemplatingLanguage: payload != nil,
-		TemplatePayload:              payload,
-		TemplateErrorReportingEmail:  "",
+		AccountIDs:            subscribers,
+		ArbitraryEmailAddress: arbitraryEmailAddress,
+		ConsentGuardKey:       consentGuardKey,
+		MinConsentVersion:     minConsentVersion,
+		FromName:              fromName,
+		FromAddress:           fromAddress,
+		Subject:               subject,
+		Message:               message,
+		Caller:                c.caller.name,
+		TemplatePayload:       payload,
 	}
 	c.counter.Count("raw", "raw", subscribers...)
 	return c.sendRawEmail(ctx, requestBody)
@@ -206,17 +123,15 @@ func (c *NotificationService) SendTemplated(ctx context.Context,
 	subscribers ...uuid.UUID,
 ) (NotificationStatus, error) {
 	requestBody := NotificationServiceRequest{
-		AccountIDs:                   subscribers,
-		ArbitraryEmailAddress:        arbitraryEmailAddress,
-		TemplateKey:                  templateKey,
-		TemplateLanguage:             language,
-		LanguageSettingKey:           languageSettingKey,
-		ConsentGuardKey:              consentGuardKey,
-		MinConsentVersion:            minConsentVersion,
-		Caller:                       c.caller.name,
-		UseMailJetTemplatingLanguage: payload != nil,
-		TemplatePayload:              payload,
-		TemplateErrorReportingEmail:  "",
+		AccountIDs:            subscribers,
+		ArbitraryEmailAddress: arbitraryEmailAddress,
+		TemplateKey:           templateKey,
+		TemplateLanguage:      language,
+		LanguageSettingKey:    languageSettingKey,
+		ConsentGuardKey:       consentGuardKey,
+		MinConsentVersion:     minConsentVersion,
+		Caller:                c.caller.name,
+		TemplatePayload:       payload,
 	}
 	// for calculation of notifiedUsersInfo
 	c.counter.Count(templateKey, language, subscribers...)

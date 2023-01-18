@@ -29,6 +29,7 @@ type ListmonkTxMessage struct {
 	SubscriberID    int                    `json:"subscriber_id,omitempty"`
 	TemplateID      int                    `json:"template_id"`
 	Data            map[string]interface{} `json:"data,omitempty"`
+	FromName        string                 `json:"from_name,omitempty"`
 	FromEmail       string                 `json:"from_email,omitempty"`
 	Headers         Headers                `json:"headers,omitempty"`
 	ContentType     string                 `json:"content_type,omitempty"`
@@ -69,6 +70,10 @@ func NewListmonkApi(apiURL, apiUser, apiPassword, caller string) *ListmonkApi {
 
 // Tx sends a transactional message to a subscriber using a predefined transactional template.
 func (c *ListmonkApi) Tx(ctx context.Context, msg ListmonkTxMessage) (int, error) {
+	if msg.FromName != "" {
+		msg.FromEmail = fmt.Sprintf("%s <%s>", msg.FromName, msg.FromEmail)
+		msg.FromName = ""
+	}
 	reqURL := fmt.Sprintf("%s/api/tx", c.apiURL)
 	jsonBytes, err := json.Marshal(msg)
 	if err != nil {

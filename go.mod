@@ -11,7 +11,6 @@ require (
 	github.com/go-on/wrap v0.0.0-20180815192933-d1ac8ae9b5e2
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/go-redis/redismock/v8 v8.0.6
-	github.com/go-test/deep v1.0.7
 	github.com/gofrs/uuid v4.2.0+incompatible
 	github.com/golang-jwt/jwt/v4 v4.4.2
 	github.com/golang-migrate/migrate/v4 v4.15.2

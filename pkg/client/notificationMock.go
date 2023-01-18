@@ -8,7 +8,7 @@ import (
 	"github.com/gesundheitscloud/go-svc/pkg/log"
 )
 
-var _ NotificationV6 = (*NotificationMock)(nil)
+var _ Notification = (*NotificationMock)(nil)
 
 // NotificationMock mimics notification service >= v0.6.0  - returns information about notified users
 type NotificationMock struct {
@@ -48,25 +48,6 @@ func (c *NotificationMock) SendRaw(ctx context.Context,
 	caller, _ := payload["caller"].(string)
 	traceID, _ := ctx.Value(log.TraceIDContextKey).(string)
 
-	userConsents, _ := c.csCli.GetBatchConsents(ctx, consentGuardKey, minConsentVersion, subscribers...)
-	stats := make(map[string]int)
-	stats[EventConsent] = 0
-	stats[EventRevoke] = 0
-	stats[ConsentNeverConsented] = 0
-	stats[ConsentUnknown] = 0
-	stats[ConsentNotNeeded] = 0
-	if len(consentGuardKey) == 0 {
-		stats[ConsentNotNeeded] = len(subscribers)
-	} else {
-		for _, accID := range subscribers {
-			event, ok := userConsents[accID]
-			if ok {
-				stats[event]++
-			} else {
-				stats[ConsentUnknown]++
-			}
-		}
-	}
 	ns := NotificationStatus{
 		JobIDs:          []uuid.UUID{uuid.Must(uuid.NewV4())},
 		Error:           "",
@@ -75,7 +56,6 @@ func (c *NotificationMock) SendRaw(ctx context.Context,
 		StateQueue:      "not in queue",
 		StateProcessing: "not ready yet",
 		TraceID:         traceID,
-		ConsentStats:    stats,
 	}
 	return ns, nil
 }
@@ -113,25 +93,6 @@ func (c *NotificationMock) SendTemplated(ctx context.Context,
 	caller, _ := payload["caller"].(string)
 	traceID, _ := ctx.Value(log.TraceIDContextKey).(string)
 
-	userConsents, _ := c.csCli.GetBatchConsents(ctx, consentGuardKey, minConsentVersion, subscribers...)
-	stats := make(map[string]int)
-	stats[EventConsent] = 0
-	stats[EventRevoke] = 0
-	stats[ConsentNeverConsented] = 0
-	stats[ConsentUnknown] = 0
-	stats[ConsentNotNeeded] = 0
-	if len(consentGuardKey) == 0 {
-		stats[ConsentNotNeeded] = len(subscribers)
-	} else {
-		for _, accID := range subscribers {
-			event, ok := userConsents[accID]
-			if ok {
-				stats[event]++
-			} else {
-				stats[ConsentUnknown]++
-			}
-		}
-	}
 	ns := NotificationStatus{
 		JobIDs:          []uuid.UUID{uuid.Must(uuid.NewV4())},
 		Error:           "",
@@ -140,7 +101,6 @@ func (c *NotificationMock) SendTemplated(ctx context.Context,
 		StateQueue:      "not in queue",
 		StateProcessing: "not ready yet",
 		TraceID:         traceID,
-		ConsentStats:    stats,
 	}
 	return ns, nil
 }
