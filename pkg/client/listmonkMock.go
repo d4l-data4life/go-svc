@@ -26,6 +26,9 @@ func (lm *ListmonkMock) Tx(ctx context.Context, msg ListmonkTxMessage) (int, err
 	lm.counter[msg.SubscriberEmail][msg.TemplateID] = lm.counter[msg.SubscriberEmail][msg.TemplateID] + 1
 	return http.StatusOK, nil
 }
+func (lm *ListmonkMock) TxSync(ctx context.Context, msg ListmonkTxMessage) (int, error) {
+	return lm.Tx(ctx, msg)
+}
 
 func (lm *ListmonkMock) GetNotifiedUsers() []string {
 	return maps.Keys(lm.counter)

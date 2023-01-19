@@ -68,13 +68,12 @@ func NewListmonkApi(apiURL, apiUser, apiPassword, caller string) *ListmonkApi {
 	}
 }
 
-// Tx sends a transactional message to a subscriber using a predefined transactional template.
-func (c *ListmonkApi) Tx(ctx context.Context, msg ListmonkTxMessage) (int, error) {
+// sendTx sends a transactional message to a subscriber using a predefined transactional template.
+func (c *ListmonkApi) sendTx(ctx context.Context, reqURL string, msg ListmonkTxMessage) (int, error) {
 	if msg.FromName != "" {
 		msg.FromEmail = fmt.Sprintf("%s <%s>", msg.FromName, msg.FromEmail)
 		msg.FromName = ""
 	}
-	reqURL := fmt.Sprintf("%s/api/tx", c.apiURL)
 	jsonBytes, err := json.Marshal(msg)
 	if err != nil {
 		logging.LogErrorfCtx(ctx, err, ErrMarshalError.Error())
@@ -95,4 +94,17 @@ func (c *ListmonkApi) Tx(ctx context.Context, msg ListmonkTxMessage) (int, error
 		return status, ErrResponseNotOK
 	}
 	return status, nil
+}
+
+// Tx sends a transactional message to a subscriber using a predefined transactional template.
+func (c *ListmonkApi) Tx(ctx context.Context, msg ListmonkTxMessage) (int, error) {
+	reqURL := fmt.Sprintf("%s/api/tx", c.apiURL)
+	return c.sendTx(ctx, reqURL, msg)
+}
+
+// TxSync sends a synchronous (circumventing listmonk's internal queue and workers) transactional
+// message to a subscriber using a predefined transactional template.
+func (c *ListmonkApi) TxSync(ctx context.Context, msg ListmonkTxMessage) (int, error) {
+	reqURL := fmt.Sprintf("%s/api/custom/txsync", c.apiURL)
+	return c.sendTx(ctx, reqURL, msg)
 }
