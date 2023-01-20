@@ -17,9 +17,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- missing `TxSync` in Listmonk client interface
-
 ### Security
+
+## [v1.71.1] - 2023-01-20
+
+### Fixed
+
+- missing `TxSync` in Listmonk client interface
 
 ## [v1.71.0] - 2023-01-19
 
@@ -896,7 +900,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial state: standards for Main, HTTP Server, DB access (gorm), Logging, Instrumented-Handler, and K8s Probe
 
-[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.71.0...HEAD
+[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.71.1...HEAD
+[v1.71.1]: https://github.com/gesundheitscloud/go-svc/compare/v1.71.0...v1.71.1
 [v1.71.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.70.0...v1.71.0
 [v1.70.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.69.1...v1.70.0
 [v1.69.1]: https://github.com/gesundheitscloud/go-svc/compare/v1.69.0...v1.69.1
