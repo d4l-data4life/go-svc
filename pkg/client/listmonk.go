@@ -43,6 +43,10 @@ type okRespBool struct {
 type Listmonk interface {
 	// Send a transactional message to a subscriber using a predefined transactional template.
 	Tx(ctx context.Context, msg ListmonkTxMessage) (int, error)
+
+	// TxSync sends a synchronous (circumventing listmonk's internal queue and workers) transactional
+	// message to a subscriber using a predefined transactional template.
+	TxSync(ctx context.Context, msg ListmonkTxMessage) (int, error)
 }
 
 var _ Listmonk = (*ListmonkApi)(nil)
