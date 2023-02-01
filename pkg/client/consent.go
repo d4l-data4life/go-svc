@@ -8,9 +8,10 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/gesundheitscloud/go-svc/pkg/logging"
 	uuid "github.com/gofrs/uuid"
 	"github.com/pkg/errors"
+
+	"github.com/gesundheitscloud/go-svc/pkg/logging"
 )
 
 // Names of consent events as defined in models pkg of consent-management
@@ -78,7 +79,7 @@ func (cs *ConsentService) GetBatchConsents(ctx context.Context, consentKey strin
 	if err != nil {
 		return result, err
 	}
-	body, gotStatus, err := cs.caller.call(ctx, contentURL, "POST", cs.svcSecret, userAgentConsent, bytes.NewBuffer(payload), http.StatusOK)
+	body, gotStatus, _, err := cs.caller.call(ctx, contentURL, "POST", cs.svcSecret, userAgentConsent, bytes.NewBuffer(payload), http.StatusOK)
 	if err != nil {
 		logging.LogErrorfCtx(ctx, err, "error calling GetBatchConsents")
 		if gotStatus == 404 {

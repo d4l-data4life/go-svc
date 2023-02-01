@@ -33,11 +33,11 @@ func NewCaller(timeout time.Duration, name string) *caller {
 	}
 }
 
-func (c *caller) call(ctx context.Context, URL, method, secret, userAgent string, payload *bytes.Buffer, expectedCodes ...int) ([]byte, int, error) {
+func (c *caller) call(ctx context.Context, URL, method, secret, userAgent string, payload *bytes.Buffer, expectedCodes ...int) ([]byte, int, http.Header, error) {
 	request, err := http.NewRequestWithContext(ctx, method, URL, payload)
 	if err != nil {
 		logging.LogErrorfCtx(ctx, err, "error creating HTTP request")
-		return nil, 0, err
+		return nil, 0, nil, err
 	}
 	request.Header.Add("Authorization", secret)
 	request.Header.Set("User-Agent", userAgent)
@@ -49,7 +49,7 @@ func (c *caller) call(ctx context.Context, URL, method, secret, userAgent string
 	}
 	if err != nil {
 		logging.LogErrorfCtx(ctx, err, "error sending '%s' request to '%s'", method, URL)
-		return nil, 0, err
+		return nil, 0, nil, err
 	}
 
 	body, err := ioutil.ReadAll(response.Body)
@@ -59,9 +59,9 @@ func (c *caller) call(ctx context.Context, URL, method, secret, userAgent string
 				method, URL, response.StatusCode, prettyPrint(expectedCodes), string(body))
 		}
 		logging.LogErrorfCtx(ctx, err, "error sending request to service. Status: %s", http.StatusText(response.StatusCode))
-		return nil, response.StatusCode, err
+		return nil, response.StatusCode, nil, err
 	}
-	return body, response.StatusCode, nil
+	return body, response.StatusCode, response.Header, nil
 }
 
 func existsIn(value int, array []int) bool {

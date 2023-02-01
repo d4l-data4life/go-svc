@@ -141,13 +141,13 @@ func (c *NotificationService) SendTemplated(ctx context.Context,
 func (c *NotificationService) GetJobStatus(ctx context.Context, jobID uuid.UUID) (NotificationStatus, error) {
 	contentURL := fmt.Sprintf("%s/api/v1/jobs/%s", c.svcAddr, jobID.String())
 	reply := NotificationStatus{}
-	byteSettings, _, err := c.caller.call(ctx, contentURL, "GET", c.svcSecret, userAgentNotification, &bytes.Buffer{}, http.StatusOK, http.StatusAccepted)
+	respBody, _, _, err := c.caller.call(ctx, contentURL, "GET", c.svcSecret, userAgentNotification, &bytes.Buffer{}, http.StatusOK, http.StatusAccepted)
 	if err != nil {
 		logging.LogErrorfCtx(ctx, err, "fetching job status failed")
 		return NotificationStatus{}, err
 	}
 
-	if err := json.Unmarshal(byteSettings, &reply); err != nil {
+	if err := json.Unmarshal(respBody, &reply); err != nil {
 		logging.LogErrorfCtx(ctx, err, "error transforming job status service reply to an object")
 		return reply, err
 	}
@@ -156,7 +156,7 @@ func (c *NotificationService) GetJobStatus(ctx context.Context, jobID uuid.UUID)
 
 func (c *NotificationService) DeleteJob(ctx context.Context, jobID uuid.UUID) error {
 	contentURL := fmt.Sprintf("%s/api/v1/jobs/%s", c.svcAddr, jobID.String())
-	_, _, err := c.caller.call(ctx, contentURL, "DELETE", c.svcSecret, userAgentNotification, &bytes.Buffer{}, http.StatusNoContent)
+	_, _, _, err := c.caller.call(ctx, contentURL, "DELETE", c.svcSecret, userAgentNotification, &bytes.Buffer{}, http.StatusNoContent)
 	if err != nil {
 		logging.LogErrorfCtx(ctx, err, "canceling notification job failed")
 	}
@@ -171,7 +171,7 @@ func (c *NotificationService) sendTemplatedEmail(ctx context.Context, requestBod
 		logging.LogErrorfCtx(ctx, err, "error transforming notification request to JSON")
 		return reply, err
 	}
-	body, code, err := c.caller.call(ctx, contentURL, "POST", c.svcSecret, userAgentNotification, bytes.NewBuffer(jsonBytes), http.StatusOK, http.StatusAccepted)
+	body, code, _, err := c.caller.call(ctx, contentURL, "POST", c.svcSecret, userAgentNotification, bytes.NewBuffer(jsonBytes), http.StatusOK, http.StatusAccepted)
 	if err != nil {
 		logging.LogErrorfCtx(ctx, err, "sendTemplatedEmail failed, code: %d", code)
 		return reply, err
@@ -192,7 +192,7 @@ func (c *NotificationService) sendRawEmail(ctx context.Context, requestBody Noti
 		logging.LogErrorfCtx(ctx, err, "error transforming notification request to JSON")
 		return reply, err
 	}
-	body, code, err := c.caller.call(ctx, contentURL, "POST", c.svcSecret, userAgentNotification, bytes.NewBuffer(jsonBytes), http.StatusOK, http.StatusAccepted)
+	body, code, _, err := c.caller.call(ctx, contentURL, "POST", c.svcSecret, userAgentNotification, bytes.NewBuffer(jsonBytes), http.StatusOK, http.StatusAccepted)
 	if err != nil {
 		logging.LogErrorfCtx(ctx, err, "sendRawEmail failed, code: %d", code)
 		return reply, err

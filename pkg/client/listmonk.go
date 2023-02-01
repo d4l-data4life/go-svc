@@ -15,11 +15,11 @@ import (
 
 // define errors
 var (
-	ErrMarshalError  = errors.New("cannot marshal Tx request message")
-	ErrResponseNotOK = errors.New("Listmonk reponded with an error")
+	ErrLMMarshalError = errors.New("cannot marshal Tx request message")
+	ErrResponseNotOK  = errors.New("Listmonk reponded with an error")
 )
 
-const userAgentListmonk = "cds-notification.client.Listmonk"
+const userAgentListmonk = "go-svc.client.Listmonk"
 
 type Headers []map[string]string
 
@@ -80,16 +80,16 @@ func (c *ListmonkApi) sendTx(ctx context.Context, reqURL string, msg ListmonkTxM
 	}
 	jsonBytes, err := json.Marshal(msg)
 	if err != nil {
-		logging.LogErrorfCtx(ctx, err, ErrMarshalError.Error())
-		return 0, ErrMarshalError
+		logging.LogErrorfCtx(ctx, err, ErrLMMarshalError.Error())
+		return 0, ErrLMMarshalError
 	}
-	byteSettings, status, err := c.caller.call(ctx, reqURL, "POST", c.apiSecret, userAgentListmonk, bytes.NewBuffer(jsonBytes), http.StatusOK)
+	respBody, status, _, err := c.caller.call(ctx, reqURL, "POST", c.apiSecret, userAgentListmonk, bytes.NewBuffer(jsonBytes), http.StatusOK)
 	if err != nil {
 		logging.LogErrorfCtx(ctx, err, "error sending a transactional message")
 		return status, err
 	}
 	ok := okRespBool{}
-	if err := json.Unmarshal(byteSettings, &ok); err != nil {
+	if err := json.Unmarshal(respBody, &ok); err != nil {
 		logging.LogErrorfCtx(ctx, err, "error transforming Listmonk response to an object")
 		return status, err
 	}

@@ -9,7 +9,7 @@ import (
 
 var _ Listmonk = (*ListmonkMock)(nil)
 
-// ListmonkMock is a mocked client for the user-preferences service
+// ListmonkMock is a mocked client for listmonk
 type ListmonkMock struct {
 	counter map[string]map[int]int // email, templateId -> counter
 }
@@ -18,7 +18,6 @@ func NewListmonkMock() *ListmonkMock {
 	return &ListmonkMock{}
 }
 
-// Get fetches a single setting for a single user
 func (lm *ListmonkMock) Tx(ctx context.Context, msg ListmonkTxMessage) (int, error) {
 	if _, ok := lm.counter[msg.SubscriberEmail]; !ok {
 		lm.counter[msg.SubscriberEmail] = make(map[int]int)

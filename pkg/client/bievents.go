@@ -98,6 +98,6 @@ func (bic BIEventsFilter) Send(data interface{}) error {
 
 func (bic BIEventsFilter) postEvent(event EventAttempts) error {
 	contentURL := fmt.Sprintf("%s/api/v1/events", bic.svcAddr)
-	_, _, err := bic.caller.call(context.Background(), contentURL, "POST", bic.svcSecret, userAgentBIEventsFilter, bytes.NewBuffer(event.Data), http.StatusOK)
+	_, _, _, err := bic.caller.call(context.Background(), contentURL, "POST", bic.svcSecret, userAgentBIEventsFilter, bytes.NewBuffer(event.Data), http.StatusOK)
 	return err
 }

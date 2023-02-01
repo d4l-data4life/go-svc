@@ -42,14 +42,14 @@ func NewFeatureFlaggingService(svcAddr, svcSecret, caller string) *FeatureFlaggi
 // Get fetches a single setting
 func (c *FeatureFlaggingService) Get(ctx context.Context, key string) (bool, error) {
 	contentURL := fmt.Sprintf("%s/api/v1/services/%s", c.svcAddr, key)
-	byteSettings, _, err := c.caller.call(ctx, contentURL, "GET", c.svcSecret, userAgentFeatures, &bytes.Buffer{}, http.StatusOK)
+	respBody, _, _, err := c.caller.call(ctx, contentURL, "GET", c.svcSecret, userAgentFeatures, &bytes.Buffer{}, http.StatusOK)
 	if err != nil {
 		logging.LogErrorfCtx(ctx, err, "fetching feature flag failed")
 		return false, err
 	}
 
 	var boolValue bool
-	err = json.Unmarshal(byteSettings, &boolValue)
+	err = json.Unmarshal(respBody, &boolValue)
 
 	if err != nil {
 		logging.LogErrorfCtx(ctx, err, "failed parsing response to boolean")
@@ -62,14 +62,14 @@ func (c *FeatureFlaggingService) Get(ctx context.Context, key string) (bool, err
 // GetForUser fetches a single setting for a user
 func (c *FeatureFlaggingService) GetForUser(ctx context.Context, key string, authorization string) (bool, error) {
 	contentURL := fmt.Sprintf("%s/api/v1/features/%s", c.svcAddr, key)
-	byteSettings, _, err := c.caller.call(ctx, contentURL, "GET", authorization, userAgentFeatures, &bytes.Buffer{}, http.StatusOK)
+	respBody, _, _, err := c.caller.call(ctx, contentURL, "GET", authorization, userAgentFeatures, &bytes.Buffer{}, http.StatusOK)
 	if err != nil {
 		logging.LogErrorfCtx(ctx, err, "fetching feature flag failed")
 		return false, err
 	}
 
 	var boolValue bool
-	err = json.Unmarshal(byteSettings, &boolValue)
+	err = json.Unmarshal(respBody, &boolValue)
 
 	if err != nil {
 		logging.LogErrorfCtx(ctx, err, "failed parsing response to boolean")

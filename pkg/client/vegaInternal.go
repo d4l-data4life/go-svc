@@ -55,7 +55,7 @@ func (c *VegaInternalAPI) ResolveEmailV2(ctx context.Context, userIDs []uuid.UUI
 	}
 	body := bytes.NewBuffer(bodyBytes)
 	// additionally accept 404s as null-results
-	bReply, statusCode, err := c.caller.call(ctx, contentURL, "POST", c.svcSecret, userAgentVega, body, http.StatusOK, http.StatusNotFound)
+	bReply, statusCode, _, err := c.caller.call(ctx, contentURL, "POST", c.svcSecret, userAgentVega, body, http.StatusOK, http.StatusNotFound)
 	if err != nil {
 		logging.LogErrorfCtx(ctx, err, "resolving user email over APIv2 failed")
 		return emailMap, statusCode, err
