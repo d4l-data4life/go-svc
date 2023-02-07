@@ -18,11 +18,12 @@ require (
 	github.com/jackc/pgx/v4 v4.16.1
 	github.com/jinzhu/gorm v1.9.16
 	github.com/justinas/nosurf v1.1.1
+	github.com/lestrrat-go/jwx/v2 v2.0.8
 	github.com/lib/pq v1.10.6
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.12.2
 	github.com/spf13/viper v1.12.0
-	github.com/stretchr/testify v1.8.0
+	github.com/stretchr/testify v1.8.1
 	golang.org/x/net v0.0.0-20220722155237-a158d28d115b
 	golang.org/x/oauth2 v0.0.0-20220630143837-2104d58473e0
 	google.golang.org/protobuf v1.28.0
@@ -30,6 +31,16 @@ require (
 	gorm.io/driver/sqlite v1.3.6
 	gorm.io/gorm v1.23.8
 	gotest.tools v2.2.0+incompatible
+)
+
+require (
+	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.1.0 // indirect
+	github.com/goccy/go-json v0.9.11 // indirect
+	github.com/lestrrat-go/blackmagic v1.0.1 // indirect
+	github.com/lestrrat-go/httpcc v1.0.1 // indirect
+	github.com/lestrrat-go/httprc v1.0.4 // indirect
+	github.com/lestrrat-go/iter v1.0.2 // indirect
+	github.com/lestrrat-go/option v1.0.0 // indirect
 )
 
 require (
