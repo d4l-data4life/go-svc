@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- [clients] more detailed consent service mock
+
 ### Changed
 
 ### Deprecated
@@ -23,7 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- New jwt based authentication middleware for azure AD 
+- New jwt based authentication middleware for azure AD
 
 ## [v1.72.0] - 2023-02-01
 

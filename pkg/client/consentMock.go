@@ -7,6 +7,7 @@ import (
 )
 
 var _ Consent = (*ConsentMock)(nil)
+var _ Consent = (*ConsentMockDetailed)(nil)
 var _ Consent = (*ConsentMockRoundRobin)(nil)
 
 type ConsentMock struct {
@@ -29,6 +30,40 @@ func (cs *ConsentMock) GetBatchConsents(ctx context.Context, consentKey string, 
 			result[accID] = ConsentNeverConsented
 		} else {
 			result[accID] = value
+		}
+	}
+	return result, nil
+}
+
+type ConsentMockDetailed struct {
+	err   error
+	state map[uuid.UUID]map[string]string
+}
+
+// NewConsentMockDetailed returns mocked consent-management service where the information about consents is stored in a map per consent
+func NewConsentMockDetailed(state map[uuid.UUID]map[string]string, err error) *ConsentMockDetailed {
+	return &ConsentMockDetailed{
+		state: state,
+		err:   err,
+	}
+}
+
+func (cm *ConsentMockDetailed) GetBatchConsents(ctx context.Context, consentKey string, minVersion string, subscribers ...uuid.UUID) (map[uuid.UUID]string, error) {
+	if cm.err != nil {
+		return nil, cm.err
+	}
+	result := make(map[uuid.UUID]string)
+	for _, accID := range subscribers {
+		consents, ok := cm.state[accID]
+		if !ok {
+			result[accID] = ConsentNeverConsented
+		} else {
+			value, ok := consents[consentKey]
+			if !ok {
+				result[accID] = ConsentNeverConsented
+			} else {
+				result[accID] = value
+			}
 		}
 	}
 	return result, nil
