@@ -27,9 +27,21 @@ const (
 	userAgentFlowmailer = "go-svc.client.Flowmailer"
 )
 
-// FMSendEmail is the data format for an email request to our client
-type FMSendEmail struct {
+// FMSendTemplatedEmail is the data format for a templated email request to our client
+type FMSendTemplatedEmail struct {
 	TemplateID  int
+	FromName    string
+	FromAddress string
+	Recipient   string
+	Data        map[string]any
+	Attachments []FMAttachment
+}
+
+// FMSendRawEmail is the data format for a raw email request to our client
+type FMSendRawEmail struct {
+	Subject     string
+	HTML        string
+	Text        string
 	FromName    string
 	FromAddress string
 	Recipient   string
@@ -59,11 +71,27 @@ type FMSubmitMessage struct {
 	SenderAddress    string         `json:"senderAddress,omitempty"`
 	HeaderFromName   string         `json:"headerFromName,omitempty"`
 	Data             map[string]any `json:"data,omitempty"`
+	Subject          string         `json:"subject,omitempty"`
+	HTML             string         `json:"html,omitempty"`
+	Text             string         `json:"text,omitempty"`
+	Attachments      []FMAttachment `json:"attachments,omitempty"`
+}
+
+type FMAttachment struct {
+	Filename string `json:"filename,omitempty"`
+	// base64 encoded content
+	Content     string `json:"content,omitempty"`
+	ContentType string `json:"contentType,omitempty"`
+	// will automatically be set to "attachment"
+	Disposition string `json:"disposition,omitempty"`
 }
 
 type Flowmailer interface {
-	// SendEmail submits a message via Flowmailer API
-	SendEmail(ctx context.Context, msg FMSendEmail) (int, string, error)
+	// SendTemplatedEmail submits a message via Flowmailer API
+	SendTemplatedEmail(ctx context.Context, msg FMSendTemplatedEmail) (int, string, error)
+
+	// SendRawEmail submits a message via Flowmailer API
+	SendRawEmail(ctx context.Context, msg FMSendRawEmail) (int, string, error)
 
 	// GetMessageStatus requests the status of the sent email (processing, delivered, bounced, ...)
 	GetMessageStatus(ctx context.Context, messageID string) (int, FMMessageStatus, error)
@@ -140,15 +168,9 @@ func (f *FlowmailerApi) ensureAuthentication(ctx context.Context) error {
 	return nil
 }
 
-// SendEmail uses Flowmailers message/submit API to send an email.
+// SendTemplatedEmail uses Flowmailers message/submit API to send a templated email.
 // Returns the status of the request and on success the ID of the created message.
-func (f *FlowmailerApi) SendEmail(ctx context.Context, msg FMSendEmail) (int, string, error) {
-	if err := f.ensureAuthentication(ctx); err != nil {
-		logging.LogErrorfCtx(ctx, err, "error authenticating to Flowmailer API")
-		return 0, "", err
-	}
-
-	// construct flowmailer payload
+func (f *FlowmailerApi) SendTemplatedEmail(ctx context.Context, msg FMSendTemplatedEmail) (int, string, error) {
 	payload := FMSubmitMessage{
 		MessageType:      "EMAIL",
 		FlowSelector:     fmt.Sprintf("template-%d", msg.TemplateID),
@@ -156,9 +178,39 @@ func (f *FlowmailerApi) SendEmail(ctx context.Context, msg FMSendEmail) (int, st
 		SenderAddress:    msg.FromAddress,
 		HeaderFromName:   msg.FromName,
 		Data:             msg.Data,
+		Attachments:      msg.Attachments,
 	}
 
-	// Send message
+	for index := range payload.Attachments {
+		payload.Attachments[index].Disposition = "attachment"
+	}
+
+	return f.submitMessage(ctx, payload)
+}
+
+// SendRawEmail uses Flowmailers message/submit API to send a raw email.
+// Returns the status of the request and on success the ID of the created message.
+func (f *FlowmailerApi) SendRawEmail(ctx context.Context, msg FMSendRawEmail) (int, string, error) {
+	payload := FMSubmitMessage{
+		MessageType:      "EMAIL",
+		RecipientAddress: msg.Recipient,
+		SenderAddress:    msg.FromAddress,
+		HeaderFromName:   msg.FromName,
+		Data:             msg.Data,
+		Subject:          msg.Subject,
+		HTML:             msg.HTML,
+		Text:             msg.Text,
+	}
+
+	return f.submitMessage(ctx, payload)
+}
+
+func (f *FlowmailerApi) submitMessage(ctx context.Context, payload FMSubmitMessage) (int, string, error) {
+	if err := f.ensureAuthentication(ctx); err != nil {
+		logging.LogErrorfCtx(ctx, err, "error authenticating to Flowmailer API")
+		return 0, "", err
+	}
+
 	jsonBytes, err := json.Marshal(payload)
 	if err != nil {
 		logging.LogErrorfCtx(ctx, err, ErrFMMarshalError.Error())

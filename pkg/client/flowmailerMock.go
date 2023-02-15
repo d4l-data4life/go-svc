@@ -22,11 +22,19 @@ func NewFlowmailerMock() *FlowmailerMock {
 	return &FlowmailerMock{}
 }
 
-func (f *FlowmailerMock) SendEmail(ctx context.Context, msg FMSendEmail) (int, string, error) {
+func (f *FlowmailerMock) SendTemplatedEmail(ctx context.Context, msg FMSendTemplatedEmail) (int, string, error) {
 	if _, ok := f.counter[msg.Recipient]; !ok {
 		f.counter[msg.Recipient] = make(map[int]int)
 	}
 	f.counter[msg.Recipient][msg.TemplateID] = f.counter[msg.Recipient][msg.TemplateID] + 1
+	return http.StatusCreated, "", nil
+}
+
+func (f *FlowmailerMock) SendRawEmail(ctx context.Context, msg FMSendRawEmail) (int, string, error) {
+	if _, ok := f.counter[msg.Recipient]; !ok {
+		f.counter[msg.Recipient] = make(map[int]int)
+	}
+	f.counter[msg.Recipient][0] = f.counter[msg.Recipient][0] + 1
 	return http.StatusCreated, "", nil
 }
 
