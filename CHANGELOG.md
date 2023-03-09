@@ -11,8 +11,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- [clients] User preferences single setting get does not error for setting not found
-
 ### Deprecated
 
 ### Removed
@@ -20,6 +18,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Security
+
+## [v1.76.0] - 2023-03-09
+
+### Changed
+
+- [clients] User preferences single setting get does not error for setting not found
 
 ## [v1.75.0] - 2023-02-15
 
@@ -926,7 +930,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial state: standards for Main, HTTP Server, DB access (gorm), Logging, Instrumented-Handler, and K8s Probe
 
-[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.75.0...HEAD
+[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.76.0...HEAD
+[v1.76.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.75.0...v1.76.0
 [v1.75.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.74.0...v1.75.0
 [v1.74.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.73.0...v1.74.0
 [v1.73.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.72.0...v1.73.0
