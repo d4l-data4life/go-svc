@@ -35,6 +35,13 @@ func NewUserPreferencesMockWithState(data map[uuid.UUID]struct{ K, V string }) *
 
 // Get fetches a single setting for a single user
 func (c *UserPreferencesMock) Get(ctx context.Context, accountID uuid.UUID, key string) (interface{}, error) {
+	if _, accountOK := c.storage[accountID]; !accountOK {
+		return "", nil
+	}
+	if _, settingOK := c.storage[accountID][key]; !settingOK {
+		return "", nil
+	}
+
 	return c.storage[accountID][key], nil
 }
 

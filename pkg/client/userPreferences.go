@@ -96,10 +96,14 @@ func (c *UserPreferencesService) Get(ctx context.Context, accountID uuid.UUID, k
 		return nil, ErrEmptyKey
 	}
 	contentURL := fmt.Sprintf("%s/api/v2/internal/users/%s/settings/%s", c.svcAddr, accountID.String(), key)
-	byteSettings, _, _, err := c.caller.call(ctx, contentURL, "GET", c.svcSecret, userAgentUserPrefs, &bytes.Buffer{}, http.StatusOK)
+	byteSettings, statusCode, _, err := c.caller.call(ctx, contentURL, "GET", c.svcSecret, userAgentUserPrefs, &bytes.Buffer{}, http.StatusOK, http.StatusNotFound)
 	if err != nil {
 		logging.LogErrorfCtx(ctx, err, "fetching single setting failed")
 		return nil, err
+	}
+	// If setting was not found return empty string for it
+	if statusCode == http.StatusNotFound {
+		return "", nil
 	}
 	var value interface{}
 	err = json.Unmarshal(byteSettings, &value)
