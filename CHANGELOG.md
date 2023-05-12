@@ -9,8 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- [db2] Option to set schema name for gorm
-
 ### Changed
 
 ### Deprecated
@@ -19,9 +17,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- [db2] Normal connection not using `DefaultPostgresDriver`
-
 ### Security
+
+## [v1.77.0] - 2023-05-12
+
+### Added
+
+- [db2] Option to set schema name for gorm
+
+### Fixed
+
+- [db2] Normal connection not using `DefaultPostgresDriver`
 
 ## [v1.76.0] - 2023-03-09
 
@@ -934,7 +940,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial state: standards for Main, HTTP Server, DB access (gorm), Logging, Instrumented-Handler, and K8s Probe
 
-[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.76.0...HEAD
+[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.77.0...HEAD
+[v1.77.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.76.0...v1.77.0
 [v1.76.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.75.0...v1.76.0
 [v1.75.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.74.0...v1.75.0
 [v1.74.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.73.0...v1.74.0
