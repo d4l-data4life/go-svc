@@ -2,12 +2,10 @@ package db2
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/pkg/errors"
 
-	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 
 	"github.com/gesundheitscloud/go-svc/pkg/logging"
@@ -42,7 +40,8 @@ func Initialize(runCtx context.Context, opts *ConnectionOptions) <-chan struct{}
 			dbUp <- struct{}{} // nothing to be done, so show success
 			return
 		}
-		connectFn := func() (*gorm.DB, error) { return connect(opts) }
+		connectString := ConnectString(opts)
+		connectFn := func() (*gorm.DB, error) { return DefaultPostgresDriver(connectString, opts) }
 
 		// retries as long as err != nil
 		conn, err := retryExponential(runCtx, numConnectAttempts, 1*time.Second, connectFn)
@@ -129,25 +128,6 @@ func Close() {
 			logging.LogErrorf(err, "error closing DB")
 		}
 	}
-}
-
-// connect reads environment variables for DB configuration and attempts to open the connection
-func connect(opts *ConnectionOptions) (*gorm.DB, error) {
-	connectString := fmt.Sprintf("host=%s port=%s dbname=%s sslmode=%s",
-		opts.Host, opts.Port, opts.DatabaseName, opts.SSLMode)
-
-	if (opts.SSLMode == "verify-ca" || opts.SSLMode == "verify-full") && opts.SSLRootCertPath != "" {
-		connectString += fmt.Sprintf(" sslrootcert=%s", opts.SSLRootCertPath)
-	}
-
-	secretString := fmt.Sprintf(" user=%s password=%s", opts.User, opts.Password)
-
-	logging.LogDebugf("Attempting to connect to DB: %s", connectString)
-
-	return gorm.Open(postgres.Open(connectString+secretString), &gorm.Config{
-		Logger:                 NewLogger(opts.LoggerConfig),
-		SkipDefaultTransaction: opts.SkipDefaultTransaction,
-	})
 }
 
 // retryExponential runc function fn() as long as fn() returns no error, but maximally 'attempts' times

@@ -2,6 +2,7 @@ package db2
 
 import (
 	"database/sql"
+	"fmt"
 	"sort"
 	"time"
 
@@ -9,6 +10,9 @@ import (
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
+	"gorm.io/gorm/schema"
+
+	"github.com/gesundheitscloud/go-svc/pkg/logging"
 )
 
 type MigrationFunc func(do *gorm.DB) error
@@ -33,6 +37,7 @@ type ConnectionOptions struct {
 	Host                  string
 	Port                  string
 	DatabaseName          string
+	DatabaseSchema        string
 	User                  string
 	Password              string
 	SSLMode               string
@@ -56,6 +61,7 @@ func WithDefaults() ConnectionOption {
 		c.MaxConnectionLifetime = 5 * time.Minute
 		c.MaxIdleConnections = 3
 		c.MaxOpenConnections = 6
+		c.DatabaseSchema = "public"
 		c.Host = "localhost"
 		c.Port = "5432"
 		c.SSLMode = "verify-full"
@@ -106,6 +112,11 @@ func WithDatabaseName(value string) ConnectionOption {
 		c.DatabaseName = value
 	}
 }
+func WithDatabaseSchema(value string) ConnectionOption {
+	return func(c *ConnectionOptions) {
+		c.DatabaseSchema = value
+	}
+}
 func WithUser(value string) ConnectionOption {
 	return func(c *ConnectionOptions) {
 		c.User = value
@@ -144,6 +155,7 @@ func WithMigrationHaltOnError(haltOnError bool) ConnectionOption {
 	}
 }
 
+// WithDriverFunc is used to overwrite the DB driver for testing
 func WithDriverFunc(fn DriverFunc) ConnectionOption {
 	return func(c *ConnectionOptions) {
 		c.DriverFunc = fn
@@ -174,6 +186,22 @@ func WithSkipDefaultTransaction(value bool) ConnectionOption {
 	}
 }
 
+// ConnectString reads connect options and compiles them to string form
+func ConnectString(opts *ConnectionOptions) string {
+	connectString := fmt.Sprintf("host=%s port=%s dbname=%s sslmode=%s",
+		opts.Host, opts.Port, opts.DatabaseName, opts.SSLMode)
+
+	if (opts.SSLMode == "verify-ca" || opts.SSLMode == "verify-full") && opts.SSLRootCertPath != "" {
+		connectString += fmt.Sprintf(" sslrootcert=%s", opts.SSLRootCertPath)
+	}
+
+	secretString := fmt.Sprintf(" user=%s password=%s", opts.User, opts.Password)
+
+	logging.LogDebugf("Attempting to connect to DB: %s", connectString)
+
+	return connectString + secretString
+}
+
 // DefaultPostgresDriver defines the default DB driver
 // To be used in options as argument for db.WithDriverFunc()
 // Is default, hence will be used when db.WithDriverFunc() is not used in options
@@ -182,6 +210,10 @@ func DefaultPostgresDriver(connectString string, opts *ConnectionOptions) (*gorm
 	return gorm.Open(postgres.Open(connectString), &gorm.Config{
 		Logger:                 NewLogger(opts.LoggerConfig),
 		SkipDefaultTransaction: opts.SkipDefaultTransaction,
+		NamingStrategy: schema.NamingStrategy{
+			TablePrefix:   fmt.Sprintf("%s.", opts.DatabaseSchema),
+			SingularTable: false,
+		},
 	})
 }
 
@@ -197,6 +229,10 @@ func TXDBPostgresDriver(connectString string, opts *ConnectionOptions) (*gorm.DB
 	return gorm.Open(postgres.New(postgres.Config{DriverName: "txdb", DSN: connectString}), &gorm.Config{
 		Logger:                 NewLogger(opts.LoggerConfig),
 		SkipDefaultTransaction: opts.SkipDefaultTransaction,
+		NamingStrategy: schema.NamingStrategy{
+			TablePrefix:   fmt.Sprintf("%s.", opts.DatabaseSchema),
+			SingularTable: false,
+		},
 	})
 }
 
@@ -209,5 +245,9 @@ func TXDBPostgresDriverWithoutSavepoint(connectString string, opts *ConnectionOp
 	return gorm.Open(postgres.New(postgres.Config{DriverName: "txdb", DSN: connectString}), &gorm.Config{
 		Logger:                 NewLogger(opts.LoggerConfig),
 		SkipDefaultTransaction: opts.SkipDefaultTransaction,
+		NamingStrategy: schema.NamingStrategy{
+			TablePrefix:   fmt.Sprintf("%s.", opts.DatabaseSchema),
+			SingularTable: false,
+		},
 	})
 }

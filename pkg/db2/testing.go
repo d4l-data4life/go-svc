@@ -31,7 +31,7 @@ func InitializeTestSqlite3(migFn MigrationFunc) {
 	}
 }
 
-func ConnectString(opts *ConnectionOptions) string {
+func TestConnectString(opts *ConnectionOptions) string {
 	core := fmt.Sprintf("host=%s port=%s dbname=%s user=%s password=%s", opts.Host, opts.Port, opts.DatabaseName, opts.User, opts.Password)
 	addons := ""
 	if opts.SSLMode != "" {
@@ -45,7 +45,7 @@ func ConnectString(opts *ConnectionOptions) string {
 
 // InitializeTestPostgres connects to a postgess db
 func InitializeTestPostgres(opts *ConnectionOptions) {
-	connectString := ConnectString(opts)
+	connectString := TestConnectString(opts)
 	logging.LogDebugf("Attempting to connect to DB using: %s", connectString)
 
 	Close()
