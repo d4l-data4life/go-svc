@@ -2,7 +2,7 @@ package middlewares_test
 
 import (
 	"context"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -64,7 +64,7 @@ func TestTraceTransportWithTraceIdInContext(t *testing.T) {
 	res, err := client.Do(req)
 	assert.NoError(t, err)
 
-	body, _ := ioutil.ReadAll(res.Body)
+	body, _ := io.ReadAll(res.Body)
 	assert.Equal(t, expectedResponseBody, string(body))
 }
 

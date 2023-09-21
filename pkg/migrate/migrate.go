@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"strings"
 	"text/template"
@@ -130,7 +129,7 @@ func (m *Migration) parseFile(ctx context.Context, filename string, templateData
 		return "", nil
 	}
 
-	c, err := ioutil.ReadFile(path)
+	c, err := os.ReadFile(path)
 	if err != nil {
 		return "", errors.Wrap(err, fmt.Sprintf("could not open the file on path %s", path))
 	}

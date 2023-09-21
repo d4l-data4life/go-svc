@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- [db] package for gorm v1
+
 ### Fixed
 
 ### Security

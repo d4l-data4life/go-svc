@@ -1,6 +1,6 @@
 module github.com/gesundheitscloud/go-svc
 
-go 1.18
+go 1.20
 
 require (
 	github.com/DATA-DOG/go-txdb v0.1.5
@@ -18,7 +18,6 @@ require (
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.16.0
 	github.com/improbable-eng/grpc-web v0.15.0
 	github.com/jackc/pgx/v4 v4.16.1
-	github.com/jinzhu/gorm v1.9.16
 	github.com/justinas/nosurf v1.1.1
 	github.com/lestrrat-go/jwx/v2 v2.0.8
 	github.com/lib/pq v1.10.6

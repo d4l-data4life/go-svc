@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"strings"
@@ -150,7 +150,7 @@ func (f *FlowmailerApi) ensureAuthentication(ctx context.Context) error {
 		logging.LogErrorfCtx(ctx, err, ErrFMAuthentication.Error())
 		return ErrFMAuthentication
 	}
-	body, err := ioutil.ReadAll(response.Body)
+	body, err := io.ReadAll(response.Body)
 	if err != nil {
 		logging.LogErrorfCtx(ctx, err, "error reading response body")
 		return err

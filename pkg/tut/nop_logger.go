@@ -1,7 +1,7 @@
 package tut
 
 import (
-	"io/ioutil"
+	"io"
 
 	"github.com/gesundheitscloud/go-svc/pkg/log"
 )
@@ -12,6 +12,6 @@ type NopLogger struct {
 
 func NewNopLogger() *NopLogger {
 	return &NopLogger{
-		Logger: log.NewLogger("test", "", "", log.WithWriter(ioutil.Discard)),
+		Logger: log.NewLogger("test", "", "", log.WithWriter(io.Discard)),
 	}
 }

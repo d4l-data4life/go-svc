@@ -2,7 +2,7 @@ package tut
 
 import (
 	"crypto/rsa"
-	"io/ioutil"
+	"io"
 	"os"
 
 	jwtgo "github.com/golang-jwt/jwt/v4"
@@ -17,7 +17,7 @@ func ReadPrivateKey(privateKeyPath string) *rsa.PrivateKey {
 
 	defer func() { _ = file.Close() }()
 
-	fileContent, err := ioutil.ReadAll(file)
+	fileContent, err := io.ReadAll(file)
 	if err != nil {
 		panic(err)
 	}

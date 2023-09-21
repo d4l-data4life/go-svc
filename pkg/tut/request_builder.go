@@ -5,7 +5,7 @@ import (
 	"context"
 	"crypto/rsa"
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"strings"
@@ -64,7 +64,7 @@ func ReqWithJSONBody(v interface{}) func(*http.Request) {
 		}
 
 		req.Header.Set("Content-Type", "application/json; charset=utf-8")
-		req.Body = ioutil.NopCloser(strings.NewReader(string(jsonValue)))
+		req.Body = io.NopCloser(strings.NewReader(string(jsonValue)))
 	}
 }
 
@@ -73,7 +73,7 @@ func ReqWithJSONBody(v interface{}) func(*http.Request) {
 func ReqWithJSONBodyString(json string) func(*http.Request) {
 	return func(req *http.Request) {
 		req.Header.Set("Content-Type", "application/json; charset=utf-8")
-		req.Body = ioutil.NopCloser(strings.NewReader(json))
+		req.Body = io.NopCloser(strings.NewReader(json))
 	}
 }
 
@@ -82,7 +82,7 @@ func ReqWithJSONBodyString(json string) func(*http.Request) {
 func ReqWithTextBody(body string) func(*http.Request) {
 	return func(req *http.Request) {
 		req.Header.Set("Content-Type", "text/plain")
-		req.Body = ioutil.NopCloser(strings.NewReader(body))
+		req.Body = io.NopCloser(strings.NewReader(body))
 	}
 }
 
@@ -92,7 +92,7 @@ func ReqWithTextBody(body string) func(*http.Request) {
 func ReqWithByteArrayBody(body []byte) func(*http.Request) {
 	return func(req *http.Request) {
 		req.Header.Set("Content-Type", "application/octet-stream")
-		req.Body = ioutil.NopCloser(bytes.NewReader(body))
+		req.Body = io.NopCloser(bytes.NewReader(body))
 	}
 }
 
@@ -160,7 +160,7 @@ func ReqWithFormBody(vals ...func(*url.Values)) func(*http.Request) {
 		}
 
 		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-		req.Body = ioutil.NopCloser(strings.NewReader(data.Encode()))
+		req.Body = io.NopCloser(strings.NewReader(data.Encode()))
 	}
 }
 
@@ -176,6 +176,7 @@ func ReqWithCookies(cookies ...*http.Cookie) func(*http.Request) {
 
 // ReqWithHeader returns a function that modifies the given request
 // by setting the given header.
+//
 //nolint:unparam - will be useful in the future and therefore not fixed
 func ReqWithHeader(key, value string) func(*http.Request) {
 	return func(req *http.Request) {

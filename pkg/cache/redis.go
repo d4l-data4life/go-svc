@@ -6,7 +6,7 @@ import (
 	"crypto/x509"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"strconv"
 	"time"
 
@@ -91,7 +91,7 @@ func Close(client *redis.Client) {
 func connect(opts *RedisConnectionOptions) (*redis.Client, error) {
 	var tlsConfig *tls.Config
 	if opts.UseTLS {
-		cer, err := ioutil.ReadFile(opts.SSLRootCert)
+		cer, err := os.ReadFile(opts.SSLRootCert)
 		if err != nil {
 			logging.LogErrorf(ErrDBConnection, "could not load tls cert")
 			return nil, err

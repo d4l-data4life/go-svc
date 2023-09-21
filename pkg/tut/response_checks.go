@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"reflect"
 	"strings"
@@ -28,7 +28,7 @@ func CheckResponse(checks ...func(*http.Response) error) func(*http.Response) er
 // RespBodyIsValidJSON checks if the body is valid JSON
 func RespBodyIsValidJSON(res *http.Response) error {
 	bodyReader := MultiReadResponseBody(res)
-	body, err := ioutil.ReadAll(bodyReader)
+	body, err := io.ReadAll(bodyReader)
 	if err != nil {
 		return fmt.Errorf("could not read the body")
 	}
@@ -92,7 +92,7 @@ func RespHasStatusCode(want int) ResponseCheckFunc {
 // It ignores whitespaces from the response body.
 func RespHasTextBody(checks ...ValueCheckFunc) ResponseCheckFunc {
 	return func(res *http.Response) error {
-		responseData, err := ioutil.ReadAll(MultiReadResponseBody(res))
+		responseData, err := io.ReadAll(MultiReadResponseBody(res))
 		if err != nil {
 			return fmt.Errorf("could not read body: %w", err)
 		}
@@ -186,13 +186,13 @@ func RespBodyHasKey(key string, valueChecks ...ValueCheckFunc) ResponseCheckFunc
 // MultiReadResponseBody is a helper function for reading the body of
 // a *http.Request multiple times.
 func MultiReadResponseBody(res *http.Response) *bytes.Reader {
-	body, _ := ioutil.ReadAll(res.Body)
+	body, _ := io.ReadAll(res.Body)
 	if err := res.Body.Close(); err != nil {
 		panic(err)
 	}
 	newBody := make([]byte, len(body))
 	copy(newBody, body)
-	res.Body = ioutil.NopCloser(bytes.NewBuffer(newBody))
+	res.Body = io.NopCloser(bytes.NewBuffer(newBody))
 	return bytes.NewReader(body)
 }
 

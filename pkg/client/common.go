@@ -5,7 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"time"
 
@@ -52,7 +52,7 @@ func (c *caller) call(ctx context.Context, URL, method, secret, userAgent string
 		return nil, 0, nil, err
 	}
 
-	body, err := ioutil.ReadAll(response.Body)
+	body, err := io.ReadAll(response.Body)
 	if !existsIn(response.StatusCode, expectedCodes) {
 		if err == nil {
 			err = fmt.Errorf("method = '%s', URL = '%s' error: unexpected return code %d (wanted one of: %s), body = %s",

@@ -2,14 +2,14 @@ package dynamic_test
 
 import (
 	"bytes"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
 	"time"
 
-	"github.com/gesundheitscloud/go-svc/pkg/dynamic"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/gesundheitscloud/go-svc/pkg/dynamic"
 )
 
 // TestViperConfigCopying ensures that ViperConfing object works correctly when copied in various ways (as long as 'go vet' allows)
@@ -111,12 +111,12 @@ func TestViperConfigHotReloadAfterMerge(t *testing.T) {
 	}()
 
 	// Write to config.yaml files to separate dirs
-	if err := ioutil.WriteFile(filepath.Join(tmpDir1, "config.yaml"), yamlExample1, 0666); err != nil {
+	if err := os.WriteFile(filepath.Join(tmpDir1, "config.yaml"), yamlExample1, 0666); err != nil {
 		t.Fatal(err)
 	}
 	t.Logf("written file %s", filepath.Join(tmpDir1, "config.yaml"))
 
-	if err := ioutil.WriteFile(filepath.Join(tmpDir2, "config.yaml"), yamlExample2, 0666); err != nil {
+	if err := os.WriteFile(filepath.Join(tmpDir2, "config.yaml"), yamlExample2, 0666); err != nil {
 		t.Fatal(err)
 	}
 	t.Logf("written file %s", filepath.Join(tmpDir2, "config.yaml"))
@@ -163,12 +163,12 @@ func TestViperConfigHotReloadAfterMerge(t *testing.T) {
 	_, pubC := keyEntries(t, "C", false)
 	var yamlExample1B = []byte(publicKeyYaml(pubA, pubB, pubC))
 
-	if err := ioutil.WriteFile(filepath.Join(tmpDir1, "config.yaml"), yamlExample1B, 0666); err != nil {
+	if err := os.WriteFile(filepath.Join(tmpDir1, "config.yaml"), yamlExample1B, 0666); err != nil {
 		t.Fatal(err)
 	}
 	var yamlExample2B = []byte(privateKeyYaml(privA, privB))
 
-	if err := ioutil.WriteFile(filepath.Join(tmpDir2, "config.yaml"), yamlExample2B, 0666); err != nil {
+	if err := os.WriteFile(filepath.Join(tmpDir2, "config.yaml"), yamlExample2B, 0666); err != nil {
 		t.Fatal(err)
 	}
 	// wait a bit for the filesystem to catch the changes in the config files and notify Viper

@@ -6,7 +6,7 @@ package testutils
 import (
 	"context"
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"strings"
@@ -53,7 +53,7 @@ func WithJSONBody(v interface{}) func(*http.Request) {
 		}
 
 		req.Header.Set("Content-Type", "application/json; charset=utf-8")
-		req.Body = ioutil.NopCloser(strings.NewReader(string(jsonValue)))
+		req.Body = io.NopCloser(strings.NewReader(string(jsonValue)))
 	}
 }
 
@@ -89,7 +89,7 @@ func WithForm(vals ...func(*url.Values)) func(*http.Request) {
 		}
 
 		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-		req.Body = ioutil.NopCloser(strings.NewReader(data.Encode()))
+		req.Body = io.NopCloser(strings.NewReader(data.Encode()))
 	}
 }
 

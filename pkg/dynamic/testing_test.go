@@ -8,7 +8,6 @@ import (
 	"encoding/pem"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -141,7 +140,7 @@ func generateAndWriteConfig(t *testing.T, numKeys int, namePrefix string, dir st
 	} else {
 		tmpDir = dir
 	}
-	if err := ioutil.WriteFile(filepath.Join(tmpDir, "config.yaml"), yaml, 0666); err != nil {
+	if err := os.WriteFile(filepath.Join(tmpDir, "config.yaml"), yaml, 0666); err != nil {
 		t.Fatal(err)
 	}
 	t.Logf("written file %s", filepath.Join(tmpDir, "config.yaml"))
@@ -167,7 +166,7 @@ func testRequest(t *testing.T, ts *httptest.Server, method, path string, token s
 		return nil, ""
 	}
 
-	respBody, err := ioutil.ReadAll(resp.Body)
+	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
 		t.Fatal(err)
 		return nil, ""

@@ -1,7 +1,7 @@
 package db2
 
 import (
-	"io/ioutil"
+	"io"
 	"net/http/httptest"
 	"strconv"
 	"strings"
@@ -115,7 +115,7 @@ func checkMetricsCollection(metricSrv *httptest.Server, want []string, t *testin
 	}
 	defer resp.Body.Close()
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		t.Fatalf("error reading body from metrics response: %v", err)
 	}

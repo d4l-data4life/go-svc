@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"regexp"
 	"strings"
@@ -313,12 +313,12 @@ func filteredBodyStrFromReq(req *http.Request) string {
 		return ""
 	}
 
-	bodyBytes, err := ioutil.ReadAll(req.Body)
+	bodyBytes, err := io.ReadAll(req.Body)
 	if err != nil {
 		return fmt.Sprintf("error reading body: %v", err)
 	}
 
-	req.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+	req.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
 
 	return string(bodyBytes)
 }
@@ -329,12 +329,12 @@ func filteredBodyStrFromResp(resp *http.Response) string {
 		return bodyStr
 	}
 
-	bodyBytes, err := ioutil.ReadAll(resp.Body)
+	bodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return fmt.Sprintf("error reading body: %v", err)
 	}
 
-	resp.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+	resp.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
 
 	return string(bodyBytes)
 }
