@@ -9,8 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- [ticket] package to facilitate authorization for downloads from data-receiver
-
 ### Changed
 
 ### Deprecated
@@ -20,6 +18,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Security
+
+## [v1.80.0] - 2023-12-04
+
+### Added
+
+- [ticket] package to facilitate authorization for downloads from data-receiver
 
 ## [v1.79.0] - 2023-10-18
 
@@ -958,7 +962,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial state: standards for Main, HTTP Server, DB access (gorm), Logging, Instrumented-Handler, and K8s Probe
 
-[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.79.0...HEAD
+[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.80.0...HEAD
+[v1.80.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.79.0...v1.80.0
 [v1.79.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.78.0...v1.79.0
 [v1.78.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.77.0...v1.78.0
 [v1.77.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.76.0...v1.77.0
