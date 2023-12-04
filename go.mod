@@ -2,6 +2,10 @@ module github.com/gesundheitscloud/go-svc
 
 go 1.20
 
+// https://github.com/mattn/go-sqlite3/issues/975 v2 was never meant to be released
+// and causes a weird error in the github tests
+exclude github.com/mattn/go-sqlite3 v2.0.3+incompatible
+
 require (
 	github.com/DATA-DOG/go-txdb v0.1.7
 	github.com/caarlos0/env v3.5.0+incompatible
@@ -13,6 +17,7 @@ require (
 	github.com/go-redis/redismock/v8 v8.11.5
 	github.com/gofrs/uuid v4.4.0+incompatible
 	github.com/golang-jwt/jwt/v4 v4.5.0
+	github.com/golang-jwt/jwt/v5 v5.1.0
 	github.com/golang-migrate/migrate/v4 v4.16.2
 	github.com/gorilla/mux v1.8.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.18.0
@@ -67,7 +72,7 @@ require (
 	github.com/lestrrat-go/iter v1.0.2 // indirect
 	github.com/lestrrat-go/option v1.0.1 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
-	github.com/mattn/go-sqlite3 v2.0.3+incompatible // indirect
+	github.com/mattn/go-sqlite3 v1.14.17 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.4 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/onsi/gomega v1.28.0 // indirect
