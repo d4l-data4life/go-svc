@@ -2,10 +2,6 @@ module github.com/gesundheitscloud/go-svc
 
 go 1.20
 
-// https://github.com/mattn/go-sqlite3/issues/975 v2 was never meant to be released
-// and causes a weird error in the github tests
-exclude github.com/mattn/go-sqlite3 v2.0.3+incompatible
-
 require (
 	github.com/DATA-DOG/go-txdb v0.1.7
 	github.com/caarlos0/env v3.5.0+incompatible

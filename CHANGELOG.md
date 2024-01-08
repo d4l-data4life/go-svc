@@ -15,11 +15,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
-- [db2] SQlite support
-
 ### Fixed
 
 ### Security
+
+## [v1.80.1] - 2024-01-08
+
+### Removed
+
+- [db2] SQlite support
 
 ## [v1.80.0] - 2023-12-04
 
@@ -964,7 +968,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial state: standards for Main, HTTP Server, DB access (gorm), Logging, Instrumented-Handler, and K8s Probe
 
-[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.80.0...HEAD
+[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.80.1...HEAD
+[v1.80.1]: https://github.com/gesundheitscloud/go-svc/compare/v1.80.0...v1.80.1
 [v1.80.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.79.0...v1.80.0
 [v1.79.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.78.0...v1.79.0
 [v1.78.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.77.0...v1.78.0
