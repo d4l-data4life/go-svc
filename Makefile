@@ -13,12 +13,15 @@ PG_PASSWORD=test \
 PG_USE_SSL="false"
 endef
 
-test-gh-action: ## Run tests natively in verbose mode
+.PHONY: test-gh-action
+test-gh-action: ## Run tests natively in verbose mode and storing the results in out file
 	$(LOCAL_VARIABLES) \
 	go test -timeout 300s -cover -covermode=atomic -v ./... 2>&1 | tee test-result.out
 
-test: lint test-gh-action
+.PHONY: test
+test: lint unit-test-postgres
 
+.PHONY: lint
 lint:
 	DOCKER_BUILDKIT=1 \
 		docker build \
@@ -28,6 +31,14 @@ lint:
 			-f build/lint.Dockerfile \
 			.
 		docker run --rm "go-svc:lint"
+
+.PHONY: unit-test-postgres
+unit-test-postgres: docker-database local-test clean
+
+.PHONY: local-test lt
+local-test lt:      ## Run tests natively
+	$(LOCAL_VARIABLES) \
+	go test -timeout 30s -cover -covermode=atomic ./...
 
 .PHONY: docker-database
 docker-database: clean ## Run database in Docker
