@@ -25,7 +25,6 @@ func (l *Logger) ErrMessage(
 		ServiceName:    l.serviceName,
 		ServiceVersion: l.serviceVersion,
 		Hostname:       l.hostname,
-		EventType:      "err-message",
 		UserID:         userID,
 		Message:        message,
 		Error:          errorMsg,

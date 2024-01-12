@@ -11,9 +11,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- [logging] Format of logs and omit almost all empty fields
+
 ### Deprecated
 
 ### Removed
+
+- [logging] Remove generic event types
 
 ### Fixed
 

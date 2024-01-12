@@ -6,16 +6,16 @@ import (
 
 // logEntry is the format for generic logs
 type logEntry struct {
-	Timestamp      time.Time `json:"timestamp"`
-	LogLevel       logLevel  `json:"log-level"`
-	TraceID        string    `json:"trace-id"`
-	ServiceName    string    `json:"service-name"`
-	ServiceVersion string    `json:"service-version"`
-	Hostname       string    `json:"hostname"`
-	EventType      string    `json:"event-type"`
+	Timestamp      time.Time `json:"timestamp,omitempty"`
+	LogLevel       logLevel  `json:"log-level,omitempty"`
+	TraceID        string    `json:"trace-id,omitempty"`
+	ServiceName    string    `json:"service-name,omitempty"`
+	ServiceVersion string    `json:"service-version,omitempty"`
+	Hostname       string    `json:"hostname,omitempty"`
+	EventType      string    `json:"event-type,omitempty"`
 
 	// TenantID is the ID of the tenant to which the log belongs to
-	TenantID string `json:"tenant-id"`
+	TenantID string `json:"tenant-id,omitempty"`
 
 	UserID  string `json:"user-id,omitempty"`
 	Message string `json:"message"`

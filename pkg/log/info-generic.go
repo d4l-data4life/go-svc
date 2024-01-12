@@ -21,7 +21,6 @@ func (l *Logger) InfoGeneric(
 		ServiceName:    l.serviceName,
 		ServiceVersion: l.serviceVersion,
 		Hostname:       l.hostname,
-		EventType:      "info-generic",
 		UserID:         userID,
 		Message:        message,
 		ClientID:       clientID,

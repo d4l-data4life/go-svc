@@ -68,10 +68,6 @@ func TestInfoGeneric(t *testing.T) {
 				value: `"test-svc-123-123"`,
 			},
 			{
-				key:   "event-type",
-				value: `"info-generic"`,
-			},
-			{
 				key:   "message",
 				value: fmt.Sprintf(`"%s"`, testMessage),
 			},

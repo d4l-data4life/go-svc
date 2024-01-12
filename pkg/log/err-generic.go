@@ -21,7 +21,6 @@ func (l *Logger) ErrGeneric(
 		ServiceName:    l.serviceName,
 		ServiceVersion: l.serviceVersion,
 		Hostname:       l.hostname,
-		EventType:      "err-generic",
 		UserID:         userID,
 		Message:        err.Error(),
 		ClientID:       clientID,

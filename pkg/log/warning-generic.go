@@ -25,7 +25,6 @@ func (l *Logger) WarnGeneric(
 		ServiceName:    l.serviceName,
 		ServiceVersion: l.serviceVersion,
 		Hostname:       l.hostname,
-		EventType:      "warning-generic",
 		UserID:         userID,
 		Error:          errorMsg,
 		Message:        message,

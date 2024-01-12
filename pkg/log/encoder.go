@@ -30,40 +30,40 @@ func (e *PrettyEncoder) Encode(entry interface{}) error {
 	var s string
 
 	switch v := entry.(type) {
-	case singleChangeLog:
-		s = fmt.Sprintf("%s %s %s %s | traceID: %s; subjectID: %s; clientID: %s; old: %s; new: %s; resourceID: %s resourceType: %s",
-			v.Timestamp.Format(timeFmt), v.LogType, v.AuditLogType, v.RequestURL,
-			v.TraceID, v.SubjectID, v.ClientID, v.OldValue, v.NewValue, v.ResourceID, v.ResourceType)
-	case bulkChangeLog:
-		s = fmt.Sprintf("%s %s %s %s | traceID: %s; subjectID: %s; clientID: %s; old: %s; new: %s; resourceIDs: %s, resourceTypes: %s",
-			v.Timestamp.Format(timeFmt), v.LogType, v.AuditLogType, v.RequestURL,
-			v.TraceID, v.SubjectID, v.ClientID, v.OldValue, v.NewValue, v.ResourceIDs, v.ResourceType)
-	case singleAccessLog:
-		s = fmt.Sprintf("%s %s %s %s | traceID: %s; subjectID: %s; clientID: %s; resourceID: %s; resourceType: %s",
-			v.Timestamp.Format(timeFmt), v.LogType, v.AuditLogType, v.RequestURL, v.TraceID, v.SubjectID, v.ClientID, v.ResourceID, v.ResourceType)
-	case securityLog:
-		s = fmt.Sprintf("%s %s %s %s | traceID: %s; subjectID: %s; clientID: %s; securityEvent: %s successful: %t",
-			v.Timestamp.Format(timeFmt), v.LogType, v.AuditLogType, v.RequestURL, v.TraceID, v.SubjectID, v.ClientID, v.SecurityEvent, v.Successful)
 	case logEntry:
-		s = fmt.Sprintf("%s %s %s | traceID: %s; userID: %s | %s",
+		s = fmt.Sprintf("%s %s %s | %s | %s | %s",
 			v.Timestamp.Format(timeFmt), v.LogLevel, v.EventType, v.TraceID, v.UserID, v.Message)
 		if v.Error != "" {
 			s += fmt.Sprintf(" err: %s", v.Error)
 		}
 	case inRequestLog:
-		s = fmt.Sprintf("%s %s %s | traceID: %s; userID: %s; method: %s; url: %s | %s",
+		s = fmt.Sprintf("%s %s %s | %s | %s | %s %s | %s",
 			v.Timestamp.Format(timeFmt), v.LogLevel, v.EventType, v.TraceID, v.UserID, v.ReqMethod, v.ReqURL, v.ReqBody)
 	case inResponseLog:
-		s = fmt.Sprintf("%s %s %s | traceID: %s; userID: %s; url: %s; code: %d; roundtrip-duration: %d | %s",
+		s = fmt.Sprintf("%s %s %s | %s | %s | %s => %d (%d ms) | %s",
 			v.Timestamp.Format(timeFmt), v.LogLevel, v.EventType, v.TraceID, v.UserID, v.ReqURL, v.ResponseCode, v.Duration, v.ResponseBody)
 	case outRequestLog:
-		s = fmt.Sprintf("%s %s %s | traceID: %s; userID: %s; method: %s; url: %s | %s",
+		s = fmt.Sprintf("%s %s %s | %s | %s | %s %s | %s",
 			v.Timestamp.Format(timeFmt), v.LogLevel, v.EventType, v.TraceID, v.UserID, v.ReqMethod, v.ReqURL, v.ReqBody)
 	case outResponseLog:
-		s = fmt.Sprintf("%s %s %s | traceID: %s; userID: %s; url: %s; code: %d; roundtrip-duration: %d | %s",
+		s = fmt.Sprintf("%s %s %s | %s | %s | %s => %d; (%d ms) | %s",
 			v.Timestamp.Format(timeFmt), v.LogLevel, v.EventType, v.TraceID, v.UserID, v.ReqURL, v.ResponseCode, v.Duration, v.ResponseBody)
+	case singleChangeLog:
+		s = fmt.Sprintf("%s %s %s %s | %s | subjectID: %s; clientID: %s; old: %s; new: %s; resourceID: %s resourceType: %s",
+			v.Timestamp.Format(timeFmt), v.LogType, v.AuditLogType, v.RequestURL,
+			v.TraceID, v.SubjectID, v.ClientID, v.OldValue, v.NewValue, v.ResourceID, v.ResourceType)
+	case bulkChangeLog:
+		s = fmt.Sprintf("%s %s %s %s | %s | subjectID: %s; clientID: %s; old: %s; new: %s; resourceIDs: %s, resourceTypes: %s",
+			v.Timestamp.Format(timeFmt), v.LogType, v.AuditLogType, v.RequestURL,
+			v.TraceID, v.SubjectID, v.ClientID, v.OldValue, v.NewValue, v.ResourceIDs, v.ResourceType)
+	case singleAccessLog:
+		s = fmt.Sprintf("%s %s %s %s | %s | subjectID: %s; clientID: %s; resourceID: %s; resourceType: %s",
+			v.Timestamp.Format(timeFmt), v.LogType, v.AuditLogType, v.RequestURL, v.TraceID, v.SubjectID, v.ClientID, v.ResourceID, v.ResourceType)
+	case securityLog:
+		s = fmt.Sprintf("%s %s %s %s | %s | subjectID: %s; clientID: %s; securityEvent: %s successful: %t",
+			v.Timestamp.Format(timeFmt), v.LogType, v.AuditLogType, v.RequestURL, v.TraceID, v.SubjectID, v.ClientID, v.SecurityEvent, v.Successful)
 	case sqlLogEntry:
-		s = fmt.Sprintf("%s %s %s | traceId: %s; userID: %s | pgx-log-level: %s; pgx-message: %s; pgx-data: %s",
+		s = fmt.Sprintf("%s %s %s | %s | %s | pgx-log-level: %s; pgx-message: %s; pgx-data: %s",
 			v.Timestamp.Format(timeFmt), v.LogLevel, v.EventType, v.TraceID, v.UserID, v.PgxLogLevel, v.PgxMessage, v.PgxData)
 
 	default:

@@ -12,9 +12,10 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/gofrs/uuid"
+
 	"github.com/gesundheitscloud/go-svc/pkg/d4lcontext"
 	"github.com/gesundheitscloud/go-svc/pkg/log"
-	"github.com/gofrs/uuid"
 )
 
 const (
@@ -91,18 +92,6 @@ func TestHTTPWrapper(t *testing.T) {
 			{
 				key:   "response-code",
 				value: `200`,
-			},
-			{
-				key:   "payload-length",
-				value: `0`,
-			},
-			{
-				key:   "trace-id",
-				value: `""`,
-			},
-			{
-				key:   "tenant-id",
-				value: `""`,
 			},
 		} {
 			t.Run("contains "+tc.key, func(t *testing.T) {
@@ -232,10 +221,6 @@ func TestHTTPWrapper(t *testing.T) {
 			},
 			{
 				key:   "req-body",
-				value: `""`,
-			},
-			{
-				key:   "tenant-id",
 				value: `""`,
 			},
 		} {
@@ -414,10 +399,6 @@ func TestHTTPWrapper(t *testing.T) {
 				value: `"version"`,
 			},
 			{
-				key:   "event-type",
-				value: `"err-generic"`,
-			},
-			{
 				key:   "user-id",
 				value: fmt.Sprintf("%q", userID),
 			},
@@ -514,14 +495,6 @@ func TestTenantIDOverriding(t *testing.T) {
 		httpWrapers       []func(*log.HTTPLogger)
 		expectedKeyValues map[string]string
 	}{
-		{
-			name:        "should work fine without any tenant ID",
-			logger:      log.NewLogger("name", "version", "hostname", log.WithWriter(buf)),
-			httpWrapers: []func(*log.HTTPLogger){},
-			expectedKeyValues: map[string]string{
-				"tenant-id": `""`,
-			},
-		},
 		{
 			name:        "should work with the tenant ID defined in the logger instance",
 			logger:      log.NewLogger("name", "version", "hostname", log.WithWriter(buf), log.WithTenantID("tenant-1")),
@@ -844,10 +817,6 @@ func TestFilteredContentType(t *testing.T) {
 				value: `"version"`,
 			},
 			{
-				key:   "event-type",
-				value: `"err-generic"`,
-			},
-			{
 				key:   "user-id",
 				value: fmt.Sprintf("%q", userID),
 			},
@@ -921,10 +890,6 @@ func TestFilteredContentType(t *testing.T) {
 			{
 				key:   "content-type",
 				value: `"application/octet-stream"`,
-			},
-			{
-				key:   "content-encoding",
-				value: `""`,
 			},
 			{
 				key:   "req-method",
@@ -1296,7 +1261,7 @@ func TestAnonymizeIP(t *testing.T) {
 				key:           "real-ip",
 				value:         `""`, // expect empty string
 				anonymizer:    log.IPAnonymizer{},
-				expectedMatch: true,
+				expectedMatch: false, // but it will not show up due to omitempty
 			},
 		} {
 			t.Run(tc.name, func(t *testing.T) {
