@@ -11,17 +11,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- [db] Renamed `db2` into `db`
-
 ### Deprecated
 
 ### Removed
 
-- Many outdated repos
-
 ### Fixed
 
 ### Security
+
+## [v1.82.0] - 2024-01-26
+
+### Changed
+
+- [db] Renamed `db2` into `db`
+
+### Removed
+
+- Many outdated repos
 
 ## [v1.81.0] - 2024-01-12
 
@@ -982,7 +988,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial state: standards for Main, HTTP Server, DB access (gorm), Logging, Instrumented-Handler, and K8s Probe
 
-[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.81.0...HEAD
+[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.82.0...HEAD
+[v1.82.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.81.0...v1.82.0
 [v1.81.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.80.1...v1.81.0
 [v1.80.1]: https://github.com/gesundheitscloud/go-svc/compare/v1.80.0...v1.80.1
 [v1.80.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.79.0...v1.80.0
