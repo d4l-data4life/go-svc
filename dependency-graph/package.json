@@ -1,0 +1,15 @@
+{
+  "name": "dependency-graph",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dependencies.js",
+  "scripts": {
+    "dependencies": "node ./dependencies.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "fs-readdir-recursive": "^1.1.0",
+    "yargs": "^17.7.2"
+  }
+}

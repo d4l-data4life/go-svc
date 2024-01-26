@@ -11,9 +11,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- [db] Renamed `db2` into `db`
+
 ### Deprecated
 
 ### Removed
+
+- Many outdated repos
 
 ### Fixed
 

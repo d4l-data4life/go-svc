@@ -62,9 +62,6 @@ func (e *PrettyEncoder) Encode(entry interface{}) error {
 	case securityLog:
 		s = fmt.Sprintf("%s %s %s %s | %s | subjectID: %s; clientID: %s; securityEvent: %s successful: %t",
 			v.Timestamp.Format(timeFmt), v.LogType, v.AuditLogType, v.RequestURL, v.TraceID, v.SubjectID, v.ClientID, v.SecurityEvent, v.Successful)
-	case sqlLogEntry:
-		s = fmt.Sprintf("%s %s %s | %s | %s | pgx-log-level: %s; pgx-message: %s; pgx-data: %s",
-			v.Timestamp.Format(timeFmt), v.LogLevel, v.EventType, v.TraceID, v.UserID, v.PgxLogLevel, v.PgxMessage, v.PgxData)
 
 	default:
 		return fmt.Errorf("unknown log type: %T", v)

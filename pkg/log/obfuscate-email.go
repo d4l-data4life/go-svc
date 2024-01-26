@@ -32,9 +32,6 @@ func (mo MailObfuscator) Obfuscate(log interface{}) interface{} {
 	case inResponseLog:
 		l.ResponseBody = ObfuscateEmail(l.ResponseBody)
 		return l
-	case sqlLogEntry:
-		l.PgxData = ObfuscateEmail(l.PgxData)
-		return l
 	}
 
 	return log

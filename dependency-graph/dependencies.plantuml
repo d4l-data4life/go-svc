@@ -1,0 +1,79 @@
+@startuml Dependencies
+
+together {
+class ResearchPillars
+class DataDispatcher
+class DataReceiver
+}
+
+object channels
+object client
+object d4lcontext
+object db
+object instrumented
+object log
+object logging
+object middlewares
+object migrate
+object prom
+object standard
+object ticket
+object transport
+
+ResearchPillars --> d4lcontext
+ResearchPillars --> db
+ResearchPillars --> log
+ResearchPillars --> logging
+ResearchPillars --> middlewares
+ResearchPillars --> prom
+ResearchPillars --> standard
+ResearchPillars --> ticket
+
+DataDispatcher --> channels
+DataDispatcher --> client
+DataDispatcher --> db
+DataDispatcher --> instrumented
+DataDispatcher --> log
+DataDispatcher --> logging
+DataDispatcher --> middlewares
+DataDispatcher --> prom
+DataDispatcher --> standard
+
+DataReceiver --> d4lcontext
+DataReceiver --> db
+DataReceiver --> instrumented
+DataReceiver --> log
+DataReceiver --> logging
+DataReceiver --> middlewares
+DataReceiver --> standard
+DataReceiver --> ticket
+
+client -[dotted]-|> log
+client -[dotted]-|> logging
+client -[dotted]-|> transport
+
+db -[dotted]-|> logging
+db -[dotted]-|> migrate
+
+instrumented -[dotted]-|> logging
+instrumented -[dotted]-|> prom
+
+log -[dotted]-|> d4lcontext
+log -[dotted]-|> transport
+
+logging -[dotted]-|> log
+
+middlewares -[dotted]-|> d4lcontext
+middlewares -[dotted]-|> instrumented
+middlewares -[dotted]-|> log
+middlewares -[dotted]-|> logging
+middlewares -[dotted]-|> prom
+
+standard -[dotted]-|> channels
+standard -[dotted]-|> db
+standard -[dotted]-|> logging
+
+transport -[dotted]-|> log
+transport -[dotted]-|> prom
+
+@enduml
