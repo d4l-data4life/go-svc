@@ -5,7 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/gesundheitscloud/go-svc/pkg/d4lcontext"
+	"github.com/gesundheitscloud/go-svc/pkg/log"
 	"github.com/gesundheitscloud/go-svc/pkg/middlewares"
 
 	"github.com/stretchr/testify/assert"
@@ -19,7 +19,7 @@ func TestTenantID(t *testing.T) {
 	res := httptest.NewRecorder()
 
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		traceID := r.Context().Value(d4lcontext.TenantIDContextKey).(string)
+		traceID := r.Context().Value(log.TenantIDContextKey).(string)
 		assert.Equal(t, expectedTenantID, traceID)
 	})
 

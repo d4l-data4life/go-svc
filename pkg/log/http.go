@@ -9,10 +9,6 @@ import (
 	"regexp"
 	"strings"
 	"time"
-
-	"github.com/gofrs/uuid"
-
-	"github.com/gesundheitscloud/go-svc/pkg/d4lcontext"
 )
 
 type contextKey string
@@ -87,13 +83,9 @@ func (l HTTPLogger) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 	if userID := l.userParser(req); userID != "" {
 		req = req.WithContext(context.WithValue(req.Context(), UserIDContextKey, userID))
-	} else if userID := d4lcontext.GetUserID(req); userID != uuid.Nil {
-		req = req.WithContext(context.WithValue(req.Context(), UserIDContextKey, userID.String()))
 	}
 
 	if clientID := l.clientParser(req); clientID != "" {
-		req = req.WithContext(context.WithValue(req.Context(), ClientIDContextKey, clientID))
-	} else if clientID = d4lcontext.GetClientID(req); clientID != "" {
 		req = req.WithContext(context.WithValue(req.Context(), ClientIDContextKey, clientID))
 	}
 
@@ -102,8 +94,6 @@ func (l HTTPLogger) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	}
 
 	if tenantID := l.tenantIDParser(req); tenantID != "" {
-		req = req.WithContext(context.WithValue(req.Context(), TenantIDContextKey, tenantID))
-	} else if tenantID = d4lcontext.GetTenantID(req); tenantID != "" {
 		req = req.WithContext(context.WithValue(req.Context(), TenantIDContextKey, tenantID))
 	}
 

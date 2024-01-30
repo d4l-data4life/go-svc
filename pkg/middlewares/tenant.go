@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/gesundheitscloud/go-svc/pkg/d4lcontext"
+	"github.com/gesundheitscloud/go-svc/pkg/log"
 )
 
 const (
@@ -16,7 +16,7 @@ const (
 func Tenant(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		tenantID := r.Header.Get(TenantIDHeaderName)
-		ctx := context.WithValue(r.Context(), d4lcontext.TenantIDContextKey, tenantID)
+		ctx := context.WithValue(r.Context(), log.TenantIDContextKey, tenantID)
 		r = r.WithContext(ctx)
 		next.ServeHTTP(w, r)
 	})
