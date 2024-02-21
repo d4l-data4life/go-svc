@@ -3,7 +3,6 @@ package log_test
 import (
 	"bytes"
 	"context"
-	"fmt"
 	"strings"
 	"testing"
 
@@ -121,14 +120,14 @@ func TestAuditRead(t *testing.T) {
 				extras = append(extras, AdditionalData(tc.additionalData))
 			}
 			if tc.subjectID != "" {
-				extras = append(extras, SubjectID(testStringer(tc.subjectID)))
+				extras = append(extras, SubjectID(tc.subjectID))
 			}
 
 			if err := logger.AuditRead(
 				tc.ctx,
-				testStringer(tc.ownerID),
-				testStringer(tc.resourceType),
-				testStringer(tc.resourceID),
+				tc.ownerID,
+				tc.resourceType,
+				tc.resourceID,
 				extras...,
 			); err != nil {
 				t.Fatalf("unexpected error: %v", err)
@@ -176,7 +175,7 @@ func TestAuditBulkRead(t *testing.T) {
 		subjectID      string
 		ownerID        string
 		resourceType   string
-		resourceIDs    []fmt.Stringer
+		resourceIDs    []string
 		additionalData interface{}
 		want           string
 	}{
@@ -188,7 +187,7 @@ func TestAuditBulkRead(t *testing.T) {
 			),
 			ownerID:      "owner-1",
 			resourceType: "res-type-1",
-			resourceIDs:  []fmt.Stringer{testStringer("res-1"), testStringer("res-2")},
+			resourceIDs:  []string{"res-1", "res-2"},
 			additionalData: exampleStruct{
 				IntField:    -1,
 				StringField: "a0",
@@ -211,7 +210,7 @@ func TestAuditBulkRead(t *testing.T) {
 			),
 			ownerID:        "owner-1",
 			resourceType:   "res-type-1",
-			resourceIDs:    []fmt.Stringer{testStringer("res-1"), testStringer("res-2")},
+			resourceIDs:    []string{"res-1", "res-2"},
 			additionalData: nil,
 			want: expectedPrefix +
 				`"caller-ip":"0.0.0.1",` +
@@ -230,7 +229,7 @@ func TestAuditBulkRead(t *testing.T) {
 			subjectID:    "sub-2",
 			ownerID:      "owner-1",
 			resourceType: "res-type-1",
-			resourceIDs:  []fmt.Stringer{testStringer("res-1"), testStringer("res-2")},
+			resourceIDs:  []string{"res-1", "res-2"},
 			want: expectedPrefix +
 				`"caller-ip":"0.0.0.1",` +
 				`"subject-id":"sub-2",` +
@@ -251,13 +250,13 @@ func TestAuditBulkRead(t *testing.T) {
 				extras = append(extras, AdditionalData(tc.additionalData))
 			}
 			if tc.subjectID != "" {
-				extras = append(extras, SubjectID(testStringer(tc.subjectID)))
+				extras = append(extras, SubjectID(tc.subjectID))
 			}
 
 			if err := logger.AuditBulkRead(
 				tc.ctx,
-				testStringer(tc.ownerID),
-				testStringer(tc.resourceType),
+				tc.ownerID,
+				tc.resourceType,
 				tc.resourceIDs,
 				extras...,
 			); err != nil {

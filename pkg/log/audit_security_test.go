@@ -147,7 +147,7 @@ func TestAuditSecurity(t *testing.T) {
 				extras = append(extras, AdditionalData(tc.additionalData))
 			}
 			if tc.subjectID != "" {
-				extras = append(extras, SubjectID(testStringer(tc.subjectID)))
+				extras = append(extras, SubjectID(tc.subjectID))
 			}
 			if tc.message != "" {
 				extras = append(extras, Message(tc.message))
@@ -155,7 +155,7 @@ func TestAuditSecurity(t *testing.T) {
 
 			if err := logger.AuditSecurity(
 				tc.ctx,
-				testStringer(tc.securityEvent),
+				tc.securityEvent,
 				tc.successful,
 				extras...,
 			); err != nil {

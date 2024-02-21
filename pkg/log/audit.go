@@ -22,10 +22,10 @@ type baseAuditLog struct {
 	AuditLogType AuditLogType `json:"audit-log-type"`
 
 	// Channel Data
-	TraceID        string `json:"trace-id"`
-	ServiceName    string `json:"service-name"`
-	ServiceVersion string `json:"service-version"`
-	Hostname       string `json:"hostname"`
+	TraceID        string `json:"trace-id,omitempty"`
+	ServiceName    string `json:"service-name,omitempty"`
+	ServiceVersion string `json:"service-version,omitempty"`
+	Hostname       string `json:"hostname,omitempty"`
 	PodName        string `json:"pod-name,omitempty"`
 	Environment    string `json:"environment,omitempty"`
 	RequestURL     string `json:"req-url,omitempty"`
@@ -35,13 +35,33 @@ type baseAuditLog struct {
 	ClientID string `json:"client-id,omitempty"`
 
 	// TenantID is the ID of the tenant to which the log belongs to
-	TenantID string `json:"tenant-id"`
+	TenantID string `json:"tenant-id,omitempty"`
 
 	// The IP address of the caller
 	CallerIPAddress string `json:"caller-ip,omitempty"`
 
 	// subject is the user initiating the event (the `sub` claim)
-	SubjectID string `json:"subject-id"`
+	SubjectID string `json:"subject-id,omitempty"`
+}
+
+func (l *Logger) createBaseAuditLog(ctx context.Context, logType AuditLogType) baseAuditLog {
+	return baseAuditLog{
+		Timestamp:       time.Now(),
+		LogType:         Audit,
+		AuditLogType:    logType,
+		TraceID:         getFromContext(ctx, TraceIDContextKey),
+		ServiceName:     l.serviceName,
+		ServiceVersion:  l.serviceVersion,
+		Hostname:        l.hostname,
+		PodName:         l.podName,
+		Environment:     l.environment,
+		ClientID:        getFromContext(ctx, ClientIDContextKey),
+		RequestURL:      getFromContext(ctx, RequestURLContextKey),
+		RequestDomain:   getFromContext(ctx, RequestDomainContextKey),
+		CallerIPAddress: getFromContext(ctx, CallerIPContextKey),
+		SubjectID:       getFromContext(ctx, UserIDContextKey),
+		TenantID:        getFromContextWithDefault(ctx, TenantIDContextKey, l.tenantID),
+	}
 }
 
 // Audit logs the audit message, along with an audit object.
@@ -86,15 +106,15 @@ type ExtraAuditInfoProvider func(interface{})
 // SubjectID allows to override the default value for subject ID (which is
 // taken from the context).
 // It can be used on any audit method.
-func SubjectID(sID fmt.Stringer) ExtraAuditInfoProvider {
+func SubjectID(sID string) ExtraAuditInfoProvider {
 	return func(l interface{}) {
 		switch l := l.(type) {
 		case *changeLog:
-			l.SubjectID = sID.String()
+			l.SubjectID = sID
 		case *securityLog:
-			l.SubjectID = sID.String()
+			l.SubjectID = sID
 		case *accessLog:
-			l.SubjectID = sID.String()
+			l.SubjectID = sID
 		}
 	}
 }
@@ -102,15 +122,15 @@ func SubjectID(sID fmt.Stringer) ExtraAuditInfoProvider {
 // ClientID allows to override the default value for client ID (which is
 // taken from the context).
 // It can be used on any audit method.
-func ClientID(cID fmt.Stringer) ExtraAuditInfoProvider {
+func ClientID(cID string) ExtraAuditInfoProvider {
 	return func(l interface{}) {
 		switch l := l.(type) {
 		case *changeLog:
-			l.ClientID = cID.String()
+			l.ClientID = cID
 		case *securityLog:
-			l.ClientID = cID.String()
+			l.ClientID = cID
 		case *accessLog:
-			l.ClientID = cID.String()
+			l.ClientID = cID
 		}
 	}
 }

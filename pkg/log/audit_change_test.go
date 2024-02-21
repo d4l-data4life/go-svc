@@ -3,7 +3,6 @@ package log_test
 import (
 	"bytes"
 	"context"
-	"fmt"
 	"strings"
 	"testing"
 
@@ -185,14 +184,14 @@ func TestAuditCreate(t *testing.T) {
 				extras = append(extras, AdditionalData(tc.additionalData))
 			}
 			if tc.subjectID != "" {
-				extras = append(extras, SubjectID(testStringer(tc.subjectID)))
+				extras = append(extras, SubjectID(tc.subjectID))
 			}
 
 			if err := logger.AuditCreate(
 				tc.ctx,
-				testStringer(tc.ownerID),
-				testStringer(tc.resourceType),
-				testStringer(tc.resourceID),
+				tc.ownerID,
+				tc.resourceType,
+				tc.resourceID,
 				tc.value,
 				extras...,
 			); err != nil {
@@ -331,7 +330,7 @@ func TestAuditUpdate(t *testing.T) {
 				extras = append(extras, AdditionalData(tc.additionalData))
 			}
 			if tc.subjectID != "" {
-				extras = append(extras, SubjectID(testStringer(tc.subjectID)))
+				extras = append(extras, SubjectID(tc.subjectID))
 			}
 			if tc.oldValue != nil {
 				extras = append(extras, OldValue(tc.oldValue))
@@ -339,9 +338,9 @@ func TestAuditUpdate(t *testing.T) {
 
 			if err := logger.AuditUpdate(
 				tc.ctx,
-				testStringer(tc.ownerID),
-				testStringer(tc.resourceType),
-				testStringer(tc.resourceID),
+				tc.ownerID,
+				tc.resourceType,
+				tc.resourceID,
 				tc.value,
 				extras...,
 			); err != nil {
@@ -471,7 +470,7 @@ func TestAuditDelete(t *testing.T) {
 				extras = append(extras, AdditionalData(tc.additionalData))
 			}
 			if tc.subjectID != "" {
-				extras = append(extras, SubjectID(testStringer(tc.subjectID)))
+				extras = append(extras, SubjectID(tc.subjectID))
 			}
 			if tc.oldValue != nil {
 				extras = append(extras, OldValue(tc.oldValue))
@@ -479,9 +478,9 @@ func TestAuditDelete(t *testing.T) {
 
 			if err := logger.AuditDelete(
 				tc.ctx,
-				testStringer(tc.ownerID),
-				testStringer(tc.resourceType),
-				testStringer(tc.resourceID),
+				tc.ownerID,
+				tc.resourceType,
+				tc.resourceID,
 				extras...,
 			); err != nil {
 				t.Fatalf("unexpected error: %v", err)
@@ -529,7 +528,7 @@ func TestAuditBulkDelete(t *testing.T) {
 		subjectID      string
 		ownerID        string
 		resourceType   string
-		resourceIDs    []fmt.Stringer
+		resourceIDs    []string
 		oldValue       interface{}
 		additionalData interface{}
 		want           string
@@ -542,7 +541,7 @@ func TestAuditBulkDelete(t *testing.T) {
 			),
 			ownerID:        "owner-1",
 			resourceType:   "res-type-1",
-			resourceIDs:    []fmt.Stringer{testStringer("res-1")},
+			resourceIDs:    []string{"res-1"},
 			oldValue:       nil,
 			additionalData: nil,
 			want: expectedPrefix +
@@ -561,7 +560,7 @@ func TestAuditBulkDelete(t *testing.T) {
 			),
 			ownerID:        "owner-1",
 			resourceType:   "res-type-1",
-			resourceIDs:    []fmt.Stringer{testStringer("res-1"), testStringer("res-2")},
+			resourceIDs:    []string{"res-1", "res-2"},
 			oldValue:       nil,
 			additionalData: nil,
 			want: expectedPrefix +
@@ -580,7 +579,7 @@ func TestAuditBulkDelete(t *testing.T) {
 			),
 			ownerID:      "owner-1",
 			resourceType: "res-type-1",
-			resourceIDs:  []fmt.Stringer{testStringer("res-1")},
+			resourceIDs:  []string{"res-1"},
 			oldValue: exampleStruct{
 				IntField:    -1,
 				StringField: "a0",
@@ -604,7 +603,7 @@ func TestAuditBulkDelete(t *testing.T) {
 			),
 			ownerID:        "owner-1",
 			resourceType:   "res-type-1",
-			resourceIDs:    []fmt.Stringer{testStringer("res-1")},
+			resourceIDs:    []string{"res-1"},
 			oldValue:       nil,
 			additionalData: nil,
 			want: expectedPrefix +
@@ -624,7 +623,7 @@ func TestAuditBulkDelete(t *testing.T) {
 			subjectID:      "sub-2",
 			ownerID:        "owner-1",
 			resourceType:   "res-type-1",
-			resourceIDs:    []fmt.Stringer{testStringer("res-1")},
+			resourceIDs:    []string{"res-1"},
 			oldValue:       nil,
 			additionalData: nil,
 			want: expectedPrefix +
@@ -648,7 +647,7 @@ func TestAuditBulkDelete(t *testing.T) {
 				extras = append(extras, AdditionalData(tc.additionalData))
 			}
 			if tc.subjectID != "" {
-				extras = append(extras, SubjectID(testStringer(tc.subjectID)))
+				extras = append(extras, SubjectID(tc.subjectID))
 			}
 			if tc.oldValue != nil {
 				extras = append(extras, OldValue(tc.oldValue))
@@ -656,8 +655,8 @@ func TestAuditBulkDelete(t *testing.T) {
 
 			if err := logger.AuditBulkDelete(
 				tc.ctx,
-				testStringer(tc.ownerID),
-				testStringer(tc.resourceType),
+				tc.ownerID,
+				tc.resourceType,
 				tc.resourceIDs,
 				extras...,
 			); err != nil {

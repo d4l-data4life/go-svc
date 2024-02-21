@@ -2,8 +2,6 @@ package log
 
 import (
 	"context"
-	"fmt"
-	"time"
 )
 
 type AccessLogEvent string
@@ -16,7 +14,7 @@ type accessLog struct {
 	baseAuditLog
 
 	// owner is the user owning the resource accessed
-	OwnerID        string         `json:"owner-id"`
+	OwnerID        string         `json:"owner-id,omitempty"`
 	EventType      AccessLogEvent `json:"event-type"`
 	ResourceType   string         `json:"resource-type"`
 	AdditionalData interface{}    `json:"additional-data,omitempty"`
@@ -39,39 +37,23 @@ type bulkAccessLog struct {
 // `resourceType` should be used to specify what kind of information was accessed
 // `resourceID` must include the information needed to uniquely identify the resource (ID of the resource or the data set)
 // `extras` allows to add optional information or override default values:
-//    - `SubjectID` allows to override the ID of the user performing the action (by default it is expected in the context)
-//    - `AdditionalData` allows to provide any extra information relevant for the audit log
+//   - `SubjectID` allows to override the ID of the user performing the action (by default it is expected in the context)
+//   - `AdditionalData` allows to provide any extra information relevant for the audit log
 func (l *Logger) AuditRead(
 	ctx context.Context,
-	ownerID fmt.Stringer,
-	resourceType fmt.Stringer,
-	resourceID fmt.Stringer,
+	ownerID string,
+	resourceType string,
+	resourceID string,
 	extras ...ExtraAuditInfoProvider,
 ) error {
 	log := singleAccessLog{
 		accessLog: accessLog{
-			baseAuditLog: baseAuditLog{
-				Timestamp:       time.Now(),
-				LogType:         Audit,
-				AuditLogType:    AccessLog,
-				TraceID:         getFromContext(ctx, TraceIDContextKey),
-				ServiceName:     l.serviceName,
-				ServiceVersion:  l.serviceVersion,
-				Hostname:        l.hostname,
-				PodName:         l.podName,
-				Environment:     l.environment,
-				ClientID:        getFromContext(ctx, ClientIDContextKey),
-				RequestURL:      getFromContext(ctx, RequestURLContextKey),
-				RequestDomain:   getFromContext(ctx, RequestDomainContextKey),
-				CallerIPAddress: getFromContext(ctx, CallerIPContextKey),
-				SubjectID:       getFromContext(ctx, UserIDContextKey),
-				TenantID:        getFromContextWithDefault(ctx, TenantIDContextKey, l.tenantID),
-			},
-			OwnerID:      ownerID.String(),
+			baseAuditLog: l.createBaseAuditLog(ctx, AccessLog),
+			OwnerID:      ownerID,
 			EventType:    Read,
-			ResourceType: resourceType.String(),
+			ResourceType: resourceType,
 		},
-		ResourceID: resourceID.String(),
+		ResourceID: resourceID,
 	}
 
 	for _, f := range extras {
@@ -88,38 +70,22 @@ func (l *Logger) AuditRead(
 // `resourceType` should be used to specify what kind of information was accessed
 // `resourceIDs` must include the information needed to uniquely identify all the resources (IDs of the resource or the data set)
 // `extras` allows to add optional information or override default values:
-//    - `SubjectID` allows to override the ID of the user performing the action (by default it is expected in the context)
-//    - `ClientID` allows to override the oauth client ID (by default it is expected in the context)
-//    - `AdditionalData` allows to provide any extra information relevant for the audit log
+//   - `SubjectID` allows to override the ID of the user performing the action (by default it is expected in the context)
+//   - `ClientID` allows to override the oauth client ID (by default it is expected in the context)
+//   - `AdditionalData` allows to provide any extra information relevant for the audit log
 func (l *Logger) AuditBulkRead(
 	ctx context.Context,
-	ownerID fmt.Stringer,
-	resourceType fmt.Stringer,
-	resourceIDs interface{},
+	ownerID string,
+	resourceType string,
+	resourceIDs []string,
 	extras ...ExtraAuditInfoProvider,
 ) error {
 	log := bulkAccessLog{
 		accessLog: accessLog{
-			baseAuditLog: baseAuditLog{
-				Timestamp:       time.Now(),
-				LogType:         Audit,
-				AuditLogType:    AccessLog,
-				TraceID:         getFromContext(ctx, TraceIDContextKey),
-				ServiceName:     l.serviceName,
-				ServiceVersion:  l.serviceVersion,
-				Hostname:        l.hostname,
-				PodName:         l.podName,
-				Environment:     l.environment,
-				ClientID:        getFromContext(ctx, ClientIDContextKey),
-				RequestURL:      getFromContext(ctx, RequestURLContextKey),
-				RequestDomain:   getFromContext(ctx, RequestDomainContextKey),
-				CallerIPAddress: getFromContext(ctx, CallerIPContextKey),
-				SubjectID:       getFromContext(ctx, UserIDContextKey),
-				TenantID:        getFromContextWithDefault(ctx, TenantIDContextKey, l.tenantID),
-			},
-			OwnerID:      ownerID.String(),
+			baseAuditLog: l.createBaseAuditLog(ctx, AccessLog),
+			OwnerID:      ownerID,
 			EventType:    Read,
-			ResourceType: resourceType.String(),
+			ResourceType: resourceType,
 		},
 		ResourceIDs: resourceIDs,
 	}

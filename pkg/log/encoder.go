@@ -47,7 +47,8 @@ func (e *PrettyEncoder) Encode(entry interface{}) error {
 			v.Timestamp.Format(timeFmt), v.LogLevel, v.EventType, v.TraceID, v.UserID, v.ReqMethod, v.ReqURL, v.ReqBody)
 	case outResponseLog:
 		s = fmt.Sprintf("%s %s %s | %s | %s | %s => %d; (%d ms) | %s",
-			v.Timestamp.Format(timeFmt), v.LogLevel, v.EventType, v.TraceID, v.UserID, v.ReqURL, v.ResponseCode, v.Duration, v.ResponseBody)
+			v.Timestamp.Format(timeFmt), v.LogLevel, v.EventType,
+			v.TraceID, v.UserID, v.ReqURL, v.ResponseCode, v.Duration, v.ResponseBody)
 	case singleChangeLog:
 		s = fmt.Sprintf("%s %s %s %s | %s | subjectID: %s; clientID: %s; old: %s; new: %s; resourceID: %s resourceType: %s",
 			v.Timestamp.Format(timeFmt), v.LogType, v.AuditLogType, v.RequestURL,
@@ -58,10 +59,12 @@ func (e *PrettyEncoder) Encode(entry interface{}) error {
 			v.TraceID, v.SubjectID, v.ClientID, v.OldValue, v.NewValue, v.ResourceIDs, v.ResourceType)
 	case singleAccessLog:
 		s = fmt.Sprintf("%s %s %s %s | %s | subjectID: %s; clientID: %s; resourceID: %s; resourceType: %s",
-			v.Timestamp.Format(timeFmt), v.LogType, v.AuditLogType, v.RequestURL, v.TraceID, v.SubjectID, v.ClientID, v.ResourceID, v.ResourceType)
+			v.Timestamp.Format(timeFmt), v.LogType, v.AuditLogType, v.RequestURL,
+			v.TraceID, v.SubjectID, v.ClientID, v.ResourceID, v.ResourceType)
 	case securityLog:
 		s = fmt.Sprintf("%s %s %s %s | %s | subjectID: %s; clientID: %s; securityEvent: %s successful: %t",
-			v.Timestamp.Format(timeFmt), v.LogType, v.AuditLogType, v.RequestURL, v.TraceID, v.SubjectID, v.ClientID, v.SecurityEvent, v.Successful)
+			v.Timestamp.Format(timeFmt), v.LogType, v.AuditLogType, v.RequestURL,
+			v.TraceID, v.SubjectID, v.ClientID, v.SecurityEvent, v.Successful)
 
 	default:
 		return fmt.Errorf("unknown log type: %T", v)

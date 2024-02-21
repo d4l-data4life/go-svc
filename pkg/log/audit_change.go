@@ -2,8 +2,6 @@ package log
 
 import (
 	"context"
-	"fmt"
-	"time"
 )
 
 type ChangeLogEvent string
@@ -18,7 +16,7 @@ type changeLog struct {
 	baseAuditLog
 
 	// owner is the user owning the resource accessed
-	OwnerID string `json:"owner-id"`
+	OwnerID string `json:"owner-id,omitempty"`
 
 	EventType      ChangeLogEvent `json:"event-type"`
 	ResourceType   string         `json:"resource-type"`
@@ -45,42 +43,26 @@ type bulkChangeLog struct {
 // `resourceID` must include the information needed to uniquely identify the resource (ID of the resource or the data set)
 // `value` must contain the created resource (secrets must be excluded)
 // `extras` allows to add optional information or override default values:
-//    - `SubjectID` allows to override the ID of the user performing the action (by default it is expected in the context)
-//    - `ClientID` allows to override the oauth client ID (by default it is expected in the context)
-//    - `AdditionalData` allows to provide any extra information relevant for the audit log
+//   - `SubjectID` allows to override the ID of the user performing the action (by default it is expected in the context)
+//   - `ClientID` allows to override the oauth client ID (by default it is expected in the context)
+//   - `AdditionalData` allows to provide any extra information relevant for the audit log
 func (l *Logger) AuditCreate(
 	ctx context.Context,
-	ownerID fmt.Stringer,
-	resourceType fmt.Stringer,
-	resourceID fmt.Stringer,
+	ownerID string,
+	resourceType string,
+	resourceID string,
 	value interface{},
 	extras ...ExtraAuditInfoProvider,
 ) error {
 	log := singleChangeLog{
 		changeLog: changeLog{
-			baseAuditLog: baseAuditLog{
-				Timestamp:       time.Now(),
-				LogType:         Audit,
-				AuditLogType:    ChangeLog,
-				TraceID:         getFromContext(ctx, TraceIDContextKey),
-				ServiceName:     l.serviceName,
-				ServiceVersion:  l.serviceVersion,
-				Hostname:        l.hostname,
-				PodName:         l.podName,
-				Environment:     l.environment,
-				ClientID:        getFromContext(ctx, ClientIDContextKey),
-				RequestURL:      getFromContext(ctx, RequestURLContextKey),
-				RequestDomain:   getFromContext(ctx, RequestDomainContextKey),
-				CallerIPAddress: getFromContext(ctx, CallerIPContextKey),
-				SubjectID:       getFromContext(ctx, UserIDContextKey),
-				TenantID:        getFromContextWithDefault(ctx, TenantIDContextKey, l.tenantID),
-			},
-			OwnerID:      ownerID.String(),
+			baseAuditLog: l.createBaseAuditLog(ctx, ChangeLog),
+			OwnerID:      ownerID,
 			EventType:    Create,
-			ResourceType: resourceType.String(),
+			ResourceType: resourceType,
 			NewValue:     value,
 		},
-		ResourceID: resourceID.String(),
+		ResourceID: resourceID,
 	}
 
 	for _, f := range extras {
@@ -99,43 +81,27 @@ func (l *Logger) AuditCreate(
 // `resourceID` must include the information needed to uniquely identify the resource (ID of the resource or the data set)
 // `value` must contain the value after the update (secrets must be excluded)
 // `extras` allows to add optional information or override default values:
-//    - `SubjectID` allows to override the ID of the user performing the action (by default it is expected in the context)
-//    - `ClientID` allows to override the oauth client ID (by default it is expected in the context)
-//    - `OldValue` allows to provide the value before the update if available (secrets must be excluded)
-//    - `AdditionalData` allows to provide any extra information relevant for the audit log
+//   - `SubjectID` allows to override the ID of the user performing the action (by default it is expected in the context)
+//   - `ClientID` allows to override the oauth client ID (by default it is expected in the context)
+//   - `OldValue` allows to provide the value before the update if available (secrets must be excluded)
+//   - `AdditionalData` allows to provide any extra information relevant for the audit log
 func (l *Logger) AuditUpdate(
 	ctx context.Context,
-	ownerID fmt.Stringer,
-	resourceType fmt.Stringer,
-	resourceID fmt.Stringer,
+	ownerID string,
+	resourceType string,
+	resourceID string,
 	value interface{},
 	extras ...ExtraAuditInfoProvider,
 ) error {
 	log := singleChangeLog{
 		changeLog: changeLog{
-			baseAuditLog: baseAuditLog{
-				Timestamp:       time.Now(),
-				LogType:         Audit,
-				AuditLogType:    ChangeLog,
-				TraceID:         getFromContext(ctx, TraceIDContextKey),
-				ServiceName:     l.serviceName,
-				ServiceVersion:  l.serviceVersion,
-				Hostname:        l.hostname,
-				PodName:         l.podName,
-				Environment:     l.environment,
-				ClientID:        getFromContext(ctx, ClientIDContextKey),
-				RequestURL:      getFromContext(ctx, RequestURLContextKey),
-				RequestDomain:   getFromContext(ctx, RequestDomainContextKey),
-				CallerIPAddress: getFromContext(ctx, CallerIPContextKey),
-				SubjectID:       getFromContext(ctx, UserIDContextKey),
-				TenantID:        getFromContextWithDefault(ctx, TenantIDContextKey, l.tenantID),
-			},
-			OwnerID:      ownerID.String(),
+			baseAuditLog: l.createBaseAuditLog(ctx, ChangeLog),
+			OwnerID:      ownerID,
 			EventType:    Update,
-			ResourceType: resourceType.String(),
+			ResourceType: resourceType,
 			NewValue:     value,
 		},
-		ResourceID: resourceID.String(),
+		ResourceID: resourceID,
 	}
 
 	for _, f := range extras {
@@ -152,41 +118,25 @@ func (l *Logger) AuditUpdate(
 // `resourceType` should be used to specify what kind of information was accessed
 // `resourceID` must include the information needed to uniquely identify the resource (ID of the resource or the data set)
 // `extras` allows to add optional information or override default values:
-//    - `SubjectID` allows to override the ID of the user performing the action (by default it is expected in the context)
-//    - `ClientID` allows to override the oauth client ID (by default it is expected in the context)
-//    - `OldValue` allows to provide the value before the delete if available (secrets must be excluded)
-//    - `AdditionalData` allows to provide any extra information relevant for the audit log
+//   - `SubjectID` allows to override the ID of the user performing the action (by default it is expected in the context)
+//   - `ClientID` allows to override the oauth client ID (by default it is expected in the context)
+//   - `OldValue` allows to provide the value before the delete if available (secrets must be excluded)
+//   - `AdditionalData` allows to provide any extra information relevant for the audit log
 func (l *Logger) AuditDelete(
 	ctx context.Context,
-	ownerID fmt.Stringer,
-	resourceType fmt.Stringer,
-	resourceID fmt.Stringer,
+	ownerID string,
+	resourceType string,
+	resourceID string,
 	extras ...ExtraAuditInfoProvider,
 ) error {
 	log := singleChangeLog{
 		changeLog: changeLog{
-			baseAuditLog: baseAuditLog{
-				Timestamp:       time.Now(),
-				LogType:         Audit,
-				AuditLogType:    ChangeLog,
-				TraceID:         getFromContext(ctx, TraceIDContextKey),
-				ServiceName:     l.serviceName,
-				ServiceVersion:  l.serviceVersion,
-				Hostname:        l.hostname,
-				PodName:         l.podName,
-				Environment:     l.environment,
-				ClientID:        getFromContext(ctx, ClientIDContextKey),
-				RequestURL:      getFromContext(ctx, RequestURLContextKey),
-				RequestDomain:   getFromContext(ctx, RequestDomainContextKey),
-				CallerIPAddress: getFromContext(ctx, CallerIPContextKey),
-				SubjectID:       getFromContext(ctx, UserIDContextKey),
-				TenantID:        getFromContextWithDefault(ctx, TenantIDContextKey, l.tenantID),
-			},
-			OwnerID:      ownerID.String(),
+			baseAuditLog: l.createBaseAuditLog(ctx, ChangeLog),
+			OwnerID:      ownerID,
 			EventType:    Delete,
-			ResourceType: resourceType.String(),
+			ResourceType: resourceType,
 		},
-		ResourceID: resourceID.String(),
+		ResourceID: resourceID,
 	}
 
 	for _, f := range extras {
@@ -203,39 +153,23 @@ func (l *Logger) AuditDelete(
 // `resourceType` should be used to specify what kind of information was accessed
 // `resourceIDs` must include the information needed to uniquely identify all the resources deleted
 // `extras` allows to add optional information or override default values:
-//    - `SubjectID` allows to override the ID of the user performing the action (by default it is expected in the context)
-//    - `ClientID` allows to override the oauth client ID (by default it is expected in the context)
-//    - `OldValue` allows to provide the value before the delete if available (secrets must be excluded)
-//    - `AdditionalData` allows to provide any extra information relevant for the audit log
+//   - `SubjectID` allows to override the ID of the user performing the action (by default it is expected in the context)
+//   - `ClientID` allows to override the oauth client ID (by default it is expected in the context)
+//   - `OldValue` allows to provide the value before the delete if available (secrets must be excluded)
+//   - `AdditionalData` allows to provide any extra information relevant for the audit log
 func (l *Logger) AuditBulkDelete(
 	ctx context.Context,
-	ownerID fmt.Stringer,
-	resourceType fmt.Stringer,
+	ownerID string,
+	resourceType string,
 	resourceIDs interface{},
 	extras ...ExtraAuditInfoProvider,
 ) error {
 	log := bulkChangeLog{
 		changeLog: changeLog{
-			baseAuditLog: baseAuditLog{
-				Timestamp:       time.Now(),
-				LogType:         Audit,
-				AuditLogType:    ChangeLog,
-				TraceID:         getFromContext(ctx, TraceIDContextKey),
-				ServiceName:     l.serviceName,
-				ServiceVersion:  l.serviceVersion,
-				Hostname:        l.hostname,
-				PodName:         l.podName,
-				Environment:     l.environment,
-				ClientID:        getFromContext(ctx, ClientIDContextKey),
-				RequestURL:      getFromContext(ctx, RequestURLContextKey),
-				RequestDomain:   getFromContext(ctx, RequestDomainContextKey),
-				CallerIPAddress: getFromContext(ctx, CallerIPContextKey),
-				SubjectID:       getFromContext(ctx, UserIDContextKey),
-				TenantID:        getFromContextWithDefault(ctx, TenantIDContextKey, l.tenantID),
-			},
-			OwnerID:      ownerID.String(),
+			baseAuditLog: l.createBaseAuditLog(ctx, ChangeLog),
+			OwnerID:      ownerID,
 			EventType:    Delete,
-			ResourceType: resourceType.String(),
+			ResourceType: resourceType,
 		},
 		ResourceIDs: resourceIDs,
 	}

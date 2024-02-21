@@ -2,7 +2,6 @@ package logging
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
@@ -81,34 +80,6 @@ var instance *golog.Logger
 var onceLoggerConfig sync.Once
 var loggerConfig *Config
 
-type stringer string
-
-func (s stringer) String() string { return string(s) }
-
-type jsonStringer struct {
-	obj interface{}
-}
-
-func newJSONStringer(obj interface{}) jsonStringer {
-	return jsonStringer{obj}
-}
-
-func (js jsonStringer) String() string {
-	json, _ := json.Marshal(js.obj)
-	return string(json)
-}
-
-func newStringer(obj interface{}) fmt.Stringer {
-	switch obj := obj.(type) {
-	case string:
-		return stringer(obj)
-	case fmt.Stringer:
-		return obj
-	default:
-		return newJSONStringer(obj)
-	}
-}
-
 func LoggerConfig(opts ...LoggerOption) *Config {
 	onceLoggerConfig.Do(func() {
 		loggerConfig = &Config{}
@@ -183,55 +154,62 @@ func LogWarningfCtx(ctx context.Context, err error, format string, fields ...int
 	}
 }
 
+// LogAudit logs a generic audit event containing of a message along with an object pertaining to the message.
+func LogAudit(ctx context.Context, message string, object any) {
+	if err := Logger().Audit(ctx, message, object); err != nil {
+		fmt.Printf("Logging error (LogAudit): %s\n", err.Error())
+	}
+}
+
 // LogAuditSecuritySuccess logs a successful access with the singleton logger with message and error
 func LogAuditSecuritySuccess(ctx context.Context, securityEvent string, extras ...golog.ExtraAuditInfoProvider) {
-	if err := Logger().AuditSecuritySuccess(ctx, newStringer(securityEvent), extras...); err != nil {
+	if err := Logger().AuditSecuritySuccess(ctx, securityEvent, extras...); err != nil {
 		fmt.Printf("Logging error (LogAuditSecuritySuccess): %s\n", err.Error())
 	}
 }
 
 // LogAuditSecurityFailure logs a failed access with the singleton logger with message and error
 func LogAuditSecurityFailure(ctx context.Context, securityEvent string, extras ...golog.ExtraAuditInfoProvider) {
-	if err := Logger().AuditSecurityFailure(ctx, newStringer(securityEvent), extras...); err != nil {
+	if err := Logger().AuditSecurityFailure(ctx, securityEvent, extras...); err != nil {
 		fmt.Printf("Logging error (LogAuditSecurityFailure): %s\n", err.Error())
 	}
 }
 
 // LogAuditCreate logs a resource creation with the singleton logger with message and error
-func LogAuditCreate(ctx context.Context, ownerID fmt.Stringer, resourceType string, resourceID interface{}, value interface{}) {
-	err := Logger().AuditCreate(ctx, ownerID, newStringer(resourceType), newStringer(resourceID), value)
+func LogAuditCreate(ctx context.Context, ownerID string, resourceType string, resourceID string, value interface{}) {
+	err := Logger().AuditCreate(ctx, ownerID, resourceType, resourceID, value)
 	if err != nil {
 		fmt.Printf("Logging error (LogAuditCreate): %s\n", err.Error())
 	}
 }
 
 // LogAuditUpdate logs a resource modification with the singleton logger with message and error
-func LogAuditUpdate(ctx context.Context, ownerID fmt.Stringer, resourceType string, resourceID interface{}, value interface{}) {
-	err := Logger().AuditUpdate(ctx, ownerID, newStringer(resourceType), newStringer(resourceID), value)
+func LogAuditUpdate(ctx context.Context, ownerID string, resourceType string, resourceID string, value interface{}) {
+	err := Logger().AuditUpdate(ctx, ownerID, resourceType, resourceID, value)
 	if err != nil {
 		fmt.Printf("Logging error (LogAuditUpdate): %s\n", err.Error())
 	}
 }
 
 // LogAuditDelete logs a resource deletion with the singleton logger with message and error
-func LogAuditDelete(ctx context.Context, ownerID fmt.Stringer, resourceType string, resourceID interface{}) {
-	err := Logger().AuditDelete(ctx, ownerID, newStringer(resourceType), newStringer(resourceID))
+func LogAuditDelete(ctx context.Context, ownerID string, resourceType string, resourceID string) {
+	err := Logger().AuditDelete(ctx, ownerID, resourceType, resourceID)
 	if err != nil {
 		fmt.Printf("Logging error (LogAuditDelete): %s\n", err.Error())
 	}
 }
 
 // LogAuditRead logs a successful resource read access with the singleton logger with message and error
-func LogAuditRead(ctx context.Context, ownerID fmt.Stringer, resourceType string, resourceID interface{}, extras ...golog.ExtraAuditInfoProvider) {
-	err := Logger().AuditRead(ctx, ownerID, newStringer(resourceType), newStringer(resourceID), extras...)
+func LogAuditRead(ctx context.Context, ownerID string, resourceType string, resourceID string, extras ...golog.ExtraAuditInfoProvider) {
+	err := Logger().AuditRead(ctx, ownerID, resourceType, resourceID, extras...)
 	if err != nil {
 		fmt.Printf("Logging error (LogAuditRead): %s\n", err.Error())
 	}
 }
 
 // LogAuditBulkRead logs a successful resource bulk read access with the singleton logger with message and error
-func LogAuditBulkRead(ctx context.Context, ownerID fmt.Stringer, resourceType string, resourceIDs interface{}, extras ...golog.ExtraAuditInfoProvider) {
-	err := Logger().AuditBulkRead(ctx, ownerID, newStringer(resourceType), newStringer(resourceIDs), extras...)
+func LogAuditBulkRead(ctx context.Context, ownerID string, resourceType string, resourceIDs []string, extras ...golog.ExtraAuditInfoProvider) {
+	err := Logger().AuditBulkRead(ctx, ownerID, resourceType, resourceIDs, extras...)
 	if err != nil {
 		fmt.Printf("Logging error (LogAuditBulkRead): %s\n", err.Error())
 	}
