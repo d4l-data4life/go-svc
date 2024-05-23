@@ -1,6 +1,6 @@
 module github.com/gesundheitscloud/go-svc
 
-go 1.20
+go 1.22
 
 require (
 	github.com/DATA-DOG/go-txdb v0.1.7

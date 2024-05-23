@@ -27,7 +27,7 @@ func TestTicketProcess(t *testing.T) {
 		uuid.Must(uuid.NewV4()),
 	}
 	ticketer := ticket.NewTicketer(key, 30*time.Minute)
-	ticketJWT, err := ticketer.Create(studyID, subjectIDs)
+	ticketJWT, err := ticketer.Create(studyID, subjectIDs, true, true)
 	assert.NoError(t, err, "failed creating jwt")
 
 	claims, err := ticketer.Verify(ticketJWT)
@@ -47,7 +47,7 @@ func TestTicketProcess(t *testing.T) {
 func TestExpiredTicket(t *testing.T) {
 	key := GetTestKey(t)
 	ticketer := ticket.NewTicketer(key, -30*time.Minute)
-	ticketJWT, err := ticketer.Create("test", nil)
+	ticketJWT, err := ticketer.Create("test", nil, false, false)
 	assert.NoError(t, err, "failed creating ticket")
 
 	claims, err := ticketer.Verify(ticketJWT)

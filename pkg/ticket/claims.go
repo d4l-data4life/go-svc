@@ -16,9 +16,11 @@ var (
 // between research-pillars and data-receiver
 type Claims struct {
 	// Expiration is the expiration claim according to https://tools.ietf.org/html/rfc7519#section-4.1.4
-	Expiration int64       `json:"exp"`
-	StudyID    string      `json:"studyID"`
-	SubjectIDs []uuid.UUID `json:"subjectIds"`
+	Expiration     int64       `json:"exp"`
+	StudyID        string      `json:"studyID"`
+	SubjectIDs     []uuid.UUID `json:"subjectIds"`
+	IncludeRawFHIR bool        `json:"includeRawFHIR"`
+	IncludeETLCSV  bool        `json:"includeETLCSV"`
 }
 
 func (t Claims) GetExpirationTime() (*jwt.NumericDate, error) {

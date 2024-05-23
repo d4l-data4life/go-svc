@@ -19,12 +19,14 @@ func NewTicketer(key []byte, validity time.Duration) *Ticketer {
 	return &Ticketer{key, validity}
 }
 
-func (t Ticketer) Create(studyID string, subjectIDs []uuid.UUID) (string, error) {
+func (t Ticketer) Create(studyID string, subjectIDs []uuid.UUID, includeRawFHIR, includeETLCSV bool) (string, error) {
 	ticket := jwt.NewWithClaims(jwt.SigningMethodHS256,
 		Claims{
 			Expiration: time.Now().Add(t.Validity).Unix(),
 			StudyID:    studyID,
 			SubjectIDs: subjectIDs,
+			IncludeRawFHIR: includeRawFHIR,
+			IncludeETLCSV:  includeETLCSV,
 		})
 	return ticket.SignedString(t.key)
 }
