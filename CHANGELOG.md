@@ -11,8 +11,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- [ticket] download ticket extended to include flags for FHIR and CSV
-
 ### Deprecated
 
 ### Removed
@@ -20,6 +18,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Security
+
+## [v1.84.0] - 2024-05-23
+
+### Changed
+
+- [ticket] download ticket extended to include flags for FHIR and CSV
 
 ## [v1.83.0] - 2024-02-21
 
@@ -1002,7 +1006,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial state: standards for Main, HTTP Server, DB access (gorm), Logging, Instrumented-Handler, and K8s Probe
 
-[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.83.0...HEAD
+[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.84.0...HEAD
+[v1.84.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.83.0...v1.84.0
 [v1.83.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.82.1...v1.83.0
 [v1.82.1]: https://github.com/gesundheitscloud/go-svc/compare/v1.82.0...v1.82.1
 [v1.82.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.81.0...v1.82.0
