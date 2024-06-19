@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Update dependencies, most importantly `gorm.io/driver/postgres` -> `v1.5.9` in an attempt to fix DB auto-migration issue (see: https://github.com/go-gorm/gorm/issues/6886#issuecomment-2016842713)
+
 ### Security
 
 ## [v1.84.0] - 2024-05-23
