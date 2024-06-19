@@ -17,9 +17,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Update dependencies, most importantly `gorm.io/driver/postgres` -> `v1.5.9` in an attempt to fix DB auto-migration issue (see: https://github.com/go-gorm/gorm/issues/6886#issuecomment-2016842713)
-
 ### Security
+
+## [v1.84.1] - 2024-06-19
+
+### Fixed
+
+- Update dependencies, most importantly `gorm.io/driver/postgres` -> `v1.5.9` in an attempt to fix DB auto-migration issue (see: https://github.com/go-gorm/gorm/issues/6886#issuecomment-2016842713)
 
 ## [v1.84.0] - 2024-05-23
 
@@ -1008,7 +1012,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial state: standards for Main, HTTP Server, DB access (gorm), Logging, Instrumented-Handler, and K8s Probe
 
-[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.84.0...HEAD
+[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.84.1...HEAD
+[v1.84.1]: https://github.com/gesundheitscloud/go-svc/compare/v1.84.0...v1.84.1
 [v1.84.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.83.0...v1.84.0
 [v1.83.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.82.1...v1.83.0
 [v1.82.1]: https://github.com/gesundheitscloud/go-svc/compare/v1.82.0...v1.82.1
