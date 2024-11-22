@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- [standard] Update GRPC gateway with max call size and version updates
+
 ### Deprecated
 
 ### Removed
