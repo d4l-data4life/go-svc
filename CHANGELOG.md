@@ -11,8 +11,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- [standard] Update GRPC gateway with max call size and version updates
-
 ### Deprecated
 
 ### Removed
@@ -20,6 +18,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Security
+
+## [v1.85.0] - 2024-11-22
+
+### Changed
+
+- [standard] Update GRPC gateway with max call size and version updates
 
 ## [v1.84.1] - 2024-06-19
 
@@ -1014,7 +1018,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial state: standards for Main, HTTP Server, DB access (gorm), Logging, Instrumented-Handler, and K8s Probe
 
-[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.84.1...HEAD
+[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.85.0...HEAD
+[v1.85.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.84.1...v1.85.0
 [v1.84.1]: https://github.com/gesundheitscloud/go-svc/compare/v1.84.0...v1.84.1
 [v1.84.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.83.0...v1.84.0
 [v1.83.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.82.1...v1.83.0
