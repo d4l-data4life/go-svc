@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestAzureOauth2_Authenticate(t *testing.T) {
@@ -29,7 +30,6 @@ func TestAzureOauth2_Authenticate(t *testing.T) {
 		// unable to test more without mock
 	}
 	for _, tt := range tests {
-		tt := tt
 		ctx := context.Background()
 		t.Run(tt.name, func(t *testing.T) {
 			ao := &AzureOauth2{
@@ -43,7 +43,7 @@ func TestAzureOauth2_Authenticate(t *testing.T) {
 				assert.Error(t, err)
 				return
 			}
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			assert.NotEmpty(t, got)
 		})
 	}

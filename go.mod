@@ -1,6 +1,6 @@
 module github.com/gesundheitscloud/go-svc
 
-go 1.22
+go 1.24.0
 
 require (
 	github.com/DATA-DOG/go-txdb v0.1.9
@@ -8,7 +8,7 @@ require (
 	github.com/eapache/go-resiliency v1.6.0
 	github.com/go-chi/chi v4.1.2+incompatible
 	github.com/gofrs/uuid v4.4.0+incompatible
-	github.com/golang-jwt/jwt/v5 v5.2.1
+	github.com/golang-jwt/jwt/v5 v5.2.2
 	github.com/golang-migrate/migrate/v4 v4.17.1
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.20.0
 	github.com/improbable-eng/grpc-web v0.15.0
@@ -20,13 +20,6 @@ require (
 	google.golang.org/grpc v1.64.0
 	gorm.io/driver/postgres v1.5.9
 	gorm.io/gorm v1.25.10
-)
-
-require (
-	github.com/mattn/go-isatty v0.0.17 // indirect
-	golang.org/x/net v0.23.0 // indirect
-	golang.org/x/tools v0.14.0 // indirect
-	google.golang.org/protobuf v1.34.1 // indirect
 )
 
 require (
@@ -45,17 +38,20 @@ require (
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/klauspost/compress v1.17.1 // indirect
 	github.com/lib/pq v1.10.9 // indirect
+	github.com/mattn/go-isatty v0.0.17 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/prometheus/client_model v0.5.0 // indirect
 	github.com/prometheus/common v0.48.0 // indirect
 	github.com/prometheus/procfs v0.12.0 // indirect
 	go.uber.org/atomic v1.11.0 // indirect
-	golang.org/x/crypto v0.21.0 // indirect
-	golang.org/x/sync v0.6.0 // indirect
-	golang.org/x/sys v0.18.0 // indirect
-	golang.org/x/text v0.15.0 // indirect
+	golang.org/x/crypto v0.36.0 // indirect
+	golang.org/x/net v0.38.0 // indirect
+	golang.org/x/sync v0.12.0 // indirect
+	golang.org/x/sys v0.31.0 // indirect
+	golang.org/x/text v0.23.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20240513163218-0867130af1f8 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240513163218-0867130af1f8 // indirect
+	google.golang.org/protobuf v1.34.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	nhooyr.io/websocket v1.8.7 // indirect
 )

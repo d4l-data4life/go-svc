@@ -85,7 +85,6 @@ func TestAudit(t *testing.T) {
 
 		for _, tc := range tests {
 			t.Run(tc.name, func(t *testing.T) {
-
 				buffer := new(bytes.Buffer)
 				auditLogger := log.NewLogger("vega", "v1.0.0", "vega-123-123", log.WithWriter(buffer)).Audit
 

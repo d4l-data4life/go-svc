@@ -37,5 +37,4 @@ func BearerAuth(secret string) TransportFunc {
 			rt:     rt,
 		}
 	}
-
 }

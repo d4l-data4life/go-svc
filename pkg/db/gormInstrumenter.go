@@ -53,6 +53,7 @@ func createDeleteWithLock(m map[string]time.Time, mutex *sync.RWMutex) func(key 
 func createBeforeRequestCallback(m map[string]time.Time, mMutex *sync.RWMutex) func(tx *gorm.DB) {
 	setWithLock := createSetWithLock(m, mMutex)
 	return func(tx *gorm.DB) {
+		// nolint: gosec
 		queryID := strconv.Itoa(rand.Int())
 		tx.Statement.Context = context.WithValue(tx.Statement.Context, QueryIDContextKey, queryID)
 		setWithLock(queryID, time.Now())
@@ -92,7 +93,6 @@ func registerDbRequestDurationMetric() *prometheus.HistogramVec {
 		Help:      "histogram",
 		Buckets:   []float64{.001, .01, .1, .25, .5, 1, 2.5, 5, 10},
 	}, []string{"sqlstring"})
-
 }
 
 func (i *Instrumenter) Name() string {
@@ -100,9 +100,9 @@ func (i *Instrumenter) Name() string {
 }
 
 // Initialize adds gorm Plugin for collecting database request metrics
-func (i *Instrumenter) Initialize(db *gorm.DB) (err error) {
+func (i *Instrumenter) Initialize(_ *gorm.DB) (err error) {
 	m := make(map[string]time.Time)
-	//mutex for goroutine safe map access
+	// mutex for goroutine safe map access
 	mutex := &sync.RWMutex{}
 
 	conn := Get()
@@ -113,7 +113,10 @@ func (i *Instrumenter) Initialize(db *gorm.DB) (err error) {
 	if err != nil {
 		return err
 	}
-	err = conn.Callback().Create().After("gorm:create").Register("gorminstrumenter:after_create", createAfterRequestCallback(m, mutex, dbRequestDurationMetric))
+	err = conn.Callback().
+		Create().
+		After("gorm:create").
+		Register("gorminstrumenter:after_create", createAfterRequestCallback(m, mutex, dbRequestDurationMetric))
 	if err != nil {
 		return err
 	}
@@ -121,7 +124,10 @@ func (i *Instrumenter) Initialize(db *gorm.DB) (err error) {
 	if err != nil {
 		return err
 	}
-	err = conn.Callback().Query().After("gorm:query").Register("gorminstrumenter:after_query", createAfterRequestCallback(m, mutex, dbRequestDurationMetric))
+	err = conn.Callback().
+		Query().
+		After("gorm:query").
+		Register("gorminstrumenter:after_query", createAfterRequestCallback(m, mutex, dbRequestDurationMetric))
 	if err != nil {
 		return err
 	}
@@ -129,7 +135,10 @@ func (i *Instrumenter) Initialize(db *gorm.DB) (err error) {
 	if err != nil {
 		return err
 	}
-	err = conn.Callback().Delete().After("gorm:delete").Register("gorminstrumenter:after_delete", createAfterRequestCallback(m, mutex, dbRequestDurationMetric))
+	err = conn.Callback().
+		Delete().
+		After("gorm:delete").
+		Register("gorminstrumenter:after_delete", createAfterRequestCallback(m, mutex, dbRequestDurationMetric))
 	if err != nil {
 		return err
 	}
@@ -137,7 +146,10 @@ func (i *Instrumenter) Initialize(db *gorm.DB) (err error) {
 	if err != nil {
 		return err
 	}
-	err = conn.Callback().Update().After("gorm:update").Register("gorminstrumenter:after_update", createAfterRequestCallback(m, mutex, dbRequestDurationMetric))
+	err = conn.Callback().
+		Update().
+		After("gorm:update").
+		Register("gorminstrumenter:after_update", createAfterRequestCallback(m, mutex, dbRequestDurationMetric))
 	if err != nil {
 		return err
 	}

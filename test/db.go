@@ -7,6 +7,8 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+
+	"github.com/gesundheitscloud/go-svc/pkg/db"
 )
 
 func connectToDB(cfg *config) (*sql.DB, error) {
@@ -17,7 +19,7 @@ func connectToDB(cfg *config) (*sql.DB, error) {
 
 	sslMode := "disable"
 	if cfg.PGUseSSL {
-		sslMode = "verify-full"
+		sslMode = db.SSLVerifyFull
 	}
 
 	sqlOpenParams := fmt.Sprintf(
@@ -29,7 +31,6 @@ func connectToDB(cfg *config) (*sql.DB, error) {
 
 	for i := 0; i < attempts; i++ {
 		if db, err = sql.Open("postgres", sqlOpenParams); err == nil {
-
 			// use ping to check if the database is ready to receive queries
 			if err = db.Ping(); err == nil {
 				break

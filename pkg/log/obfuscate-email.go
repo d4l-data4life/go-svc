@@ -5,9 +5,9 @@ import (
 	"strings"
 )
 
-const OBF_CHAR = 'x'
+const obfChar = 'x'
 
-var EMAIL_REGEX = regexp.MustCompile("([A-Z0-9a-z\\.!#$%&'*+\\-/=?^_`{|}~]+)@([A-Za-z0-9\\.\\-]+)\\.([A-Za-z]{2,64})")
+var emailREGEX = regexp.MustCompile("([A-Z0-9a-z\\.!#$%&'*+\\-/=?^_`{|}~]+)@([A-Za-z0-9\\.\\-]+)\\.([A-Za-z]{2,64})")
 
 // MailObfuscator obfuscates emails in log messages
 type MailObfuscator struct {
@@ -41,7 +41,7 @@ func (mo MailObfuscator) Obfuscate(log interface{}) interface{} {
 // Obfuscates the right half of the local part of the email and the middle part of the domain part.
 // See https://gesundheitscloud.atlassian.net/wiki/spaces/PHDP/pages/2407038985/Logging+in+a+GDPR+compliant+way#Email-filter
 func ObfuscateEmail(raw string) string {
-	matches := EMAIL_REGEX.FindAllStringSubmatch(raw, -1)
+	matches := emailREGEX.FindAllStringSubmatch(raw, -1)
 
 	for _, match := range matches {
 		local := match[1]
@@ -63,8 +63,8 @@ func processLocal(local string) string {
 
 	replaceCount := len(local) / 2
 	obfStartIdx := len(local) - replaceCount // obfuscate the right half
-	for i := 0; i < replaceCount; i += 1 {
-		obfLocal[obfStartIdx+i] = OBF_CHAR
+	for i := 0; i < replaceCount; i++ {
+		obfLocal[obfStartIdx+i] = obfChar
 	}
 
 	return string(obfLocal)
@@ -73,21 +73,21 @@ func processLocal(local string) string {
 func processDomain(domain string) string {
 	obfDomain := []rune(domain)
 
-	len := len(domain)
-	obfCount := len / 2
+	length := len(domain)
+	obfCount := length / 2
 	obfCountEven := obfCount%2 == 0
-	charCountEven := len%2 == 0
+	charCountEven := length%2 == 0
 
 	// Check if the range of obfuscation characters fits symmetrically into the domain
 	// and if not, emphasize the right side.
 	// Symmetry is possible, when both obfCount and charCount are even or uneven.
-	startPos := (len - obfCount) / 2
+	startPos := (length - obfCount) / 2
 	if obfCountEven != charCountEven {
-		startPos += 1
+		startPos++
 	}
 
-	for i := 0; i < obfCount; i += 1 {
-		obfDomain[startPos+i] = OBF_CHAR
+	for i := 0; i < obfCount; i++ {
+		obfDomain[startPos+i] = obfChar
 	}
 
 	return string(obfDomain)

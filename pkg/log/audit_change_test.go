@@ -168,7 +168,6 @@ func TestAuditCreate(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-
 			buffer := new(bytes.Buffer)
 			logger := NewLogger(
 				"svc",
@@ -321,7 +320,6 @@ func TestAuditUpdate(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-
 			buffer := new(bytes.Buffer)
 			logger := NewLogger("svc", "v1.0.0", "host-1", WithWriter(buffer), WithPodName(podName), WithEnv(environment))
 
@@ -461,7 +459,6 @@ func TestAuditDelete(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-
 			buffer := new(bytes.Buffer)
 			logger := NewLogger("svc", "v1.0.0", "host-1", WithWriter(buffer), WithPodName(podName), WithEnv(environment))
 
@@ -638,7 +635,6 @@ func TestAuditBulkDelete(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-
 			buffer := new(bytes.Buffer)
 			logger := NewLogger("svc", "v1.0.0", "host-1", WithWriter(buffer), WithPodName(podName), WithEnv(environment))
 

@@ -13,7 +13,11 @@ import (
 func TestServiceSecret(t *testing.T) {
 	validAuthHeader := "service-secret"
 
-	handlerFactory := instrumented.NewHandlerFactory("d4l", instrumented.DefaultInstrumentInitOptions, instrumented.DefaultInstrumentOptions)
+	handlerFactory := instrumented.NewHandlerFactory(
+		"d4l",
+		instrumented.DefaultInstrumentInitOptions,
+		instrumented.DefaultInstrumentOptions,
+	)
 	auth := NewAuthentication(validAuthHeader, handlerFactory)
 	tests := []struct {
 		name              string
@@ -24,7 +28,6 @@ func TestServiceSecret(t *testing.T) {
 		{"invalid Service Auth", "random", http.StatusUnauthorized},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			req, _ := http.NewRequest(http.MethodGet, "/route", nil)
 			req.Header.Add(AuthHeaderName, tt.AuthHeaderContent)
@@ -57,7 +60,7 @@ func TestGetAuthSecret(t *testing.T) {
 			req.Header.Add(AuthHeaderName, tt.authHeaderContent)
 
 			authToken, _ := auth.getAuthSecret(req)
-			assert.Equal(t, authToken, tt.expectedSecret)
+			assert.Equal(t, tt.expectedSecret, authToken)
 		})
 	}
 }

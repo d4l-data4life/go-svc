@@ -92,7 +92,6 @@ func TestErrorGeneric(t *testing.T) {
 			},
 		} {
 			t.Run(tc.name, func(t *testing.T) {
-
 				if err := tc.errLogger(tc.ctx, bytes.ErrTooLarge); err != nil {
 					t.Fatalf("unexpected error: %v", err)
 				}

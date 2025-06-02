@@ -137,7 +137,7 @@ func Barrier(done <-chan struct{}, channels ...<-chan struct{}) <-chan struct{} 
 				if first {
 					first = false
 					m.Lock()
-					inProgress -= 1
+					inProgress--
 					// Emit to out channel only after all channels have emitted once
 					if inProgress == 0 {
 						select {

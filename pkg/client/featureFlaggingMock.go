@@ -30,18 +30,18 @@ func (f *FeatureFlaggingMock) Get(ctx context.Context, key string) (bool, error)
 }
 
 // GetForUser fetches a single setting for a user
-func (f *FeatureFlaggingMock) GetForUser(ctx context.Context, key string, authorization string) (bool, error) {
+func (f *FeatureFlaggingMock) GetForUser(ctx context.Context, key string, _ string) (bool, error) {
 	return f.Get(ctx, key)
 }
 
 type FeatureFlaggingErrorMock struct{}
 
 // Get fetches a single setting
-func (f *FeatureFlaggingErrorMock) Get(ctx context.Context, key string) (bool, error) {
-	return false, errors.New("Not reachable")
+func (f *FeatureFlaggingErrorMock) Get(_ context.Context, _ string) (bool, error) {
+	return false, errors.New("not reachable")
 }
 
 // Get fetches a single setting for a user
-func (f *FeatureFlaggingErrorMock) GetForUser(ctx context.Context, key string, authorization string) (bool, error) {
+func (f *FeatureFlaggingErrorMock) GetForUser(ctx context.Context, key string, _ string) (bool, error) {
 	return f.Get(ctx, key)
 }

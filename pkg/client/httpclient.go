@@ -39,7 +39,7 @@ func NewInstrumentedClient(name string, timeoutSec int, logger *log.Logger) *Cli
 
 func NewInstrumentedClientNoRedirect(name string, timeoutSec int, logger *log.Logger) *Client {
 	client := newInstrumentedHTTPClient(name, logger)
-	client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+	client.CheckRedirect = func(_ *http.Request, _ []*http.Request) error {
 		// we do not want to follow any redirects but return them
 		// back to the client instead
 		return http.ErrUseLastResponse

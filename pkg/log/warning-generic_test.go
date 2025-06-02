@@ -90,7 +90,6 @@ func TestLogger_WarnGeneric(t *testing.T) {
 			},
 		} {
 			t.Run(tc.name, func(t *testing.T) {
-
 				if err := tc.errLogger(tc.ctx, tc.message, tc.err); err != nil {
 					t.Fatalf("unexpected error: %v", err)
 				}

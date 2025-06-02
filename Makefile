@@ -23,14 +23,8 @@ test: lint unit-test-postgres
 
 .PHONY: lint
 lint:
-	DOCKER_BUILDKIT=1 \
-		docker build \
-			--build-arg CILINT_VERSION=${CILINT_VERSION} \
-			--build-arg GITHUB_USER_TOKEN \
-			-t "go-svc:lint" \
-			-f build/lint.Dockerfile \
-			.
-		docker run --rm "go-svc:lint"
+	@golangci-lint --version
+	golangci-lint run ./...
 
 .PHONY: unit-test-postgres
 unit-test-postgres: docker-database local-test clean
@@ -41,7 +35,7 @@ local-test lt:      ## Run tests natively
 	go test -timeout 30s -cover -covermode=atomic ./...
 
 .PHONY: docker-database
-docker-database: clean ## Run database in Docker
+docker-database ddb: clean ## Run database in Docker
 	docker run --name $(DB_CONTAINER_NAME) -d \
 		-e POSTGRES_DB=test \
 		-e POSTGRES_USER=user \

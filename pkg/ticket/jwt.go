@@ -22,9 +22,9 @@ func NewTicketer(key []byte, validity time.Duration) *Ticketer {
 func (t Ticketer) Create(studyID string, subjectIDs []uuid.UUID, includeRawFHIR, includeETLCSV bool) (string, error) {
 	ticket := jwt.NewWithClaims(jwt.SigningMethodHS256,
 		Claims{
-			Expiration: time.Now().Add(t.Validity).Unix(),
-			StudyID:    studyID,
-			SubjectIDs: subjectIDs,
+			Expiration:     time.Now().Add(t.Validity).Unix(),
+			StudyID:        studyID,
+			SubjectIDs:     subjectIDs,
 			IncludeRawFHIR: includeRawFHIR,
 			IncludeETLCSV:  includeETLCSV,
 		})
@@ -37,7 +37,7 @@ func (t Ticketer) Verify(token string) (*Claims, error) {
 	parsedToken, err := jwt.ParseWithClaims(token, &Claims{},
 		func(token *jwt.Token) (any, error) {
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-				return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
+				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 			}
 			return t.key, nil
 		},

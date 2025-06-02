@@ -42,19 +42,40 @@ func TestRetrierTransport_RoundTrip(t *testing.T) {
 			true, 1,
 		}, {
 			"Happy path - with max retries",
-			&ProxyRoundTrip{[]int{http.StatusTooManyRequests, http.StatusTooManyRequests, http.StatusTooManyRequests, http.StatusAccepted}, 0},
+			&ProxyRoundTrip{
+				[]int{http.StatusTooManyRequests, http.StatusTooManyRequests, http.StatusTooManyRequests, http.StatusAccepted},
+				0,
+			},
 			true, 4,
 		}, {
 			"Happy path - 3xx are also okay",
 			&ProxyRoundTrip{[]int{http.StatusTooManyRequests, http.StatusPermanentRedirect}, 0},
 			true, 2,
 		}, {
-			"Bad path - After max retries follows sucessfull response",
-			&ProxyRoundTrip{[]int{http.StatusTooManyRequests, http.StatusTooManyRequests, http.StatusTooManyRequests, http.StatusTooManyRequests, http.StatusAccepted}, 0},
+			"Bad path - After max retries follows successful response",
+			&ProxyRoundTrip{
+				[]int{
+					http.StatusTooManyRequests,
+					http.StatusTooManyRequests,
+					http.StatusTooManyRequests,
+					http.StatusTooManyRequests,
+					http.StatusAccepted,
+				},
+				0,
+			},
 			false, 4,
 		}, {
 			"Bad path - retry but only errors with capped retries",
-			&ProxyRoundTrip{[]int{http.StatusTooManyRequests, http.StatusTooManyRequests, http.StatusTooManyRequests, http.StatusTooManyRequests, http.StatusTooManyRequests}, 0},
+			&ProxyRoundTrip{
+				[]int{
+					http.StatusTooManyRequests,
+					http.StatusTooManyRequests,
+					http.StatusTooManyRequests,
+					http.StatusTooManyRequests,
+					http.StatusTooManyRequests,
+				},
+				0,
+			},
 			false, 4,
 		}, {
 			"Bad path - instant failure",
@@ -75,11 +96,11 @@ func TestRetrierTransport_RoundTrip(t *testing.T) {
 
 			resp, err := roundtripper.RoundTrip(req)
 
-			if tt.successfulRetry && !(err == nil && resp.StatusCode >= 200 && resp.StatusCode < 400) {
+			if tt.successfulRetry && (err != nil || resp.StatusCode < 200 || resp.StatusCode >= 400) {
 				t.Fatalf("Expected no error and positive status code (200-399), got error: %v and status code: %d", err, resp.StatusCode)
 			}
 
-			if !tt.successfulRetry && !(err == nil && resp.StatusCode >= 400) {
+			if !tt.successfulRetry && (err != nil || resp.StatusCode < 400) {
 				t.Fatalf("Expected no error and bad status code (>399), got error: %v and status code: %d", err, resp.StatusCode)
 			}
 

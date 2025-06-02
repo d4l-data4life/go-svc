@@ -33,7 +33,7 @@ type MainFunction func(context.Context, string) <-chan struct{}
 type MainOption func(context.Context)
 
 func WithPostgres(opts *db.ConnectionOptions) MainOption {
-	return func(runCtx context.Context) {
+	return func(_ context.Context) {
 		dboptions = opts
 	}
 }

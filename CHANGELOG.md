@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- [gormer] Package providing interface for automatic basic gorm model methods (get,upsert,delete)
+
 ### Changed
 
 ### Deprecated
@@ -18,6 +20,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Security
+
+- Update dependencies
 
 ## [v1.85.0] - 2024-11-22
 

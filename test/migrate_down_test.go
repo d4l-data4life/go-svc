@@ -4,12 +4,12 @@ import (
 	"context"
 	"testing"
 
-	"github.com/gesundheitscloud/go-svc/pkg/migrate"
 	"github.com/pkg/errors"
+
+	"github.com/gesundheitscloud/go-svc/pkg/migrate"
 )
 
 func TestMigrateDown(t *testing.T) {
-
 	const (
 		testSchema     = "test"
 		migrationTable = "migration"
@@ -47,7 +47,6 @@ func TestMigrateDown(t *testing.T) {
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-
 			defer func() {
 				_ = cleanSchema(ctx, db, testSchema)
 				_ = cleanTable(ctx, db, migrationTable)

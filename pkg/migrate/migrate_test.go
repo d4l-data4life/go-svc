@@ -85,7 +85,6 @@ func TestMigration_parseFile(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			m := &Migration{
 				sourceFolder: tt.fields.sourceFolder,

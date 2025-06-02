@@ -24,7 +24,6 @@ const (
 )
 
 func TestHTTPWrapper(t *testing.T) {
-
 	t.Run("response log of a minimal handler", func(t *testing.T) {
 		buf := new(bytes.Buffer)
 		l := log.NewLogger("name", "version", "hostname", log.WithWriter(buf))

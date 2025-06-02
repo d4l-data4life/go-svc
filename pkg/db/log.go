@@ -12,7 +12,7 @@ import (
 )
 
 var (
-	errSlowSQL = errors.New("Slow sql")
+	errSlowSQL = errors.New("slow sql")
 )
 
 type Logger struct {
@@ -53,7 +53,7 @@ func NewLogger(config logger.Config) *Logger {
 }
 
 // LogMode is needed for implementing the logger.Interface
-// dummy replacement, as log level is handeld by our logger implementation go-svc/pkg/logging
+// dummy replacement, as log level is handled by our logger implementation go-svc/pkg/logging
 func (l *Logger) LogMode(level logger.LogLevel) logger.Interface {
 	newlogger := *l
 	newlogger.LogLevel = LogLevel(level)
@@ -65,6 +65,7 @@ func (l Logger) Info(ctx context.Context, msg string, fields ...interface{}) {
 		logging.LogInfofCtx(ctx, msg, fields...)
 	}
 }
+
 func (l Logger) Warn(ctx context.Context, msg string, fields ...interface{}) {
 	if l.LogLevel >= Warn {
 		logging.LogWarningfCtx(ctx, nil, msg, fields...)
@@ -76,6 +77,8 @@ func (l Logger) Error(ctx context.Context, msg string, fields ...interface{}) {
 		logging.LogErrorfCtx(ctx, nil, msg, fields...)
 	}
 }
+
+// nolint: gocyclo
 func (l Logger) Trace(ctx context.Context, begin time.Time, fc func() (sql string, rowsAffected int64), err error) {
 	if l.LogLevel <= Silent {
 		return
@@ -87,7 +90,6 @@ func (l Logger) Trace(ctx context.Context, begin time.Time, fc func() (sql strin
 		sql, rows := fc()
 		if rows == -1 {
 			logging.LogErrorfCtx(ctx, err, l.traceErrStr, utils.FileWithLineNum(), err, float64(elapsed.Nanoseconds())/1e6, "-", sql)
-
 		} else {
 			logging.LogErrorfCtx(ctx, err, l.traceErrStr, utils.FileWithLineNum(), err, float64(elapsed.Nanoseconds())/1e6, rows, sql)
 		}

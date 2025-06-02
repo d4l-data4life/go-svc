@@ -6,8 +6,8 @@ import (
 	"strings"
 )
 
-var headerSetCookie string = http.CanonicalHeaderKey("Set-Cookie")
-var headerCookie string = http.CanonicalHeaderKey("Cookie")
+var headerSetCookie = http.CanonicalHeaderKey("Set-Cookie")
+var headerCookie = http.CanonicalHeaderKey("Cookie")
 
 type headerObfuscator struct {
 	obfuscateHeader map[string]bool
@@ -21,7 +21,8 @@ func newHeaderObfuscator() *headerObfuscator {
 	}
 }
 
-// Add header keys that should be obfuscated by the value of its length. An already ignored header can not be obfuscated. `Set-Cookie` and `Cookie` is handled by default
+// Add header keys that should be obfuscated by the value of its length. An already ignored header can not be obfuscated.
+// `Set-Cookie` and `Cookie` is handled by default
 func (heob *headerObfuscator) obfuscateHeaders(keys []string) *headerObfuscator {
 	for _, key := range keys {
 		if canon := http.CanonicalHeaderKey(key); canon != headerSetCookie && canon != headerCookie && !heob.ignoreHeader[canon] {
@@ -31,7 +32,8 @@ func (heob *headerObfuscator) obfuscateHeaders(keys []string) *headerObfuscator 
 	return heob
 }
 
-// Add header keys that should be ignored. An already obfuscated header can not be ignored. `Set-Cookie` and `Cookie` is handled by default
+// Add header keys that should be ignored. An already obfuscated header can not be ignored.
+// `Set-Cookie` and `Cookie` is handled by default
 func (heob *headerObfuscator) ignoreHeaders(keys []string) *headerObfuscator {
 	for _, key := range keys {
 		if canon := http.CanonicalHeaderKey(key); canon != headerSetCookie && canon != headerCookie && !heob.obfuscateHeader[canon] {
@@ -41,9 +43,9 @@ func (heob *headerObfuscator) ignoreHeaders(keys []string) *headerObfuscator {
 	return heob
 }
 
-// ProcessHeaders either obfuscates, ignores or does nothing to headers. Obfuscation happens by replacing the header value by its length. The header `Cookie` and `Set-Cookie` values' are always obfuscated
+// ProcessHeaders either obfuscates, ignores or does nothing to headers. Obfuscation happens by replacing the header value by its length.
+// The header `Cookie` and `Set-Cookie` values' are always obfuscated
 func (heob *headerObfuscator) processHeaders(header http.Header) http.Header {
-
 	// we do not want to interfer with the existing request header
 	processedHeaders := header.Clone()
 
@@ -72,7 +74,7 @@ func (heob *headerObfuscator) processHeaders(header http.Header) http.Header {
 			continue
 		}
 
-		// the Set-Cookie can have different parameters like domain which are seperated by;
+		// the Set-Cookie can have different parameters like domain which are separated by;
 		semicolonSign := strings.Index(parts[1], ";")
 		if semicolonSign > 0 {
 			newValue := parts[1][:semicolonSign]
@@ -85,7 +87,6 @@ func (heob *headerObfuscator) processHeaders(header http.Header) http.Header {
 
 	// parsing cookie values via a fake request
 	if header.Get(headerCookie) != "" {
-
 		cookieString := strings.Builder{}
 		request := http.Request{Header: header}
 

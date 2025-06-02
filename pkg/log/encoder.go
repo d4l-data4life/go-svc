@@ -26,6 +26,7 @@ type PrettyEncoder struct {
 const timeFmt = time.StampMilli
 
 // Encode transforms the given value and writes it to the configured io.Writer
+// nolint: gocyclo
 func (e *PrettyEncoder) Encode(entry interface{}) error {
 	var s string
 

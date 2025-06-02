@@ -25,7 +25,7 @@ func TestLogHttpOutRequest(t *testing.T) {
 		ctx = context.WithValue(ctx, log.TraceIDContextKey, "t1")
 		ctx = context.WithValue(ctx, log.ClientIDContextKey, "c1")
 
-		if err := l.HttpOutRequest(
+		if err := l.HTTPOutRequest(
 			ctx,
 			"GET",
 			"http://example.com/hey",
@@ -92,7 +92,7 @@ func TestLogHttpOutRequest(t *testing.T) {
 		buf := new(bytes.Buffer)
 		l := log.NewLogger("vega", "v1.0.0", "vega-123-123", log.WithWriter(buf))
 
-		if err := l.HttpOutRequest(
+		if err := l.HTTPOutRequest(
 			context.Background(),
 			"GET",
 			"http://example.com/hey",
@@ -145,7 +145,6 @@ func TestLogHttpOutRequest(t *testing.T) {
 }
 
 func TestLogHTTPOutReqResp(t *testing.T) {
-
 	buf := new(bytes.Buffer)
 	l := log.NewLogger("name", "version", "hostname", log.WithWriter(buf))
 
@@ -321,7 +320,6 @@ func TestLogHTTPOutReqResp(t *testing.T) {
 }
 
 func TestLogHTTPOutReqRespHeader(t *testing.T) {
-
 	buf := new(bytes.Buffer)
 	l := log.NewLogger("name", "version", "hostname", log.WithWriter(buf))
 
@@ -400,7 +398,6 @@ func TestLogHTTPOutReqRespHeader(t *testing.T) {
 }
 
 func TestLogHTTPOutReqRespHeaderLogging(t *testing.T) {
-
 	buf := new(bytes.Buffer)
 	l := log.NewLogger("name", "version", "hostname", log.WithWriter(buf))
 

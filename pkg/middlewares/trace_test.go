@@ -11,6 +11,7 @@ import (
 	"github.com/gesundheitscloud/go-svc/pkg/middlewares"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestTraceNewID(t *testing.T) {
@@ -19,7 +20,7 @@ func TestTraceNewID(t *testing.T) {
 
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		traceID := r.Context().Value(log.TraceIDContextKey).(string)
-		assert.NotEqual(t, "", traceID)
+		assert.NotEmpty(t, traceID)
 	})
 	traceMiddleware := middlewares.Trace(handler)
 	traceMiddleware.ServeHTTP(res, req)
@@ -62,7 +63,7 @@ func TestTraceTransportWithTraceIdInContext(t *testing.T) {
 	req = req.WithContext(c)
 
 	res, err := client.Do(req)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	body, _ := io.ReadAll(res.Body)
 	assert.Equal(t, expectedResponseBody, string(body))
@@ -72,7 +73,7 @@ func TestTraceTransportWithOutTraceIdInContext(t *testing.T) {
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		traceID := r.Header.Get(log.TraceIDHeaderKey)
 		w.WriteHeader(200)
-		assert.NotEqual(t, "", traceID)
+		assert.NotEmpty(t, traceID)
 	})
 	server := httptest.NewServer(handler)
 	defer server.Close()
@@ -87,5 +88,5 @@ func TestTraceTransportWithOutTraceIdInContext(t *testing.T) {
 
 func TestGenerateTraceID(t *testing.T) {
 	traceID := middlewares.GenerateTraceID()
-	assert.Equal(t, 32, len(traceID))
+	assert.Len(t, traceID, 32)
 }

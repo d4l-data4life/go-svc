@@ -43,24 +43,24 @@ func (rt *RetrierTransport) RoundTrip(req *http.Request) (*http.Response, error)
 	var response *http.Response
 
 	err := retry.Run(func() error {
+		// nolint: bodyclose
 		resp, err := rt.rt.RoundTrip(req)
 		if err == nil {
 			response = resp
 			return StatusCode(resp.StatusCode)
-		} else {
-			return err
 		}
+		return err
 	})
 
 	// roundtrip must return a response if the error is nil even if we retried
 	if _, ok := err.(StatusCode); ok {
 		return response, nil
-	} else {
-		return response, err
 	}
+	return response, err
 }
 
-// Retrier will retry requesting a resource depending on some http status code. Generally, status codes from 200 to 399 are always viewed as a success
+// Retrier will retry requesting a resource depending on some http status code.
+// Generally, status codes from 200 to 399 are always viewed as a success
 func Retrier(retries int, retrySleep time.Duration, retriableStatusCodes []int) TransportFunc {
 	return func(rt http.RoundTripper) http.RoundTripper {
 		if rt == nil {

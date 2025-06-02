@@ -30,6 +30,7 @@ var (
 )
 
 // Initialize connects to the Database and migrates the schema
+// nolint: funlen
 func Initialize(runCtx context.Context, opts *ConnectionOptions) <-chan struct{} {
 	dbUp := make(chan struct{})
 	// goroutine to establish connection including retries

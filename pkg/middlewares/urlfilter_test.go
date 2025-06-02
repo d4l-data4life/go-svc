@@ -25,7 +25,7 @@ func TestUrlValidator(t *testing.T) {
 
 			// target handler after query validation
 			handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
-			filterMiddleware := UrlValidator(handler)
+			filterMiddleware := URLValidator(handler)
 			filterMiddleware.ServeHTTP(res, req)
 			assert.Equal(t, tt.expectedStatus, res.Code)
 		})

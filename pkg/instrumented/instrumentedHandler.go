@@ -9,13 +9,13 @@ import (
 )
 
 var (
-	//LatencyBuckets define buckets for histogram of HTTP request/reply latency metric - in seconds
+	// LatencyBuckets define buckets for histogram of HTTP request/reply latency metric - in seconds
 	LatencyBuckets = []float64{.0001, .001, .01, .1, .25, .5, 1, 2.5, 5, 10}
-	//SizeBuckets define buckets for histogram of HTTP request/reply size metric - in bytes
+	// SizeBuckets define buckets for histogram of HTTP request/reply size metric - in bytes
 	SizeBuckets = []float64{16, 32, 64, 128, 256, 512, 1024, 5120, 20480, 102400, 512000, 1000000, 10000000}
-	//DefaultInstrumentOptions hold options (API-path-specific) for HTTP instrumenter - record request size and response size
+	// DefaultInstrumentOptions hold options (API-path-specific) for HTTP instrumenter - record request size and response size
 	DefaultInstrumentOptions = []prom.Option{prom.WithReqSize, prom.WithRespSize}
-	//DefaultInstrumentInitOptions hold initialization options (API-handler-specific) for HTTP instrumenter - definitions of histogram buckets
+	// DefaultInstrumentInitOptions hold initialization options (API-handler-specific) for HTTP instrumenter - definitions of histogram buckets
 	DefaultInstrumentInitOptions = []prom.InitOption{
 		prom.WithLatencyBuckets(LatencyBuckets),
 		prom.WithSizeBuckets(SizeBuckets),
@@ -52,7 +52,6 @@ func (ihf *HandlerFactory) NewHandler(handlerName string, extraOpts ...interface
 		default:
 			logging.LogWarningf(errors.New("unknown instrumentation option type"), "change option to a known option")
 		}
-
 	}
 	return newHandler(ihf.subsystemName, handlerName, initOptions, options)
 }
@@ -90,8 +89,12 @@ func (ih *Handler) Instrumenter() *prom.HandlerInstrumenter {
 
 // InstrumentChi applies the monitoring to the handler and return it together with path, so that it is easy to consume by chi router
 // If `options` is set, default options are removed and replaced with provided parameters
-func (ih *Handler) InstrumentChi(path string, fn func(w http.ResponseWriter, r *http.Request), options ...prom.Option) (string, func(w http.ResponseWriter, r *http.Request)) {
-	if len(options) > 0 { //rewrite options if requested
+func (ih *Handler) InstrumentChi(
+	path string,
+	fn func(w http.ResponseWriter, r *http.Request),
+	options ...prom.Option,
+) (string, func(w http.ResponseWriter, r *http.Request)) {
+	if len(options) > 0 { // rewrite options if requested
 		ih.WithOptions(options...)
 	}
 	return path, ih.Instrumenter().Instrument(ih.handlerName+path, http.HandlerFunc(fn), ih.options...).ServeHTTP

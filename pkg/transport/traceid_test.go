@@ -34,7 +34,6 @@ func TestTraceIDTransport(t *testing.T) {
 	_, err = rt.RoundTrip(req)
 	if err != nil {
 		t.Fatalf("round trip failed: %v", err)
-
 	}
 
 	if req.Header.Get(log.TraceIDHeaderKey) != "some-trace-id" {

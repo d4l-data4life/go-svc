@@ -7,6 +7,7 @@ import (
 	"sync"
 )
 
+// nolint: revive
 type LogType string
 
 const (
@@ -47,7 +48,7 @@ func getFromContext(ctx context.Context, key contextKey) string {
 
 // getFromContextWithDefault tries to get a value from the context.
 // If the value is not found, it uses the default value.
-// nolint-unparam
+// nolint: unparam
 func getFromContextWithDefault(ctx context.Context, key contextKey, defaultValue string) string {
 	value := getFromContext(ctx, key)
 	if value != "" {

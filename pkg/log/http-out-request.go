@@ -28,7 +28,7 @@ type outRequestLog struct {
 	TenantID string `json:"tenant-id,omitempty"`
 }
 
-func (l *Logger) HttpOutRequest(
+func (l *Logger) HTTPOutRequest(
 	ctx context.Context,
 	reqMethod string,
 	reqURL string,
@@ -53,7 +53,7 @@ func (l *Logger) HttpOutRequest(
 	})
 }
 
-func (l *Logger) HttpOutReq(req *http.Request, obf map[string][]HTTPObfuscator) error {
+func (l *Logger) HTTPOutReq(req *http.Request, obf map[string][]HTTPObfuscator) error {
 	traceID, userID, clientID := parseContext(req.Context())
 	if traceID == "" {
 		traceID = req.Header.Get(TraceIDHeaderKey)
@@ -93,8 +93,7 @@ func (o *Obfuscator) obfuscateOutRequest(rlog outRequestLog) outRequestLog {
 		return rlog
 	}
 
-	switch o.Field {
-	case Body:
+	if o.Field == Body {
 		rlog.ReqBody = o.Replace.ReplaceAllString(rlog.ReqBody, o.With)
 	}
 	return rlog

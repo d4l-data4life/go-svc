@@ -17,18 +17,18 @@ var defaultIgnoreHeaders = []string{
 	"trace-id",
 }
 
-var hlcInRequest *headerObfuscator = newHeaderObfuscator().
+var hlcInRequest = newHeaderObfuscator().
 	obfuscateHeaders(defaultObfuscationHeaders).
 	ignoreHeaders(defaultIgnoreHeaders)
 
-var hlcInResponse *headerObfuscator = newHeaderObfuscator().
+var hlcInResponse = newHeaderObfuscator().
 	obfuscateHeaders(defaultObfuscationHeaders).
 	ignoreHeaders(defaultIgnoreHeaders)
 
-var hlcOutRequest *headerObfuscator = newHeaderObfuscator().
+var hlcOutRequest = newHeaderObfuscator().
 	obfuscateHeaders(defaultObfuscationHeaders).
 	ignoreHeaders(defaultIgnoreHeaders)
 
-var hlcOutResponse *headerObfuscator = newHeaderObfuscator().
+var hlcOutResponse = newHeaderObfuscator().
 	obfuscateHeaders(defaultObfuscationHeaders).
 	ignoreHeaders(defaultIgnoreHeaders)

@@ -114,7 +114,7 @@ func Logger(opts ...LoggerOption) *golog.Logger {
 
 // LogError (DEPRECATED in favour of LogErrorfCtx) logs an error with the singleton logger with message and error
 func LogError(message string, err error) {
-	LogErrorf(err, message)
+	LogErrorf(err, "%s", message)
 }
 
 // LogErrorf (DEPRECATED in favour of LogErrorfCtx) logs an error with the singleton logger with message and error
@@ -135,7 +135,7 @@ func LogErrorfCtx(ctx context.Context, err error, format string, fields ...inter
 
 // LogWarning (DEPRECATED in favour of LogWarningfCtx) logs a warning with the singleton logger with message and error
 func LogWarning(message string, err error) {
-	LogWarningf(err, message)
+	LogWarningf(err, "%s", message)
 }
 
 // LogWarningf (DEPRECATED in favour of LogWarningfCtx) logs a warning with the singleton logger with message and error
@@ -208,7 +208,13 @@ func LogAuditRead(ctx context.Context, ownerID string, resourceType string, reso
 }
 
 // LogAuditBulkRead logs a successful resource bulk read access with the singleton logger with message and error
-func LogAuditBulkRead(ctx context.Context, ownerID string, resourceType string, resourceIDs []string, extras ...golog.ExtraAuditInfoProvider) {
+func LogAuditBulkRead(
+	ctx context.Context,
+	ownerID string,
+	resourceType string,
+	resourceIDs []string,
+	extras ...golog.ExtraAuditInfoProvider,
+) {
 	err := Logger().AuditBulkRead(ctx, ownerID, resourceType, resourceIDs, extras...)
 	if err != nil {
 		fmt.Printf("Logging error (LogAuditBulkRead): %s\n", err.Error())
@@ -217,7 +223,7 @@ func LogAuditBulkRead(ctx context.Context, ownerID string, resourceType string, 
 
 // LogInfo (DEPRECATED in favour of LogInfofCtx) logs an info with the singleton logger with message and error
 func LogInfo(message string) {
-	LogInfof(message)
+	LogInfof("%s", message)
 }
 
 // LogInfof (DEPRECATED in favour of LogInfofCtx) info-level log with formatting

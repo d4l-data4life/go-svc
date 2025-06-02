@@ -4,12 +4,12 @@ import (
 	"context"
 	"testing"
 
-	"github.com/gesundheitscloud/go-svc/pkg/migrate"
 	"github.com/pkg/errors"
+
+	"github.com/gesundheitscloud/go-svc/pkg/migrate"
 )
 
 func TestMigrateUp(t *testing.T) {
-
 	const (
 		migrationTable = "migration"
 	)
@@ -78,7 +78,12 @@ func TestMigrateUp(t *testing.T) {
 			}
 
 			if migrationTableSchema != expectedMigrationSchema {
-				t.Errorf("expected to find migration table %s in schema %s. Found it in schema %s", migrationTable, expectedMigrationSchema, migrationTableSchema)
+				t.Errorf(
+					"expected to find migration table %s in schema %s. Found it in schema %s",
+					migrationTable,
+					expectedMigrationSchema,
+					migrationTableSchema,
+				)
 			}
 		})
 	}

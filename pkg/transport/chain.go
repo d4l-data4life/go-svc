@@ -24,6 +24,5 @@ func Chain(transports ...TransportFunc) TransportFunc {
 		return &ChainTransport{
 			rt: rt,
 		}
-
 	}
 }

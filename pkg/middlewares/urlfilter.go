@@ -31,8 +31,8 @@ func stringsContainCTLByte(strings []string) bool {
 	return false
 }
 
-// UrlValidator middleware validates the query params to contain no control characters
-func UrlValidator(next http.Handler) http.Handler {
+// URLValidator middleware validates the query params to contain no control characters
+func URLValidator(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		queryValues := r.URL.Query()
 

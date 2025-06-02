@@ -78,7 +78,6 @@ func Test_headerObfuscator_ignoreHeaders(t *testing.T) {
 }
 
 func Test_headerObfuscator_Disjunct(t *testing.T) {
-
 	type operationOrder int
 	const (
 		ignore_obfuscate operationOrder = 0
@@ -148,7 +147,6 @@ X-Real-Ip: 192.168.0.8
 `
 
 func Test_headerObfuscator_ProcessHeaders(t *testing.T) {
-
 	tests := []struct {
 		name string
 		heob *headerObfuscator
@@ -192,7 +190,12 @@ func Test_headerObfuscator_ProcessHeaders(t *testing.T) {
 			testutils.WithAppendToHeader("Set-Cookie", "bad"),
 		),
 		want: map[string][]string{
-			"Set-Cookie": {"key=Obfuscated{5}", "key2=Obfuscated{6};", "key3=Obfuscated{7}; Path=/path/; Domain=example.com", "Invalid{3}"}},
+			"Set-Cookie": {
+				"key=Obfuscated{5}",
+				"key2=Obfuscated{6};",
+				"key3=Obfuscated{7}; Path=/path/; Domain=example.com",
+				"Invalid{3}",
+			}},
 	}, {
 		name: "Mixing everything",
 		heob: newHeaderObfuscator().ignoreHeaders([]string{"X-Real-Ip", "content-type"}).obfuscateHeaders([]string{"Authorization"}),

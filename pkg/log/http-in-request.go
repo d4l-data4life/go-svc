@@ -31,7 +31,7 @@ type inRequestLog struct {
 	TenantID string `json:"tenant-id,omitempty"`
 }
 
-func (l *HTTPLogger) httpInRequest(req *http.Request) error {
+func (h *HTTPLogger) httpInRequest(req *http.Request) error {
 	traceID, userID, clientID := parseContext(req.Context())
 	_ = req.ParseForm()
 
@@ -41,9 +41,9 @@ func (l *HTTPLogger) httpInRequest(req *http.Request) error {
 		Timestamp:       time.Now(),
 		LogLevel:        LevelInfo,
 		TraceID:         traceID,
-		ServiceName:     l.log.serviceName,
-		ServiceVersion:  l.log.serviceVersion,
-		Hostname:        l.log.hostname,
+		ServiceName:     h.log.serviceName,
+		ServiceVersion:  h.log.serviceVersion,
+		Hostname:        h.log.hostname,
 		ReqIP:           req.RemoteAddr,
 		ReqMethod:       req.Method,
 		ReqBody:         bodyStr,
@@ -57,13 +57,13 @@ func (l *HTTPLogger) httpInRequest(req *http.Request) error {
 		ContentType:     req.Header.Get("Content-Type"),
 		ContentEncoding: req.Header.Get("Content-Encoding"),
 		ClientID:        clientID,
-		TenantID:        getFromContextWithDefault(req.Context(), TenantIDContextKey, l.log.tenantID),
+		TenantID:        getFromContextWithDefault(req.Context(), TenantIDContextKey, h.log.tenantID),
 	}
 
-	log = l.obfuscateInRequest(log)
-	log = l.anonymizeIP(log)
+	log = h.obfuscateInRequest(log)
+	log = h.anonymizeIP(log)
 
-	return l.log.Log(log)
+	return h.log.Log(log)
 }
 
 func (h *HTTPLogger) anonymizeIP(rlog inRequestLog) inRequestLog {

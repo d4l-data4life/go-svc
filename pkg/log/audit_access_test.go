@@ -111,7 +111,6 @@ func TestAuditRead(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-
 			buffer := new(bytes.Buffer)
 			logger := NewLogger("svc", "v1.0.0", "host-1", WithWriter(buffer), WithPodName(podName), WithEnv(environment))
 
@@ -241,7 +240,6 @@ func TestAuditBulkRead(t *testing.T) {
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-
 			buffer := new(bytes.Buffer)
 			logger := NewLogger("svc", "v1.0.0", "host-1", WithWriter(buffer), WithPodName(podName), WithEnv(environment))
 

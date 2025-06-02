@@ -266,7 +266,6 @@ func (l *Logger) WrapHTTP(h http.Handler, options ...func(*HTTPLogger)) HTTPLogg
 }
 
 func (l *Logger) HTTPMiddleware(options ...func(*HTTPLogger)) func(http.Handler) http.Handler {
-
 	return func(next http.Handler) http.Handler {
 		return l.WrapHTTP(next, options...)
 	}

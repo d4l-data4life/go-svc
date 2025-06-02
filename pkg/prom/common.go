@@ -12,12 +12,12 @@ type Options struct {
 type Option func(*Options)
 
 // WithReqSize instruments the handler with a request size metric
-var WithReqSize Option = func(o *Options) { //nolint-gochecknoglobals would require a lot of refactoring in other services
+var WithReqSize Option = func(o *Options) { // nolint-gochecknoglobals would require a lot of refactoring in other services
 	o.reqSize = true
 }
 
 // WithRespSize instruments the handler with a response size metric
-var WithRespSize Option = func(o *Options) { //nolint-gochecknoglobals would require a lot of refactoring in other services
+var WithRespSize Option = func(o *Options) { // nolint-gochecknoglobals would require a lot of refactoring in other services
 	o.respSize = true
 }
 

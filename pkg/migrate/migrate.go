@@ -51,7 +51,8 @@ func NewMigration(db *sql.DB, sourceFolder, migrationTable string, log logger) *
 	}
 }
 
-// NewMigrationWithFdw returns a new migration instances for the given database connection with support for postgres_fdw via fdw.up.sql and fdw.down.sql scripts
+// NewMigrationWithFdw returns a new migration instances for the given database connection
+// with support forpostgres_fdwvia fdw.up.sql and fdw.down.sql scripts
 func NewMigrationWithFdw(db *sql.DB, sourceFolder, migrationTable string, foreignDB *ForeignDatabase, log logger) *Migration {
 	return &Migration{
 		db:              db,
@@ -168,14 +169,14 @@ func (m *Migration) execute(ctx context.Context, filename string, templateData i
 }
 
 func fileExists(path string) (bool, error) {
-	if _, err := os.Stat(path); err == nil {
+	_, err := os.Stat(path)
+	if err == nil {
 		// path exists
 		return true, nil
 	} else if os.IsNotExist(err) {
 		// path does *not* exist
 		return false, nil
-	} else {
-		// file may exists but os.Stat fails for other reasons (eg. permission, failing disk)
-		return false, err
 	}
+	// file may exists but os.Stat fails for other reasons (eg. permission, failing disk)
+	return false, err
 }

@@ -13,13 +13,13 @@ import (
 	"github.com/gesundheitscloud/go-svc/pkg/transport"
 )
 
-type caller struct {
+type Caller struct {
 	client *http.Client
 	name   string
 }
 
-func NewCaller(timeout time.Duration, name string) *caller {
-	return &caller{
+func NewCaller(timeout time.Duration, name string) *Caller {
+	return &Caller{
 		client: &http.Client{
 			Transport: transport.Chain(
 				transport.Timeout(timeout),
@@ -33,8 +33,14 @@ func NewCaller(timeout time.Duration, name string) *caller {
 	}
 }
 
-func (c *caller) call(ctx context.Context, URL, method, secret, userAgent string, payload *bytes.Buffer, expectedCodes ...int) ([]byte, int, http.Header, error) {
-	request, err := http.NewRequestWithContext(ctx, method, URL, payload)
+// nolint: unparam
+func (c *Caller) call(
+	ctx context.Context,
+	url, method, secret, userAgent string,
+	payload *bytes.Buffer,
+	expectedCodes ...int,
+) ([]byte, int, http.Header, error) {
+	request, err := http.NewRequestWithContext(ctx, method, url, payload)
 	if err != nil {
 		logging.LogErrorfCtx(ctx, err, "error creating HTTP request")
 		return nil, 0, nil, err
@@ -48,7 +54,7 @@ func (c *caller) call(ctx context.Context, URL, method, secret, userAgent string
 		defer response.Body.Close()
 	}
 	if err != nil {
-		logging.LogErrorfCtx(ctx, err, "error sending '%s' request to '%s'", method, URL)
+		logging.LogErrorfCtx(ctx, err, "error sending '%s' request to '%s'", method, url)
 		return nil, 0, nil, err
 	}
 
@@ -56,7 +62,7 @@ func (c *caller) call(ctx context.Context, URL, method, secret, userAgent string
 	if !existsIn(response.StatusCode, expectedCodes) {
 		if err == nil {
 			err = fmt.Errorf("method = '%s', URL = '%s' error: unexpected return code %d (wanted one of: %s), body = %s",
-				method, URL, response.StatusCode, prettyPrint(expectedCodes), string(body))
+				method, url, response.StatusCode, prettyPrint(expectedCodes), string(body))
 		}
 		logging.LogErrorfCtx(ctx, err, "error sending request to service. Status: %s", http.StatusText(response.StatusCode))
 		return nil, response.StatusCode, nil, err

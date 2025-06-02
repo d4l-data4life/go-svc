@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"gorm.io/gorm"
 )
 
@@ -35,7 +35,6 @@ func dbOpts() *ConnectionOptions {
 }
 
 func BenchmarkMapFunctions(b *testing.B) {
-
 	m := make(map[string]time.Time)
 	mutex := sync.RWMutex{}
 
@@ -66,7 +65,7 @@ func TestGormInstrumenter(t *testing.T) {
 	instrumenter := Instrumenter{}
 
 	err := instrumenter.Initialize(nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	var testType TestType
 
@@ -76,7 +75,6 @@ func TestGormInstrumenter(t *testing.T) {
 		checkMetricsCollection(metricSrv, []string{
 			`d4l_db_request_duration_seconds_bucket{sqlstring="INSERT INTO \"public\".\"test_ty",le="0.25"} 1`,
 		}, t)
-
 	})
 	t.Run("Query metric collected", func(t *testing.T) {
 		db.First(&testType, 1)
@@ -84,7 +82,6 @@ func TestGormInstrumenter(t *testing.T) {
 		checkMetricsCollection(metricSrv, []string{
 			`d4l_db_request_duration_seconds_bucket{sqlstring="SELECT * FROM \"public\".\"test_",le="0.25"} 1`,
 		}, t)
-
 	})
 
 	t.Run("Update metric collected", func(t *testing.T) {
@@ -93,7 +90,6 @@ func TestGormInstrumenter(t *testing.T) {
 		checkMetricsCollection(metricSrv, []string{
 			`d4l_db_request_duration_seconds_bucket{sqlstring="UPDATE \"public\".\"test_types\" ",le="0.25"} 1`,
 		}, t)
-
 	})
 
 	t.Run("Delete metric collected", func(t *testing.T) {
@@ -102,7 +98,6 @@ func TestGormInstrumenter(t *testing.T) {
 		checkMetricsCollection(metricSrv, []string{
 			`d4l_db_request_duration_seconds_bucket{sqlstring="DELETE FROM \"public\".\"test_ty",le="0.25"} 1`,
 		}, t)
-
 	})
 }
 

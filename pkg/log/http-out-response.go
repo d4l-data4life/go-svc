@@ -29,7 +29,7 @@ type outResponseLog struct {
 	TenantID string `json:"tenant-id,omitempty"`
 }
 
-func (l *Logger) HttpOutResponse(
+func (l *Logger) HTTPOutResponse(
 	req *http.Request,
 	resp *http.Response,
 	requestTimestamp time.Time,
@@ -52,7 +52,6 @@ func (l *Logger) HttpOutResponse(
 	}
 
 	now := time.Now()
-
 	level := LevelInfo
 	if code >= http.StatusBadRequest {
 		level = LevelError
@@ -98,8 +97,7 @@ func (o *Obfuscator) obfuscateOutResponse(rlog outResponseLog) outResponseLog {
 		return rlog
 	}
 
-	switch o.Field {
-	case Body:
+	if o.Field == Body {
 		rlog.ResponseBody = o.Replace.ReplaceAllString(rlog.ResponseBody, o.With)
 	}
 	return rlog

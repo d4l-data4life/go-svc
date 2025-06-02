@@ -7,7 +7,7 @@ import (
 )
 
 func TestObfuscateIP(t *testing.T) {
-	t.Run("Test valid ip addressess obfuscation", func(t *testing.T) {
+	t.Run("Test valid ip addresses obfuscation", func(t *testing.T) {
 		tests := []struct {
 			name string
 			ip   string

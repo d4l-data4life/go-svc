@@ -6,12 +6,12 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/gesundheitscloud/go-svc/pkg/migrate"
 	"github.com/pkg/errors"
+
+	"github.com/gesundheitscloud/go-svc/pkg/migrate"
 )
 
 func TestMigrateSetup(t *testing.T) {
-
 	const (
 		testSchema     = "test_setup"
 		migrationTable = "migration"

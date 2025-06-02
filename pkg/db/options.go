@@ -15,6 +15,8 @@ import (
 	"github.com/gesundheitscloud/go-svc/pkg/logging"
 )
 
+const SSLVerifyFull = "verify-full"
+
 type MigrationFunc func(do *gorm.DB) error
 type DriverFunc func(connectString string, opts *ConnectionOptions) (*gorm.DB, error)
 
@@ -64,7 +66,7 @@ func WithDefaults() ConnectionOption {
 		c.DatabaseSchema = "public"
 		c.Host = "localhost"
 		c.Port = "5432"
-		c.SSLMode = "verify-full"
+		c.SSLMode = SSLVerifyFull
 		c.SSLRootCertPath = "/root.ca.pem"
 		c.EnableInstrumentation = true
 		c.LoggerConfig = logger.Config{
@@ -191,7 +193,7 @@ func ConnectString(opts *ConnectionOptions) string {
 	connectString := fmt.Sprintf("host=%s port=%s dbname=%s sslmode=%s",
 		opts.Host, opts.Port, opts.DatabaseName, opts.SSLMode)
 
-	if (opts.SSLMode == "verify-ca" || opts.SSLMode == "verify-full") && opts.SSLRootCertPath != "" {
+	if (opts.SSLMode == "verify-ca" || opts.SSLMode == SSLVerifyFull) && opts.SSLRootCertPath != "" {
 		connectString += fmt.Sprintf(" sslrootcert=%s", opts.SSLRootCertPath)
 	}
 

@@ -15,10 +15,10 @@ type LogTransport struct {
 
 func (t *LogTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	reqTime := time.Now()
-	_ = t.logger.HttpOutReq(req, t.obf)
+	_ = t.logger.HTTPOutReq(req, t.obf)
 
 	res, err := t.rt.RoundTrip(req)
-	_ = t.logger.HttpOutResponse(req, res, reqTime, t.obf)
+	_ = t.logger.HTTPOutResponse(req, res, reqTime, t.obf)
 
 	return res, err
 }

@@ -17,7 +17,7 @@ func ListenAndServe(runCtx context.Context, mux *chi.Mux, port string) <-chan st
 
 	listenAddress := net.JoinHostPort("", port)
 	logging.LogInfof("listeninig on %s", listenAddress)
-	server := &http.Server{Addr: listenAddress, Handler: mux}
+	server := &http.Server{Addr: listenAddress, Handler: mux, ReadHeaderTimeout: 0}
 
 	// goroutine that runs the server
 	go func() {

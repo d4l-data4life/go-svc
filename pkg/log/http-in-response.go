@@ -30,7 +30,7 @@ type inResponseLog struct {
 	TenantID string `json:"tenant-id,omitempty"`
 }
 
-func (l *HTTPLogger) httpInResponse(
+func (h *HTTPLogger) httpInResponse(
 	req *http.Request,
 	responseHeader http.Header,
 	responseCode int,
@@ -53,9 +53,9 @@ func (l *HTTPLogger) httpInResponse(
 		Timestamp:       now,
 		LogLevel:        level,
 		TraceID:         traceID,
-		ServiceName:     l.log.serviceName,
-		ServiceVersion:  l.log.serviceVersion,
-		Hostname:        l.log.hostname,
+		ServiceName:     h.log.serviceName,
+		ServiceVersion:  h.log.serviceVersion,
+		Hostname:        h.log.hostname,
 		EventType:       "http-in-response",
 		UserID:          userID,
 		ReqMethod:       req.Method,
@@ -68,12 +68,12 @@ func (l *HTTPLogger) httpInResponse(
 		ContentEncoding: responseHeader.Get("Content-Encoding"),
 		Duration:        now.Sub(requestTimestamp).Milliseconds(),
 		ClientID:        clientID,
-		TenantID:        getFromContextWithDefault(req.Context(), TenantIDContextKey, l.log.tenantID),
+		TenantID:        getFromContextWithDefault(req.Context(), TenantIDContextKey, h.log.tenantID),
 	}
 
-	log = l.obfuscateInResponse(log)
+	log = h.obfuscateInResponse(log)
 
-	return l.log.Log(log)
+	return h.log.Log(log)
 }
 
 func (h *HTTPLogger) obfuscateInResponse(rlog inResponseLog) inResponseLog {

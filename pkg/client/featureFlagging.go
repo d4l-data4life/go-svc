@@ -25,7 +25,7 @@ var userAgentFeatures = "go-svc.client.FeatureFlaggingService"
 type FeatureFlaggingService struct {
 	svcAddr   string
 	svcSecret string
-	caller    *caller
+	caller    *Caller
 }
 
 func NewFeatureFlaggingService(svcAddr, svcSecret, caller string) *FeatureFlaggingService {
