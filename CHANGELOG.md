@@ -9,8 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- [gormer] Package providing interface for automatic basic gorm model methods (get,upsert,delete)
-
 ### Changed
 
 ### Deprecated
@@ -18,6 +16,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 ### Fixed
+
+### Security
+
+## [v1.86.0] - 2025-06-03
+
+### Added
+
+- [gormer] Package providing interface for automatic basic gorm model methods (get,upsert,delete)
 
 ### Security
 
@@ -1022,7 +1028,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial state: standards for Main, HTTP Server, DB access (gorm), Logging, Instrumented-Handler, and K8s Probe
 
-[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.85.0...HEAD
+[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.86.0...HEAD
+[v1.86.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.85.0...v1.86.0
 [v1.85.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.84.1...v1.85.0
 [v1.84.1]: https://github.com/gesundheitscloud/go-svc/compare/v1.84.0...v1.84.1
 [v1.84.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.83.0...v1.84.0
