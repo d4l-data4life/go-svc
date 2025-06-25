@@ -66,6 +66,10 @@ func (e *PrettyEncoder) Encode(entry interface{}) error {
 		s = fmt.Sprintf("%s %s %s %s | %s | subjectID: %s; clientID: %s; securityEvent: %s successful: %t",
 			v.Timestamp.Format(timeFmt), v.LogType, v.AuditLogType, v.RequestURL,
 			v.TraceID, v.SubjectID, v.ClientID, v.SecurityEvent, v.Successful)
+	case bulkAccessLog:
+		s = fmt.Sprintf("%s %s %s %s | %s | subjectID: %s; clientID: %s; resourceIDs: %v; resourceType: %s",
+			v.Timestamp.Format(timeFmt), v.LogType, v.AuditLogType, v.RequestURL,
+			v.TraceID, v.SubjectID, v.ClientID, v.ResourceIDs, v.ResourceType)
 
 	default:
 		return fmt.Errorf("unknown log type: %T", v)

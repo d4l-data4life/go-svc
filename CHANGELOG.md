@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- [log] Add bulkAccess for logtype which was missing before
+
 ### Changed
 
 ### Deprecated
