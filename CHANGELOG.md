@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- [build] Add golangci-lint version warning when local version differs from CI (v2.0)
+- [build] Remove unused GO_VERSION variable from Makefile (version controlled by go.mod)
+
 ### Deprecated
 
 ### Removed

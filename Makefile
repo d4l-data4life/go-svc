@@ -1,5 +1,4 @@
-GO_VERSION := 1.22
-CILINT_VERSION := v1.58
+CILINT_VERSION := v2.0
 
 DB_CONTAINER_NAME=go-svc-postgres
 DB_PORT=5432
@@ -22,9 +21,18 @@ test-gh-action: ## Run tests natively in verbose mode and storing the results in
 test: lint unit-test-postgres
 
 .PHONY: lint
-lint:
-	@golangci-lint --version
+lint: _check-lint-version
 	golangci-lint run ./...
+
+.PHONY: _check-lint-version  
+_check-lint-version:
+	@golangci-lint --version
+	@INSTALLED_VERSION=$$(golangci-lint version 2>/dev/null | grep -o 'v[0-9]\+\.[0-9]\+' | head -1); \
+	if [ "$$INSTALLED_VERSION" != "$(CILINT_VERSION)" ]; then \
+		echo "⚠️  Warning: Local golangci-lint version ($$INSTALLED_VERSION) differs from CI version ($(CILINT_VERSION))  ⚠️"; \
+		echo ""; \
+		sleep 3; \
+	fi
 
 .PHONY: unit-test-postgres
 unit-test-postgres: docker-database local-test clean
