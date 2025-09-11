@@ -11,9 +11,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- [build] Add golangci-lint version warning when local version differs from CI (v2.0)
-- [build] Remove unused GO_VERSION variable from Makefile (version controlled by go.mod)
-
 ### Deprecated
 
 ### Removed
@@ -21,6 +18,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Security
+
+## [v1.88.0] - 2025-09-11
+
+### Changed
+
+- [build] Add golangci-lint version warning when local version differs from CI (v2.0)
+- [build] Remove unused GO_VERSION variable from Makefile (version controlled by go.mod)
+- Open-sourced repo and moved to d4l-data4life org
 
 ## [v1.87.0] - 2025-06-25
 
@@ -1037,7 +1042,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial state: standards for Main, HTTP Server, DB access (gorm), Logging, Instrumented-Handler, and K8s Probe
 
-[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.87.0...HEAD
+[Unreleased]: https://github.com/gesundheitscloud/go-svc/compare/v1.88.0...HEAD
+[v1.88.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.87.0...v1.88.0
 [v1.87.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.86.0...v1.87.0
 [v1.86.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.85.0...v1.86.0
 [v1.85.0]: https://github.com/gesundheitscloud/go-svc/compare/v1.84.1...v1.85.0
