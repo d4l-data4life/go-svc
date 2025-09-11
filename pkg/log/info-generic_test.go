@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/gesundheitscloud/go-svc/pkg/log"
+	"github.com/d4l-data4life/go-svc/pkg/log"
 )
 
 const (

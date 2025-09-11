@@ -7,8 +7,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/gesundheitscloud/go-svc/pkg/log"
-	"github.com/gesundheitscloud/go-svc/pkg/middlewares"
+	"github.com/d4l-data4life/go-svc/pkg/log"
+	"github.com/d4l-data4life/go-svc/pkg/middlewares"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

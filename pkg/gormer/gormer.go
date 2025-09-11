@@ -5,8 +5,8 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 
-	"github.com/gesundheitscloud/go-svc/pkg/db"
-	"github.com/gesundheitscloud/go-svc/pkg/logging"
+	"github.com/d4l-data4life/go-svc/pkg/db"
+	"github.com/d4l-data4life/go-svc/pkg/logging"
 )
 
 // define errors

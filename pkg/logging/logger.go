@@ -7,7 +7,7 @@ import (
 	"strings"
 	"sync"
 
-	golog "github.com/gesundheitscloud/go-svc/pkg/log"
+	golog "github.com/d4l-data4life/go-svc/pkg/log"
 )
 
 type LoggerOption func(*Config)

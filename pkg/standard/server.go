@@ -8,7 +8,7 @@ import (
 
 	"github.com/go-chi/chi"
 
-	"github.com/gesundheitscloud/go-svc/pkg/logging"
+	"github.com/d4l-data4life/go-svc/pkg/logging"
 )
 
 // ListenAndServe starts the server

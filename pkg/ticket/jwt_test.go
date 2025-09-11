@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/gesundheitscloud/go-svc/pkg/ticket"
+	"github.com/d4l-data4life/go-svc/pkg/ticket"
 )
 
 func GetTestKey(t *testing.T) []byte {

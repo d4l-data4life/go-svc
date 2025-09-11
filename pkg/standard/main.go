@@ -7,9 +7,9 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/gesundheitscloud/go-svc/pkg/channels"
-	"github.com/gesundheitscloud/go-svc/pkg/db"
-	"github.com/gesundheitscloud/go-svc/pkg/logging"
+	"github.com/d4l-data4life/go-svc/pkg/channels"
+	"github.com/d4l-data4life/go-svc/pkg/db"
+	"github.com/d4l-data4life/go-svc/pkg/logging"
 )
 
 // setupSingals connects SIGTERM and SIGINT with cancelation of the running context

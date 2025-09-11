@@ -8,7 +8,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/gesundheitscloud/go-svc/pkg/migrate"
+	"github.com/d4l-data4life/go-svc/pkg/migrate"
 )
 
 func TestMigrateSetup(t *testing.T) {

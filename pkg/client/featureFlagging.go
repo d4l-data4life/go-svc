@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/gesundheitscloud/go-svc/pkg/logging"
+	"github.com/d4l-data4life/go-svc/pkg/logging"
 )
 
 type FeatureFlagging interface {

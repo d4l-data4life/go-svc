@@ -24,8 +24,8 @@ custom namespace at runtime:
 
 ```go
 import (
-    dbMetrics "github.com/gesundheitscloud/go-svc/pkg/db"
-    prom "github.com/gesundheitscloud/go-svc/pkg/prom"
+    dbMetrics "github.com/d4l-data4life/go-svc/pkg/db"
+    prom "github.com/d4l-data4life/go-svc/pkg/prom"
 )
 
 func init() {

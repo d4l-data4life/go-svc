@@ -3,7 +3,7 @@ package transport
 import (
 	"net/http"
 
-	"github.com/gesundheitscloud/go-svc/pkg/prom"
+	"github.com/d4l-data4life/go-svc/pkg/prom"
 )
 
 // Prometheus adds monitoring to http requests.

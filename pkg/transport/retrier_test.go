@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gesundheitscloud/go-svc/pkg/transport"
+	"github.com/d4l-data4life/go-svc/pkg/transport"
 )
 
 var errFoo error = errors.New("some unrelated error")

@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/gesundheitscloud/go-svc/pkg/transport"
+	"github.com/d4l-data4life/go-svc/pkg/transport"
 )
 
 func TestJSONTransport(t *testing.T) {

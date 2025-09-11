@@ -11,8 +11,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gesundheitscloud/go-svc/pkg/log"
-	"github.com/gesundheitscloud/go-svc/pkg/transport"
+	"github.com/d4l-data4life/go-svc/pkg/log"
+	"github.com/d4l-data4life/go-svc/pkg/transport"
 )
 
 func TestLogHttpOutRequest(t *testing.T) {

@@ -1,4 +1,4 @@
-module github.com/gesundheitscloud/go-svc
+module github.com/d4l-data4life/go-svc
 
 go 1.24.0
 

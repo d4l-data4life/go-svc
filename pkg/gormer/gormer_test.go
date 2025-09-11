@@ -6,9 +6,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/gesundheitscloud/go-svc/internal/testutils"
-	"github.com/gesundheitscloud/go-svc/pkg/db"
-	"github.com/gesundheitscloud/go-svc/pkg/gormer"
+	"github.com/d4l-data4life/go-svc/internal/testutils"
+	"github.com/d4l-data4life/go-svc/pkg/db"
+	"github.com/d4l-data4life/go-svc/pkg/gormer"
 )
 
 // Test gormer interface functionality using survey as examples

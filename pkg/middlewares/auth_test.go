@@ -5,7 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/gesundheitscloud/go-svc/pkg/instrumented"
+	"github.com/d4l-data4life/go-svc/pkg/instrumented"
 
 	"github.com/stretchr/testify/assert"
 )

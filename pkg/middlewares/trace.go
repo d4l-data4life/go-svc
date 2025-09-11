@@ -7,8 +7,8 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/gesundheitscloud/go-svc/pkg/log"
-	"github.com/gesundheitscloud/go-svc/pkg/logging"
+	"github.com/d4l-data4life/go-svc/pkg/log"
+	"github.com/d4l-data4life/go-svc/pkg/logging"
 )
 
 // Trace middleware copies the traceID from the req header to the req context

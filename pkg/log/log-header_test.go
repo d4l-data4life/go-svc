@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/gesundheitscloud/go-svc/pkg/log/testutils"
+	"github.com/d4l-data4life/go-svc/pkg/log/testutils"
 )
 
 func Test_headerObfuscator_obfuscateHeaders(t *testing.T) {

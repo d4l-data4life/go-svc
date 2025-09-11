@@ -8,7 +8,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/gesundheitscloud/go-svc/pkg/db"
+	"github.com/d4l-data4life/go-svc/pkg/db"
 )
 
 func connectToDB(cfg *config) (*sql.DB, error) {

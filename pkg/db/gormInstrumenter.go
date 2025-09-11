@@ -11,7 +11,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"gorm.io/gorm"
 
-	"github.com/gesundheitscloud/go-svc/pkg/prom"
+	"github.com/d4l-data4life/go-svc/pkg/prom"
 )
 
 type contextKey string

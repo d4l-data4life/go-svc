@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/gesundheitscloud/go-svc/pkg/gormer"
+	"github.com/d4l-data4life/go-svc/pkg/gormer"
 )
 
 func InitDBWithExamples(t *testing.T) (example1, example2, example3 *gormer.Example) {

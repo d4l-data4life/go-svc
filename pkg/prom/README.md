@@ -5,7 +5,7 @@ This library can be used to instrument Golang services for Prometheus scraping
 
 ## Installation
 
-Import `github.com/gesundheitscloud/go-svc/pkg/prom` and run `go mod tidy`.
+Import `github.com/d4l-data4life/go-svc/pkg/prom` and run `go mod tidy`.
 
 ## Server-side instrumentation
 
@@ -32,7 +32,7 @@ package handler
 import (
    "net/http"
 
-   prom "github.com/gesundheitscloud/go-svc/pkg/prom"
+   prom "github.com/d4l-data4life/go-svc/pkg/prom"
 
    "github.com/gorilla/mux"
    "github.com/prometheus/client_golang/prometheus/promhttp"

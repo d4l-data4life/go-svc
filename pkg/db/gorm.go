@@ -8,8 +8,8 @@ import (
 
 	"gorm.io/gorm"
 
-	"github.com/gesundheitscloud/go-svc/pkg/logging"
-	"github.com/gesundheitscloud/go-svc/pkg/migrate"
+	"github.com/d4l-data4life/go-svc/pkg/logging"
+	"github.com/d4l-data4life/go-svc/pkg/migrate"
 )
 
 var (

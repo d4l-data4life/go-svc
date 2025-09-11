@@ -6,7 +6,7 @@ import (
 
 	"golang.org/x/oauth2/clientcredentials"
 
-	"github.com/gesundheitscloud/go-svc/pkg/logging"
+	"github.com/d4l-data4life/go-svc/pkg/logging"
 )
 
 // define error messages to display to users
