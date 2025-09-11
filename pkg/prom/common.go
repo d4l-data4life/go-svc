@@ -52,7 +52,22 @@ func WithLatencyBuckets(latencyBuckets []float64) InitOption {
 	}
 }
 
-const namespace = "d4l"
+var namespace = "d4l"
+
+// SetNamespace sets the Prometheus metrics namespace for this package.
+// If an empty value is provided, the call is ignored and the previous
+// namespace remains in effect.
+func SetNamespace(ns string) {
+	if ns == "" {
+		return
+	}
+	namespace = ns
+}
+
+func GetNamespace() string {
+	return namespace
+}
+
 const defaultSubsystem = "phdp"
 
 func defaultSizeBuckets() []float64 {

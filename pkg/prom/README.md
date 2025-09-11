@@ -5,40 +5,17 @@ This library can be used to instrument Golang services for Prometheus scraping
 
 ## Installation
 
-The package should be installed **automatically** after running any `go` command, provided that the code imports and uses this package.
-
-When installing a package from private repositories, Go needs to be instructed to not validate the checksums in a public database.
-This can be obtained by setting the following environmental variable.
-
-```bash
-export GOPRIVATE='github.com/gesundheitscloud/*'
-# or
-go env -w GOPRIVATE='github.com/gesundheitscloud/*'
-```
-
-Then installation can be restarted with:
-
-```bash
-go mod tidy
-# or explicitly
-go get github.com/gesundheitscloud/go-monitoring@v0.2.0
-```
-
-Should the environment be set incorrectly, the following error may occur:
-
-```
-verifying github.com/gesundheitscloud/go-monitoring@v0.2.0: github.com/gesundheitscloud/go-monitoring@v0.2.0: reading https://sum.golang.org/lookup/github.com/gesundheitscloud/go-monitoring@v0.2.0: 410 Gone
-```
+Import `github.com/gesundheitscloud/go-svc/pkg/prom` and run `go mod tidy`.
 
 ## Server-side instrumentation
 
-If the service exposes http endpoints, this library helps instrumenting all incoming http requests with the following metrics under the given name (\<subsystem\> defaults to `phdp`):
+If the service exposes http endpoints, this library helps instrumenting all incoming http requests with the following metrics under the given name (<subsystem> defaults to `phdp`). Namespace defaults to `d4l` and can be changed via `prom.SetNamespace("myapp")`:
 
-- [HTTP Request Gauge Metric](https://prometheus.io/docs/concepts/metric_types/#gauge): `d4l_<subsystem>_http_requests`
-- [HTTP Request Counter Metric](https://prometheus.io/docs/concepts/metric_types/#counter): `d4l_<subsystem>_http_requests_total`
-- [HTTP Request Duration Histogram](https://prometheus.io/docs/concepts/metric_types/#histogram): `d4l_<subsystem>_http_request_duration_seconds`
-- Optional: [HTTP Request Size Histogram](https://prometheus.io/docs/concepts/metric_types/#histogram): `d4l_<subsystem>_http_request_size_bytes`
-- Optional: [HTTP Response Size Histogram](https://prometheus.io/docs/concepts/metric_types/#histogram): `d4l_<subsystem>_http_response_size_bytes`
+- [HTTP Request Gauge Metric](https://prometheus.io/docs/concepts/metric_types/#gauge): `<namespace>_<subsystem>_http_requests`
+- [HTTP Request Counter Metric](https://prometheus.io/docs/concepts/metric_types/#counter): `<namespace>_<subsystem>_http_requests_total`
+- [HTTP Request Duration Histogram](https://prometheus.io/docs/concepts/metric_types/#histogram): `<namespace>_<subsystem>_http_request_duration_seconds`
+- Optional: [HTTP Request Size Histogram](https://prometheus.io/docs/concepts/metric_types/#histogram): `<namespace>_<subsystem>_http_request_size_bytes`
+- Optional: [HTTP Response Size Histogram](https://prometheus.io/docs/concepts/metric_types/#histogram): `<namespace>_<subsystem>_http_response_size_bytes`
 
 It uses the following default buckets for histograms (changeable through the `prom.NewHandlerInstrumenter(...)` init options):
 
@@ -55,7 +32,7 @@ package handler
 import (
    "net/http"
 
-   "github.com/gesundheitscloud/go-monitoring/prom"
+   prom "github.com/gesundheitscloud/go-svc/pkg/prom"
 
    "github.com/gorilla/mux"
    "github.com/prometheus/client_golang/prometheus/promhttp"
@@ -63,6 +40,7 @@ import (
 
 func NewHandler() http.Handler {
    router := mux.NewRouter()
+   prom.SetNamespace("myapp") // optional; defaults to d4l
    mon := prom.NewHandlerInstrumenter(prom.WithSubsystem("myOwnSubSystem")) // defaults to phdp subsystem
 
    router.
@@ -80,11 +58,11 @@ func NewHandler() http.Handler {
 
 ## Client-side instrumentation
 
-If the service executes outgoing http requests, this library helps instrumenting all outgoing http requests with the following metrics under the given name (\<subsystem\> defaults to `phdp`):
+If the service executes outgoing http requests, this library helps instrumenting all outgoing http requests with the following metrics under the given name (<subsystem> defaults to `phdp`). Namespace can be changed via `prom.SetNamespace(...)`:
 
-- [HTTP Request Gauge Metric](https://prometheus.io/docs/concepts/metric_types/#gauge): `d4l_<subsystem>_http_out_requests`
-- [HTTP Request Counter Metric](https://prometheus.io/docs/concepts/metric_types/#counter): `d4l_<subsystem>_http_out_requests_total`
-- [HTTP Request Duration Histogram](https://prometheus.io/docs/concepts/metric_types/#histogram): `d4l_<subsystem>_http_out_request_duration_seconds`
+- [HTTP Request Gauge Metric](https://prometheus.io/docs/concepts/metric_types/#gauge): `<namespace>_<subsystem>_http_out_requests`
+- [HTTP Request Counter Metric](https://prometheus.io/docs/concepts/metric_types/#counter): `<namespace>_<subsystem>_http_out_requests_total`
+- [HTTP Request Duration Histogram](https://prometheus.io/docs/concepts/metric_types/#histogram): `<namespace>_<subsystem>_http_out_request_duration_seconds`
 
 It uses the same size bucket as described above for the server-side instrumentation.
 

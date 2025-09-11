@@ -9,10 +9,11 @@ import (
 )
 
 func TestAzureOauth2_Authenticate(t *testing.T) {
-	scope := "https://alpsgdev.onmicrosoft.com/alp-portal/.default"
-	endpoint := "https://login.microsoftonline.com/f59c7915-9283-4fb5-b633-435b9145ca00/oauth2/v2.0/token"
+	t.Skip("networked Azure test disabled in OSS; requires external tenant setup")
+	scope := "https://example.onmicrosoft.com/app/.default"
+	endpoint := "https://login.microsoftonline.com/00000000-0000-0000-0000-000000000000/oauth2/v2.0/token"
 	clientID := ""
-	invalidSecret := "super-secret"
+	invalidSecret := "test-secret"
 
 	type fields struct {
 		endpoint     string

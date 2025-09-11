@@ -1,19 +1,39 @@
-# Boilerplate code for golang services @ D4L
+## Go service toolkit
 
-This repository serves as the the "library monorepo" for golang services at data4life
-and comprises the following packages:
+Reusable building blocks for Go services: logging, middleware, database helpers,
+Prometheus instrumentation, HTTP client/server utilities, and more.
 
-- [bievents](./pkg/bievents): Instrumentation of events relevant for BI reporting
-- [client](./pkg/client)
-- [cors](./pkg/cors): Handling of Cross-Origin Resource Sharing headers
-- [d4lcontext](./pkg/d4lcontext)
-- [db](./pkg/db)
-- [instrumented](./pkg/instrumented)
-- [jwt](./pkg/jwt): Handling of JWTs
-- [log](./pkg/log): Logging and Audit Logging
-- [logging](./pkg/logging)
-- [middlewares](./pkg/middlewares)
-- [migrate](./pkg/migrate): Schema creation and migration (DDL) for PostgreSQL databases
-- [probe](./pkg/probe)
-- [prom](./pkg/prom): Prometheus monitoring instrumentation
-- [standard](./pkg/standard)
+### Packages
+
+- `pkg/client`: HTTP client helpers and OAuth2 client
+- `pkg/db`: GORM setup, connection management, and metrics
+- `pkg/instrumented`: Handler factory with structured logging and metrics
+- `pkg/log`: Structured logging, audit logs, HTTP request/response logging
+- `pkg/logging`: Global logger facade for convenience
+- `pkg/middlewares`: Auth, tenant, tracing, URL filter middlewares
+- `pkg/migrate`: Migration runner for PostgreSQL (SQL files)
+- `pkg/prom`: Prometheus metrics utilities for HTTP client/server
+- `pkg/standard`: Opinionated server/gateway wiring
+- `pkg/ticket`: Lightweight JWT ticket verification/claims
+- `pkg/transport`: Composable RoundTripper chain (retry, timeout, auth, trace)
+
+### Prometheus namespace
+
+Metrics default to the `d4l` namespace for backward compatibility. You can set a
+custom namespace at runtime:
+
+```go
+import (
+    dbMetrics "github.com/gesundheitscloud/go-svc/pkg/db"
+    prom "github.com/gesundheitscloud/go-svc/pkg/prom"
+)
+
+func init() {
+    prom.SetNamespace("myapp")
+    dbMetrics.SetPrometheusNamespace("myapp")
+}
+```
+
+### License
+
+Apache License 2.0. See `LICENSE`.

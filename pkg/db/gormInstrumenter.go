@@ -10,6 +10,8 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"gorm.io/gorm"
+
+	"github.com/gesundheitscloud/go-svc/pkg/prom"
 )
 
 type contextKey string
@@ -88,7 +90,7 @@ func createAfterRequestCallback(m map[string]time.Time, mMutex *sync.RWMutex, me
 
 func registerDbRequestDurationMetric() *prometheus.HistogramVec {
 	return promauto.NewHistogramVec(prometheus.HistogramOpts{
-		Namespace: "d4l",
+		Namespace: prom.GetNamespace(),
 		Name:      "db_request_duration_seconds",
 		Help:      "histogram",
 		Buckets:   []float64{.001, .01, .1, .25, .5, 1, 2.5, 5, 10},
