@@ -90,3 +90,16 @@ func (e *PrettyEncoder) Encode(entry interface{}) error {
 func NewPrettyEncoder(w io.Writer) Encoder {
 	return &PrettyEncoder{out: w}
 }
+
+// NullEncoder is an encoder that discards all log entries
+type NullEncoder struct{}
+
+// Encode does nothing and returns no error, effectively discarding the log entry
+func (e *NullEncoder) Encode(_ interface{}) error {
+	return nil
+}
+
+// NewNullEncoder creates a new null encoder that discards all log entries
+func NewNullEncoder() Encoder {
+	return &NullEncoder{}
+}

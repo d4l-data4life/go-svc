@@ -19,6 +19,7 @@ func Unnamed() LoggerOption {
 		c.Hostname = ""
 		c.HumanReadable = false
 		c.Debug = false
+		c.OutputFile = os.Stdout
 	}
 }
 
@@ -64,6 +65,12 @@ func Debug(value bool) LoggerOption {
 	}
 }
 
+func OutputFile(file *os.File) LoggerOption {
+	return func(c *Config) {
+		c.OutputFile = file
+	}
+}
+
 type Config struct {
 	HumanReadable bool
 	Debug         bool
@@ -72,6 +79,7 @@ type Config struct {
 	Hostname      string
 	Environment   string
 	PodName       string
+	OutputFile    *os.File
 }
 
 var onceLogger sync.Once
@@ -96,10 +104,20 @@ func LoggerConfig(opts ...LoggerOption) *Config {
 func Logger(opts ...LoggerOption) *golog.Logger {
 	onceLogger.Do(func() {
 		lConf := LoggerConfig(opts...)
-		encoder := golog.NewJSONEncoder(os.Stdout)
-		if lConf.HumanReadable {
-			encoder = golog.NewPrettyEncoder(os.Stdout)
+
+		var encoder golog.Encoder
+		if lConf.OutputFile == nil {
+			// If OutputFile is explicitly set to nil, disable logging
+			encoder = golog.NewNullEncoder()
+		} else {
+			// Use the configured output file (defaults to os.Stdout)
+			if lConf.HumanReadable {
+				encoder = golog.NewPrettyEncoder(lConf.OutputFile)
+			} else {
+				encoder = golog.NewJSONEncoder(lConf.OutputFile)
+			}
 		}
+
 		instance = golog.NewLogger(
 			lConf.SvcName,
 			lConf.SvcVersion,
