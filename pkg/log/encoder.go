@@ -95,7 +95,7 @@ func NewPrettyEncoder(w io.Writer) Encoder {
 type NullEncoder struct{}
 
 // Encode does nothing and returns no error, effectively discarding the log entry
-func (e *NullEncoder) Encode(v interface{}) error {
+func (e *NullEncoder) Encode(_ interface{}) error {
 	return nil
 }
 
