@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- [log] Allow to set output file for logging (default is os.Stdout), can be os.Stderr, any file pointer or nil to disable logging
+
 ### Deprecated
 
 ### Removed
