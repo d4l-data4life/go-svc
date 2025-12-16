@@ -97,6 +97,17 @@ func (m *Migration) MigrateDB(ctx context.Context, migrationVersion uint) error 
 		return errors.Wrap(err, "error creating migrate instance")
 	}
 
+	_, _, err = mpg.Version()
+	if err == migrate.ErrNilVersion {
+		// no migration information in the database, so it's a fresh database
+		// and the data model is already the latest one set up Gorm automigrations
+		// nolint: gosec
+		err = mpg.Force(int(migrationVersion))
+		if err != nil {
+			return errors.Wrap(err, "error setting migration version")
+		}
+	}
+
 	err = mpg.Migrate(migrationVersion)
 
 	switch err {

@@ -274,7 +274,11 @@ func (l *Logger) HTTPMiddleware(options ...func(*HTTPLogger)) func(http.Handler)
 // excludedContentType filters out content types that we do not want to log
 // (e.g. doesn't make much sense to log application/octet-stream bodies consisting of binary data)
 func excludedContentType(ct string) bool {
-	return ct == "application/octet-stream"
+	return ct == "application/octet-stream" ||
+		ct == "application/zip" ||
+		ct == "application/zip-compressed" ||
+		ct == "application/x-zip" ||
+		ct == "application/x-zip-compressed"
 }
 
 // excludedContentEncoding filters out content encodings that we do not want to log

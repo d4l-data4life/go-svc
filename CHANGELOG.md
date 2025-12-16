@@ -11,11 +11,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- golang migration doesn't run on an empty database anymore
+
 ### Deprecated
 
 ### Removed
 
 ### Fixed
+
+- exclude compressed MIME types from logging
 
 ### Security
 
