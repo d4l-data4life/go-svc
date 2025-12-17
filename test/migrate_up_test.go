@@ -61,7 +61,7 @@ func TestMigrateUp(t *testing.T) {
 				t.Fatal(errors.Wrap(err, "could not create a migration instance"))
 			}
 
-			if err = m.MigrateDB(ctx, tc.version); err != nil {
+			if err = m.MigrateDB(ctx, tc.version, true); err != nil {
 				t.Error(errors.Wrap(err, "could not run the migration"))
 			}
 

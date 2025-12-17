@@ -59,7 +59,7 @@ func Initialize(runCtx context.Context, opts *ConnectionOptions) <-chan struct{}
 			defer logging.LogInfof("database connection closed")
 		}()
 
-		err = runMigration(conn, opts.MigrationFunc, opts.MigrationVersion)
+		err = runMigration(conn, opts.MigrationFunc, opts.MigrationVersion, opts.StartFromZero)
 		if err != nil {
 			if opts.MigrationHaltOnError {
 				logging.LogErrorf(err, "database migration failed - aborting")
@@ -149,7 +149,7 @@ func retryExponential(runCtx context.Context, attempts uint, waitPeriod time.Dur
 }
 
 // runMigration Executes Migrations on the database
-func runMigration(conn *gorm.DB, migFn MigrationFunc, migrationVersion uint) error {
+func runMigration(conn *gorm.DB, migFn MigrationFunc, migrationVersion uint, startFromZero bool) error {
 	if conn == nil {
 		logging.LogErrorf(ErrDBConnection, "MigrateDB() - db handle is nil")
 		return ErrDBConnection
@@ -169,7 +169,7 @@ func runMigration(conn *gorm.DB, migFn MigrationFunc, migrationVersion uint) err
 	// Run manual migrations defined in sql scripts if needed
 	if migrationVersion > 0 {
 		migration := migrate.NewMigration(sqlDB, migrationsSource, migrationsTable, logging.Logger())
-		err = migration.MigrateDB(context.Background(), migrationVersion)
+		err = migration.MigrateDB(context.Background(), migrationVersion, startFromZero)
 	}
 
 	return err
