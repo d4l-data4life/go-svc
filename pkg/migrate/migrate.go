@@ -72,6 +72,8 @@ func NewMigrationWithFdw(db *sql.DB, sourceFolder, migrationTable string, foreig
 // 3. Then it delegates the run of the numbered migration steps to golang-migrate.
 //
 // 4. Execute the fdw.down.sql script (if exists) by templating via ForeignDatabase (e.g. for postgres_fdw)
+//
+// nolint: gocyclo
 func (m *Migration) MigrateDB(ctx context.Context, migrationVersion uint, startFromZero bool) error {
 	if err := m.execute(ctx, setupScriptName, nil); err != nil { // execute setup
 		return errors.Wrap(err, "could not run the setup script")
