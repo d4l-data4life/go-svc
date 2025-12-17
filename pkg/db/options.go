@@ -32,20 +32,20 @@ func NewConnection(opts ...ConnectionOption) *ConnectionOptions {
 }
 
 type ConnectionOptions struct {
-	Debug                 bool
-	MaxConnectionLifetime time.Duration
-	MaxIdleConnections    int
-	MaxOpenConnections    int
-	Host                  string
-	Port                  string
-	DatabaseName          string
-	DatabaseSchema        string
-	User                  string
-	Password              string
-	SSLMode               string
-	MigrationVersion      uint
-	StartFromZero         bool
-	MigrationHaltOnError  bool
+	Debug                  bool
+	MaxConnectionLifetime  time.Duration
+	MaxIdleConnections     int
+	MaxOpenConnections     int
+	Host                   string
+	Port                   string
+	DatabaseName           string
+	DatabaseSchema         string
+	User                   string
+	Password               string
+	SSLMode                string
+	MigrationVersion       uint
+	MigrationStartFromZero bool
+	MigrationHaltOnError   bool
 	// SSLRootCertPath represents path to a file containing the root-CA used for Postgres server identity validation
 	// The cert is provided by Jenkins on build under default path "/root.ca.pem"
 	SSLRootCertPath        string
@@ -76,7 +76,7 @@ func WithDefaults() ConnectionOption {
 			LogLevel:                  logger.Silent,
 		}
 		c.SkipDefaultTransaction = false
-		c.StartFromZero = false
+		c.MigrationStartFromZero = false
 	}
 }
 
@@ -155,7 +155,7 @@ func WithMigrationVersion(version uint) ConnectionOption {
 
 func WithMigrationStartFromZero(startFromZero bool) ConnectionOption {
 	return func(c *ConnectionOptions) {
-		c.StartFromZero = startFromZero
+		c.MigrationStartFromZero = startFromZero
 	}
 }
 

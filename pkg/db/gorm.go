@@ -59,7 +59,7 @@ func Initialize(runCtx context.Context, opts *ConnectionOptions) <-chan struct{}
 			defer logging.LogInfof("database connection closed")
 		}()
 
-		err = runMigration(conn, opts.MigrationFunc, opts.MigrationVersion, opts.StartFromZero)
+		err = runMigration(conn, opts.MigrationFunc, opts.MigrationVersion, opts.MigrationStartFromZero)
 		if err != nil {
 			if opts.MigrationHaltOnError {
 				logging.LogErrorf(err, "database migration failed - aborting")
