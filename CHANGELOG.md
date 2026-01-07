@@ -11,17 +11,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- golang migration doesn't run on an empty database anymore
-
 ### Deprecated
 
 ### Removed
 
 ### Fixed
 
-- exclude compressed MIME types from logging
-
 ### Security
+
+## [v1.90.0] - 2026-01-07
+
+### Changed
+
+- golang migration doesn't run on an empty database anymore
+
+### Fixed
+
+- exclude compressed MIME types from logging
 
 ## [v1.89.0] - 2025-09-16
 
@@ -1052,7 +1058,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial state: standards for Main, HTTP Server, DB access (gorm), Logging, Instrumented-Handler, and K8s Probe
 
-[Unreleased]: https://github.com/d4l-data4life/go-svc/compare/v1.89.0...HEAD
+[Unreleased]: https://github.com/d4l-data4life/go-svc/compare/v1.90.0...HEAD
+[v1.90.0]: https://github.com/d4l-data4life/go-svc/compare/v1.89.0...v1.90.0
 [v1.89.0]: https://github.com/d4l-data4life/go-svc/compare/v1.88.0...v1.89.0
 [v1.88.0]: https://github.com/d4l-data4life/go-svc/compare/v1.87.0...v1.88.0
 [v1.87.0]: https://github.com/d4l-data4life/go-svc/compare/v1.86.0...v1.87.0
