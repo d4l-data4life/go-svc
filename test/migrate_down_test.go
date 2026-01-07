@@ -58,11 +58,11 @@ func TestMigrateDown(t *testing.T) {
 			}
 
 			// first migrate to the initial version
-			if err = m.MigrateDB(ctx, tc.initialVersion); err != nil {
+			if err = m.MigrateDB(ctx, tc.initialVersion, true); err != nil {
 				t.Fatal(errors.Wrap(err, "could not reach the initial version"))
 			}
 
-			if err = m.MigrateDB(ctx, tc.targetVersion); err != nil {
+			if err = m.MigrateDB(ctx, tc.targetVersion, true); err != nil {
 				t.Error(errors.Wrap(err, "could not run the migration"))
 			}
 

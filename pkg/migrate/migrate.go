@@ -72,7 +72,9 @@ func NewMigrationWithFdw(db *sql.DB, sourceFolder, migrationTable string, foreig
 // 3. Then it delegates the run of the numbered migration steps to golang-migrate.
 //
 // 4. Execute the fdw.down.sql script (if exists) by templating via ForeignDatabase (e.g. for postgres_fdw)
-func (m *Migration) MigrateDB(ctx context.Context, migrationVersion uint) error {
+//
+// nolint: gocyclo
+func (m *Migration) MigrateDB(ctx context.Context, migrationVersion uint, startFromZero bool) error {
 	if err := m.execute(ctx, setupScriptName, nil); err != nil { // execute setup
 		return errors.Wrap(err, "could not run the setup script")
 	}
@@ -95,6 +97,17 @@ func (m *Migration) MigrateDB(ctx context.Context, migrationVersion uint) error 
 	)
 	if err != nil {
 		return errors.Wrap(err, "error creating migrate instance")
+	}
+
+	_, _, err = mpg.Version()
+	if err == migrate.ErrNilVersion && !startFromZero {
+		// no migration information in the database, so it's a fresh database
+		// and the data model is already the latest one set up Gorm automigrations
+		// nolint: gosec
+		err = mpg.Force(int(migrationVersion))
+		if err != nil {
+			return errors.Wrap(err, "error setting migration version")
+		}
 	}
 
 	err = mpg.Migrate(migrationVersion)
