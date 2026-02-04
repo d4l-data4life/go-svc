@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"fmt"
 	"os"
+	"path/filepath"
+	"strconv"
 	"strings"
 	"text/template"
 
@@ -21,6 +23,8 @@ const (
 	setupScriptName   = "setup.sql"
 	fdwUpScriptName   = "fdw.up.sql"
 	fdwDownScriptName = "fdw.down.sql"
+	beforeUpSuffix    = ".before.up.sql"
+	beforeDownSuffix  = ".before.down.sql"
 )
 
 // Migration is the struct that holds the information needed for migrating a database.
@@ -181,6 +185,52 @@ func (m *Migration) execute(ctx context.Context, filename string, templateData i
 	return err
 }
 
+// ExecuteTargetBeforeUp runs a target-version before migration if present.
+// The script is expected to be idempotent because it is not tracked.
+func (m *Migration) ExecuteTargetBeforeUp(ctx context.Context, migrationVersion uint) (bool, error) {
+	filename, err := findBeforeUpFile(m.sourceFolder, migrationVersion)
+	if err != nil {
+		return false, errors.Wrap(err, "could not scan for before migration")
+	}
+	if filename == "" {
+		_ = m.log.InfoGeneric(ctx, fmt.Sprintf("no before migration found for version %d - skipped", migrationVersion))
+		return false, nil
+	}
+	if err := m.execute(ctx, filename, nil); err != nil {
+		return false, errors.Wrap(err, fmt.Sprintf("could not run before migration %q", filename))
+	}
+	return true, nil
+}
+
+// CreateAfterSourceFolder returns a temp folder containing only non-before migrations.
+func CreateAfterSourceFolder(sourceFolder string) (string, func(), error) {
+	entries, err := os.ReadDir(sourceFolder)
+	if err != nil {
+		return "", nil, errors.Wrap(err, "could not read migrations folder")
+	}
+	tempDir, err := os.MkdirTemp("", "migrate-after-*")
+	if err != nil {
+		return "", nil, errors.Wrap(err, "could not create temp folder")
+	}
+	cleanup := func() {
+		_ = os.RemoveAll(tempDir)
+	}
+	for _, entry := range entries {
+		if entry.IsDir() {
+			continue
+		}
+		name := entry.Name()
+		if isBeforeMigrationFile(name) {
+			continue
+		}
+		if err := copyFile(filepath.Join(sourceFolder, name), filepath.Join(tempDir, name)); err != nil {
+			cleanup()
+			return "", nil, err
+		}
+	}
+	return tempDir, cleanup, nil
+}
+
 func fileExists(path string) (bool, error) {
 	_, err := os.Stat(path)
 	if err == nil {
@@ -192,4 +242,60 @@ func fileExists(path string) (bool, error) {
 	}
 	// file may exists but os.Stat fails for other reasons (eg. permission, failing disk)
 	return false, err
+}
+
+func isBeforeMigrationFile(filename string) bool {
+	return strings.HasSuffix(filename, beforeUpSuffix) || strings.HasSuffix(filename, beforeDownSuffix)
+}
+
+func findBeforeUpFile(sourceFolder string, migrationVersion uint) (string, error) {
+	entries, err := os.ReadDir(sourceFolder)
+	if err != nil {
+		return "", err
+	}
+	for _, entry := range entries {
+		if entry.IsDir() {
+			continue
+		}
+		name := entry.Name()
+		if !strings.HasSuffix(name, beforeUpSuffix) {
+			continue
+		}
+		version, ok := parseMigrationVersion(name)
+		if !ok {
+			continue
+		}
+		if version == migrationVersion {
+			return name, nil
+		}
+	}
+	return "", nil
+}
+
+func parseMigrationVersion(filename string) (uint, bool) {
+	base := filepath.Base(filename)
+	sep := strings.Index(base, "_")
+	if sep <= 0 {
+		return 0, false
+	}
+	versionStr := base[:sep]
+	if len(versionStr) == 0 {
+		return 0, false
+	}
+	parsed, err := strconv.ParseUint(versionStr, 10, 32)
+	if err != nil {
+		return 0, false
+	}
+	return uint(parsed), true
+}
+
+func copyFile(src, dest string) error {
+	data, err := os.ReadFile(src)
+	if err != nil {
+		return errors.Wrap(err, fmt.Sprintf("could not read %q", src))
+	}
+	if err := os.WriteFile(dest, data, 0o644); err != nil {
+		return errors.Wrap(err, fmt.Sprintf("could not write %q", dest))
+	}
+	return nil
 }

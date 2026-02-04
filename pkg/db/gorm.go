@@ -154,21 +154,33 @@ func runMigration(conn *gorm.DB, migFn MigrationFunc, migrationVersion uint, sta
 		logging.LogErrorf(ErrDBConnection, "MigrateDB() - db handle is nil")
 		return ErrDBConnection
 	}
-	// Run GORM automigrations as supplied by service
-	err := migFn(conn)
-	if err != nil {
-		return err
-	}
-
 	sqlDB, err := conn.DB()
 	if err != nil {
 		logging.LogErrorf(err, "error getting sql DB")
 		return err
 	}
+	if migrationVersion > 0 {
+		migration := migrate.NewMigration(sqlDB, migrationsSource, migrationsTable, logging.Logger())
+		if _, err := migration.ExecuteTargetBeforeUp(context.Background(), migrationVersion); err != nil {
+			return err
+		}
+	}
+	// Run GORM automigrations as supplied by service
+	err = migFn(conn)
+	if err != nil {
+		return err
+	}
 
 	// Run manual migrations defined in sql scripts if needed
 	if migrationVersion > 0 {
-		migration := migrate.NewMigration(sqlDB, migrationsSource, migrationsTable, logging.Logger())
+		afterSource, cleanup, err := migrate.CreateAfterSourceFolder(migrationsSource)
+		if err != nil {
+			return err
+		}
+		if cleanup != nil {
+			defer cleanup()
+		}
+		migration := migrate.NewMigration(sqlDB, afterSource, migrationsTable, logging.Logger())
 		err = migration.MigrateDB(context.Background(), migrationVersion, startFromZero)
 	}
 

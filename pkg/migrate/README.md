@@ -23,6 +23,15 @@ The setup script must be idempotent, as it will be run for every migration (unli
 The scripts are optional and must be called `fdw.up.sql` and `fdw.down.sql` and be placed in the same folder as the other sql scripts. The placeholders can be used like this well-known notation within the scripts: `{{.LocalUser}}`.
 The main use case for the scripts is to prepare the database for some foreign data migration like described in [Postgres FDW](https://www.postgresql.org/docs/12/postgres-fdw.html).
 
+## Target-Version Before Script
+
+`go-pg-migrate` supports an optional target-version before script that runs once per migration invocation before GORM AutoMigrate. The script is **not tracked** and must be **idempotent**.
+
+- Naming: `{version}_{name}.before.up.sql` (example: `007_add_index.before.up.sql`)
+- The before script is only considered when `{version}` matches the target version passed to `MigrateDB`.
+- If no matching file exists, the before phase is skipped.
+- Files with `.before.` are excluded from the post‑AutoMigrate migration run.
+
 ## Migration Table
 
 `golang-migrate` needs a table that will contain the migration metadata (current version and the dirty status). This table will be created by the library with the given table name.
