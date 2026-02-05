@@ -128,6 +128,29 @@ func TestFindBeforeUpFile(t *testing.T) {
 	}
 }
 
+func TestFindAfterUpFile(t *testing.T) {
+	dir := t.TempDir()
+	writeMigrationFile(t, dir, "001_init.after.up.sql")
+	writeMigrationFile(t, dir, "002_add.after.up.sql")
+	writeMigrationFile(t, dir, "003_other.after.up.sql")
+
+	found, err := findAfterUpFile(dir, 2)
+	if err != nil {
+		t.Fatalf("findAfterUpFile() error = %v", err)
+	}
+	if found != "002_add.after.up.sql" {
+		t.Fatalf("findAfterUpFile() got = %q, want %q", found, "002_add.after.up.sql")
+	}
+
+	found, err = findAfterUpFile(dir, 4)
+	if err != nil {
+		t.Fatalf("findAfterUpFile() error = %v", err)
+	}
+	if found != "" {
+		t.Fatalf("findAfterUpFile() got = %q, want empty", found)
+	}
+}
+
 func TestCreateAfterSourceFolder_excludesBefore(t *testing.T) {
 	dir := t.TempDir()
 	writeMigrationFile(t, dir, "001_init.up.sql")
@@ -156,6 +179,61 @@ func TestCreateAfterSourceFolder_excludesBefore(t *testing.T) {
 	}
 	if !found["001_init.up.sql"] || !found["setup.sql"] {
 		t.Fatalf("CreateAfterSourceFolder() should keep non-before files")
+	}
+}
+
+func TestCreateAfterSourceFolderForVersion(t *testing.T) {
+	dir := t.TempDir()
+	writeMigrationFile(t, dir, "001_init.after.up.sql")
+	writeMigrationFile(t, dir, "002_add.after.up.sql")
+	writeMigrationFile(t, dir, "003_other.after.up.sql")
+
+	afterDir, cleanup, err := CreateAfterSourceFolderForVersion(dir, 2)
+	if err != nil {
+		t.Fatalf("CreateAfterSourceFolderForVersion() error = %v", err)
+	}
+	if cleanup != nil {
+		defer cleanup()
+	}
+	if afterDir == "" {
+		t.Fatalf("CreateAfterSourceFolderForVersion() returned empty dir")
+	}
+
+	entries, err := os.ReadDir(afterDir)
+	if err != nil {
+		t.Fatalf("ReadDir() error = %v", err)
+	}
+	found := map[string]bool{}
+	for _, entry := range entries {
+		found[entry.Name()] = true
+	}
+	if !found["002_add.up.sql"] {
+		t.Fatalf("CreateAfterSourceFolderForVersion() should include renamed after file")
+	}
+	if found["001_init.up.sql"] || found["003_other.up.sql"] {
+		t.Fatalf("CreateAfterSourceFolderForVersion() should only include the target version")
+	}
+
+	afterDir, cleanup, err = CreateAfterSourceFolderForVersion(dir, 4)
+	if err != nil {
+		t.Fatalf("CreateAfterSourceFolderForVersion() error = %v", err)
+	}
+	if cleanup != nil {
+		defer cleanup()
+	}
+	if afterDir == "" {
+		t.Fatalf("CreateAfterSourceFolderForVersion() got empty dir")
+	}
+	entries, err = os.ReadDir(afterDir)
+	if err != nil {
+		t.Fatalf("ReadDir() error = %v", err)
+	}
+	found = map[string]bool{}
+	for _, entry := range entries {
+		found[entry.Name()] = true
+	}
+	if !found["4_noop.up.sql"] {
+		t.Fatalf("CreateAfterSourceFolderForVersion() should create noop migration")
 	}
 }
 
