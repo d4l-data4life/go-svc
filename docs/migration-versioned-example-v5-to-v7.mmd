@@ -1,0 +1,16 @@
+flowchart TB
+  %% Versioned Example: Current v5 -> Target v7
+
+  B0["Current DB version: 5"] --> B1["Target version: 7"]
+  B1 --> B2["setup.sql (optional, idempotent)"]
+  B2 --> B3["fdw.up.sql (optional)"]
+
+  B3 --> V1["006_fix_constraint.before.up.sql (optional)"]
+  V1 --> V2["AutoMigrate(6)"]
+  V2 --> V3["006_fix_constraint.after.up.sql (optional)"]
+
+  V3 --> V4["007_add_feature.before.up.sql (optional)"]
+  V4 --> V5["AutoMigrate(7)"]
+  V5 --> V6["007_add_feature.after.up.sql (optional)"]
+
+  V6 --> B4["fdw.down.sql (optional)"]
