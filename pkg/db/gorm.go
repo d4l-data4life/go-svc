@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	stderrors "errors"
 	"time"
 
 	"github.com/pkg/errors"
@@ -59,7 +60,7 @@ func Initialize(runCtx context.Context, opts *ConnectionOptions) <-chan struct{}
 			defer logging.LogInfof("database connection closed")
 		}()
 
-		err = runMigration(conn, opts.MigrationFunc, opts.MigrationVersion, opts.MigrationStartFromZero)
+		err = runMigration(conn, opts.VersionedMigrationFunc, opts.MigrationVersion, opts.MigrationStartFromZero)
 		if err != nil {
 			if opts.MigrationHaltOnError {
 				logging.LogErrorf(err, "database migration failed - aborting")
@@ -149,7 +150,7 @@ func retryExponential(runCtx context.Context, attempts uint, waitPeriod time.Dur
 }
 
 // runMigration Executes Migrations on the database
-func runMigration(conn *gorm.DB, migFn MigrationFunc, migrationVersion uint, startFromZero bool) error {
+func runMigration(conn *gorm.DB, migFn VersionedMigrationFunc, migrationVersion uint, startFromZero bool) error {
 	if conn == nil {
 		logging.LogErrorf(ErrDBConnection, "MigrateDB() - db handle is nil")
 		return ErrDBConnection
@@ -159,30 +160,82 @@ func runMigration(conn *gorm.DB, migFn MigrationFunc, migrationVersion uint, sta
 		logging.LogErrorf(err, "error getting sql DB")
 		return err
 	}
-	if migrationVersion > 0 {
-		migration := migrate.NewMigration(sqlDB, migrationsSource, migrationsTable, logging.Logger())
-		if _, err := migration.ExecuteTargetBeforeUp(context.Background(), migrationVersion); err != nil {
-			return err
+	if migrationVersion == 0 {
+		if migFn != nil {
+			return migFn(conn, 0)
 		}
+		return nil
 	}
-	// Run GORM automigrations as supplied by service
-	err = migFn(conn)
+
+	ctx := context.Background()
+	migration := migrate.NewMigration(sqlDB, migrationsSource, migrationsTable, logging.Logger())
+
+	if err := migration.ExecuteSetup(ctx); err != nil {
+		return err
+	}
+	if err := migration.ExecuteFdwUp(ctx); err != nil {
+		return err
+	}
+	defer func() {
+		if err := migration.ExecuteFdwDown(ctx); err != nil {
+			logging.LogErrorf(err, "error executing fdw down script")
+		}
+	}()
+
+	mpg, err := migration.MigrateInstance()
 	if err != nil {
 		return err
 	}
 
-	// Run manual migrations defined in sql scripts if needed
-	if migrationVersion > 0 {
-		afterSource, cleanup, err := migrate.CreateAfterSourceFolder(migrationsSource)
-		if err != nil {
+	currentVersionRaw, dirty, err := mpg.Version()
+	if err != nil {
+		if stderrors.Is(err, migrate.ErrNilVersion) {
+			if startFromZero {
+				currentVersionRaw = 0
+			} else {
+				// no migration info and startFromZero disabled -> treat as already at target
+				// nolint: gosec
+				if err := migrate.SetVersion(mpg, migrationVersion); err != nil {
+					return err
+				}
+				return nil
+			}
+		} else {
 			return err
 		}
-		if cleanup != nil {
-			defer cleanup()
-		}
-		migration := migrate.NewMigration(sqlDB, afterSource, migrationsTable, logging.Logger())
-		err = migration.MigrateDB(context.Background(), migrationVersion, startFromZero)
+	}
+	currentVersion := uint(currentVersionRaw)
+	if dirty {
+		return errors.Errorf("database migration is dirty at version %d", currentVersion)
 	}
 
-	return err
+	for version := currentVersion + 1; version <= migrationVersion; version++ {
+		if _, err := migration.ExecuteBeforeUp(ctx, version); err != nil {
+			logging.LogErrorf(err, "error running before migration for version %d", version)
+			return err
+		}
+
+		if migFn != nil {
+			if err := migFn(conn, version); err != nil {
+				logging.LogErrorf(err, "error running auto migration for version %d", version)
+				return err
+			}
+		}
+
+		if _, err := migration.ExecuteAfterUp(ctx, version); err != nil {
+			logging.LogErrorf(err, "error running after migration for version %d", version)
+			return err
+		}
+
+		// Record version after full before/auto/after sequence.
+		// nolint: gosec
+		if err := migrate.SetVersion(mpg, version); err != nil {
+			logging.LogErrorf(err, "error setting migration version to %d", version)
+			return err
+		}
+
+		logging.LogInfof("migration for version %d executed successfully", version)
+	}
+
+	return nil
 }

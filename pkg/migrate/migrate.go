@@ -25,7 +25,13 @@ const (
 	fdwDownScriptName = "fdw.down.sql"
 	beforeUpSuffix    = ".before.up.sql"
 	beforeDownSuffix  = ".before.down.sql"
+	afterUpSuffix     = ".after.up.sql"
+	beforeSuffix      = ".before.sql"
+	afterSuffix       = ".after.sql"
 )
+
+// ErrNilVersion is returned when no migration version is set in the database.
+var ErrNilVersion = migrate.ErrNilVersion
 
 // Migration is the struct that holds the information needed for migrating a database.
 type Migration struct {
@@ -87,11 +93,48 @@ func (m *Migration) MigrateDB(ctx context.Context, migrationVersion uint, startF
 		return errors.Wrap(err, "could not run the fdw.up script")
 	}
 
+	if err := m.MigrateToVersion(ctx, migrationVersion, startFromZero); err != nil {
+		return err
+	}
+
+	if err := m.execute(ctx, fdwDownScriptName, m.foreignDatabase); err != nil { // execute fdw.down
+		return errors.Wrap(err, "could not run the fdw.down script")
+	}
+
+	return nil
+}
+
+// ExecuteSetup runs the setup.sql script if present.
+func (m *Migration) ExecuteSetup(ctx context.Context) error {
+	if err := m.execute(ctx, setupScriptName, nil); err != nil {
+		return errors.Wrap(err, "could not run the setup script")
+	}
+	return nil
+}
+
+// ExecuteFdwUp runs the fdw.up.sql script if present.
+func (m *Migration) ExecuteFdwUp(ctx context.Context) error {
+	if err := m.execute(ctx, fdwUpScriptName, m.foreignDatabase); err != nil {
+		return errors.Wrap(err, "could not run the fdw.up script")
+	}
+	return nil
+}
+
+// ExecuteFdwDown runs the fdw.down.sql script if present.
+func (m *Migration) ExecuteFdwDown(ctx context.Context) error {
+	if err := m.execute(ctx, fdwDownScriptName, m.foreignDatabase); err != nil {
+		return errors.Wrap(err, "could not run the fdw.down script")
+	}
+	return nil
+}
+
+// MigrateInstance creates a golang-migrate instance for the current source folder.
+func (m *Migration) MigrateInstance() (*migrate.Migrate, error) {
 	driver, err := postgres.WithInstance(m.db, &postgres.Config{
 		MigrationsTable: m.migrationTable,
 	})
 	if err != nil {
-		return errors.Wrap(err, "error creating database driver")
+		return nil, errors.Wrap(err, "error creating database driver")
 	}
 
 	mpg, err := migrate.NewWithDatabaseInstance(
@@ -100,7 +143,30 @@ func (m *Migration) MigrateDB(ctx context.Context, migrationVersion uint, startF
 		driver,
 	)
 	if err != nil {
-		return errors.Wrap(err, "error creating migrate instance")
+		return nil, errors.Wrap(err, "error creating migrate instance")
+	}
+	return mpg, nil
+}
+
+// CurrentVersion returns the current migration version.
+func (m *Migration) CurrentVersion(ctx context.Context) (uint, bool, error) {
+	mpg, err := m.MigrateInstance()
+	if err != nil {
+		return 0, false, err
+	}
+
+	version, dirty, err := mpg.Version()
+	if err != nil {
+		return 0, false, err
+	}
+	return uint(version), dirty, nil
+}
+
+// MigrateToVersion runs golang-migrate without setup/fdw scripts.
+func (m *Migration) MigrateToVersion(ctx context.Context, migrationVersion uint, startFromZero bool) error {
+	mpg, err := m.MigrateInstance()
+	if err != nil {
+		return err
 	}
 
 	_, _, err = mpg.Version()
@@ -127,10 +193,15 @@ func (m *Migration) MigrateDB(ctx context.Context, migrationVersion uint, startF
 		return errors.Wrap(err, fmt.Sprintf("error migrating database to v%d", migrationVersion))
 	}
 
-	if err := m.execute(ctx, fdwDownScriptName, m.foreignDatabase); err != nil { // execute fdw.down
-		return errors.Wrap(err, "could not run the fdw.down script")
-	}
+	return nil
+}
 
+// SetVersion records the current version in the migrations table using an existing migrate instance.
+func SetVersion(mpg *migrate.Migrate, migrationVersion uint) error {
+	// nolint: gosec
+	if err := mpg.Force(int(migrationVersion)); err != nil {
+		return errors.Wrap(err, "error setting migration version")
+	}
 	return nil
 }
 
@@ -202,6 +273,38 @@ func (m *Migration) ExecuteTargetBeforeUp(ctx context.Context, migrationVersion 
 	return true, nil
 }
 
+// ExecuteBeforeUp runs a versioned before migration if present.
+func (m *Migration) ExecuteBeforeUp(ctx context.Context, migrationVersion uint) (bool, error) {
+	filename, err := findBeforeUpFile(m.sourceFolder, migrationVersion)
+	if err != nil {
+		return false, errors.Wrap(err, "could not scan for before migration")
+	}
+	if filename == "" {
+		_ = m.log.InfoGeneric(ctx, fmt.Sprintf("no before migration found for version %d - skipped", migrationVersion))
+		return false, nil
+	}
+	if err := m.execute(ctx, filename, nil); err != nil {
+		return false, errors.Wrap(err, fmt.Sprintf("could not run before migration %q", filename))
+	}
+	return true, nil
+}
+
+// ExecuteAfterUp runs a versioned after migration if present.
+func (m *Migration) ExecuteAfterUp(ctx context.Context, migrationVersion uint) (bool, error) {
+	filename, err := findAfterUpFile(m.sourceFolder, migrationVersion)
+	if err != nil {
+		return false, errors.Wrap(err, "could not scan for after migration")
+	}
+	if filename == "" {
+		_ = m.log.InfoGeneric(ctx, fmt.Sprintf("no after migration found for version %d - skipped", migrationVersion))
+		return false, nil
+	}
+	if err := m.execute(ctx, filename, nil); err != nil {
+		return false, errors.Wrap(err, fmt.Sprintf("could not run after migration %q", filename))
+	}
+	return true, nil
+}
+
 // CreateAfterSourceFolder returns a temp folder containing only non-before migrations.
 func CreateAfterSourceFolder(sourceFolder string) (string, func(), error) {
 	entries, err := os.ReadDir(sourceFolder)
@@ -231,6 +334,49 @@ func CreateAfterSourceFolder(sourceFolder string) (string, func(), error) {
 	return tempDir, cleanup, nil
 }
 
+// CreateAfterSourceFolderForVersion returns a temp folder with the after migration for a single version.
+func CreateAfterSourceFolderForVersion(sourceFolder string, migrationVersion uint) (string, func(), error) {
+	entries, err := os.ReadDir(sourceFolder)
+	if err != nil {
+		return "", nil, errors.Wrap(err, "could not read migrations folder")
+	}
+	tempDir, err := os.MkdirTemp("", "migrate-after-*")
+	if err != nil {
+		return "", nil, errors.Wrap(err, "could not create temp folder")
+	}
+	cleanup := func() {
+		_ = os.RemoveAll(tempDir)
+	}
+	copied := false
+	for _, entry := range entries {
+		if entry.IsDir() {
+			continue
+		}
+		name := entry.Name()
+		if !strings.HasSuffix(name, afterUpSuffix) {
+			continue
+		}
+		version, ok := parseMigrationVersion(name)
+		if !ok || version != migrationVersion {
+			continue
+		}
+		targetName := strings.TrimSuffix(name, afterUpSuffix) + ".up.sql"
+		if err := copyFile(filepath.Join(sourceFolder, name), filepath.Join(tempDir, targetName)); err != nil {
+			cleanup()
+			return "", nil, err
+		}
+		copied = true
+	}
+	if !copied {
+		noopName := fmt.Sprintf("%d_noop.up.sql", migrationVersion)
+		if err := os.WriteFile(filepath.Join(tempDir, noopName), []byte("SELECT 1;"), 0o644); err != nil {
+			cleanup()
+			return "", nil, errors.Wrap(err, fmt.Sprintf("could not write %q", noopName))
+		}
+	}
+	return tempDir, cleanup, nil
+}
+
 func fileExists(path string) (bool, error) {
 	_, err := os.Stat(path)
 	if err == nil {
@@ -245,7 +391,11 @@ func fileExists(path string) (bool, error) {
 }
 
 func isBeforeMigrationFile(filename string) bool {
-	return strings.HasSuffix(filename, beforeUpSuffix) || strings.HasSuffix(filename, beforeDownSuffix)
+	return strings.HasSuffix(filename, beforeUpSuffix) || strings.HasSuffix(filename, beforeDownSuffix) || strings.HasSuffix(filename, beforeSuffix)
+}
+
+func isAfterMigrationFile(filename string) bool {
+	return strings.HasSuffix(filename, afterUpSuffix) || strings.HasSuffix(filename, afterSuffix)
 }
 
 func findBeforeUpFile(sourceFolder string, migrationVersion uint) (string, error) {
@@ -258,7 +408,31 @@ func findBeforeUpFile(sourceFolder string, migrationVersion uint) (string, error
 			continue
 		}
 		name := entry.Name()
-		if !strings.HasSuffix(name, beforeUpSuffix) {
+		if !strings.HasSuffix(name, beforeUpSuffix) && !strings.HasSuffix(name, beforeSuffix) {
+			continue
+		}
+		version, ok := parseMigrationVersion(name)
+		if !ok {
+			continue
+		}
+		if version == migrationVersion {
+			return name, nil
+		}
+	}
+	return "", nil
+}
+
+func findAfterUpFile(sourceFolder string, migrationVersion uint) (string, error) {
+	entries, err := os.ReadDir(sourceFolder)
+	if err != nil {
+		return "", err
+	}
+	for _, entry := range entries {
+		if entry.IsDir() {
+			continue
+		}
+		name := entry.Name()
+		if !strings.HasSuffix(name, afterUpSuffix) && !strings.HasSuffix(name, afterSuffix) {
 			continue
 		}
 		version, ok := parseMigrationVersion(name)

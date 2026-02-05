@@ -14,8 +14,6 @@ services.
 - Optionally set `WithMigrationVersion(version)`
 
 **Behavior (main)**
-- Executes a **target‑only** before script if present:
-  - `{version}_{name}.before.up.sql`
 - Runs **one** AutoMigrate (latest models).
 - Runs `setup.sql` (idempotent), then `fdw.up.sql` (optional).
 - Runs numbered SQL migrations via `golang-migrate`:
@@ -34,24 +32,26 @@ Use when you need **interleaving** per migration version.
 - Runs `setup.sql` once (idempotent).
 - Runs `fdw.up.sql` / `fdw.down.sql` once (optional).
 - For each version from current+1 to target:
-  1. `{version}_{name}.before.up.sql` (optional)
+  1. Versioned before script (optional)
   2. `AutoMigrate(version)` (service implementation)
-  3. `{version}_{name}.after.up.sql` (optional)
+  3. Versioned after script (optional)
+  4. Record version **after** the full sequence completes
 
 **Notes**
 - Missing before/after scripts are skipped.
-- If no after script exists for a version, a no‑op migration is applied so the
-  migration table advances.
+- The version bump represents completion of before + AutoMigrate + after.
+- **Supported naming (versioned path only):**
+  - Before: `{version}_{name}.before.sql` **or** `{version}_{name}.before.up.sql`
+  - After: `{version}_{name}.after.sql` **or** `{version}_{name}.after.up.sql`
 
 ## File Naming Summary
 
 Legacy (main):
-- Before: `{version}_{name}.before.up.sql`
-- After: `{version}_{name}.up.sql`
+- SQL migrations: `{version}_{name}.up.sql`
 
 Versioned (new):
-- Before: `{version}_{name}.before.up.sql`
-- After: `{version}_{name}.after.up.sql`
+- Before: `{version}_{name}.before.sql` or `{version}_{name}.before.up.sql`
+- After: `{version}_{name}.after.sql` or `{version}_{name}.after.up.sql`
 
 Shared:
 - Setup: `setup.sql`

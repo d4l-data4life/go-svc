@@ -5,12 +5,14 @@ flowchart TB
   B1 --> B2["setup.sql (optional, idempotent)"]
   B2 --> B3["fdw.up.sql (optional)"]
 
-  B3 --> V1["006_fix_constraint.before.up.sql (optional)"]
+  B3 --> V1["006_fix_constraint.before.sql (optional)"]
   V1 --> V2["AutoMigrate(6)"]
-  V2 --> V3["006_fix_constraint.after.up.sql (optional)"]
+  V2 --> V3["006_fix_constraint.after.sql (optional)"]
+  V3 --> V3b["Record version 6"]
 
-  V3 --> V4["007_add_feature.before.up.sql (optional)"]
+  V3b --> V4["007_add_feature.before.sql (optional)"]
   V4 --> V5["AutoMigrate(7)"]
-  V5 --> V6["007_add_feature.after.up.sql (optional)"]
+  V5 --> V6["007_add_feature.after.sql (optional)"]
+  V6 --> V6b["Record version 7"]
 
-  V6 --> B4["fdw.down.sql (optional)"]
+  V6b --> B4["fdw.down.sql (optional)"]

@@ -14,16 +14,19 @@ These scripts are optional and run regardless of which migration logic is used.
 ## Legacy Logic (as on main)
 
 - Single AutoMigrate (latest models).
-- Target‑only before script:
-  - `{version}_{name}.before.up.sql`
 - SQL migrations executed via `golang-migrate`:
   - `{version}_{name}.up.sql` / `{version}_{name}.down.sql`
 
 ## Versioned Logic (new)
 
 - Interleaves per migration version:
-  1. `{version}_{name}.before.up.sql` (optional)
+  1. Versioned before script (optional)
   2. AutoMigrate(version) (service implementation)
-  3. `{version}_{name}.after.up.sql` (optional)
+  3. Versioned after script (optional)
+  4. Record version after the full sequence completes
 
 Missing before/after scripts are skipped.
+
+**Supported naming (versioned path only):**
+- Before: `{version}_{name}.before.sql` or `{version}_{name}.before.up.sql`
+- After: `{version}_{name}.after.sql` or `{version}_{name}.after.up.sql`
