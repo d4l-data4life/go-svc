@@ -16,6 +16,7 @@ Prometheus instrumentation, HTTP client/server utilities, and more.
 - `pkg/standard`: Opinionated server/gateway wiring
 - `pkg/ticket`: Lightweight JWT ticket verification/claims
 - `pkg/transport`: Composable RoundTripper chain (retry, timeout, auth, trace)
+- Migration approaches: `docs/migration/README.md`
 
 ### Prometheus namespace
 
