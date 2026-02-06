@@ -11,12 +11,11 @@ Prometheus instrumentation, HTTP client/server utilities, and more.
 - `pkg/log`: Structured logging, audit logs, HTTP request/response logging
 - `pkg/logging`: Global logger facade for convenience
 - `pkg/middlewares`: Auth, tenant, tracing, URL filter middlewares
-- `pkg/migrate`: Migration runner for PostgreSQL (SQL files)
+- `pkg/migrate`: Migration runner for PostgreSQL (SQL files). See [Documentation](docs/migration/README.md)
 - `pkg/prom`: Prometheus metrics utilities for HTTP client/server
 - `pkg/standard`: Opinionated server/gateway wiring
 - `pkg/ticket`: Lightweight JWT ticket verification/claims
 - `pkg/transport`: Composable RoundTripper chain (retry, timeout, auth, trace)
-- Migration approaches: `docs/migration/README.md`
 
 ### Prometheus namespace
 
