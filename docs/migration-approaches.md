@@ -1,32 +1,32 @@
 # Migration Approaches
 
-This repository supports **two migration logics** for services using `pkg/db`.
-The *legacy* logic mirrors what is on `main` today. The *versioned* logic is
-new and enables interleaving per migration version.
+This repository supports **two migration flows** for services using `pkg/db`.
+Choose the legacy flow for a single AutoMigrate pass, or the versioned flow if
+you need per‑version interleaving.
 
-## 1) Legacy Migration Logic (as on main)
+## 1) Legacy Migration Flow
 
 Use when you want a single AutoMigrate call and minimal changes to existing
 services.
 
 **API**
-- Provide `WithMigrationFunc(func(*gorm.DB) error)`
-- Optionally set `WithMigrationVersion(version)`
+- `WithMigrationFunc(func(*gorm.DB) error)`
+- Optional: `WithMigrationVersion(version)`
 
-**Behavior (main)**
+**Behavior**
 - Runs **one** AutoMigrate (latest models).
 - Runs `setup.sql` (idempotent), then `fdw.up.sql` (optional).
 - Runs numbered SQL migrations via `golang-migrate`:
   - `{version}_{name}.up.sql` / `{version}_{name}.down.sql`
 - Runs `fdw.down.sql` (optional).
 
-## 2) Versioned Migration Logic (new)
+## 2) Versioned Migration Flow
 
 Use when you need **interleaving** per migration version.
 
 **API**
-- Provide `WithVersionedMigrationFunc(func(*gorm.DB, uint) error)`
-- Optionally set `WithMigrationVersion(version)`
+- `WithVersionedMigrationFunc(func(*gorm.DB, uint) error)`
+- Optional: `WithMigrationVersion(version)`
 
 **Behavior**
 - Runs `setup.sql` once (idempotent).
@@ -40,16 +40,16 @@ Use when you need **interleaving** per migration version.
 **Notes**
 - Missing before/after scripts are skipped.
 - The version bump represents completion of before + AutoMigrate + after.
-- **Supported naming (versioned path only):**
+- **Supported naming (versioned flow only):**
   - Before: `{version}_{name}.before.sql` **or** `{version}_{name}.before.up.sql`
   - After: `{version}_{name}.after.sql` **or** `{version}_{name}.after.up.sql`
 
 ## File Naming Summary
 
-Legacy (main):
+Legacy flow:
 - SQL migrations: `{version}_{name}.up.sql`
 
-Versioned (new):
+Versioned flow:
 - Before: `{version}_{name}.before.sql` or `{version}_{name}.before.up.sql`
 - After: `{version}_{name}.after.sql` or `{version}_{name}.after.up.sql`
 
