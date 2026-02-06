@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- [log] exclude any binary MIME type from logging
+
 ### Security
 
 ## [v1.90.0] - 2026-01-07

@@ -278,7 +278,11 @@ func excludedContentType(ct string) bool {
 		ct == "application/zip" ||
 		ct == "application/zip-compressed" ||
 		ct == "application/x-zip" ||
-		ct == "application/x-zip-compressed"
+		ct == "application/x-zip-compressed" ||
+		strings.HasPrefix(ct, "font/") ||
+		strings.HasPrefix(ct, "image/") ||
+		strings.HasPrefix(ct, "video/") ||
+		strings.HasPrefix(ct, "audio/")
 }
 
 // excludedContentEncoding filters out content encodings that we do not want to log
