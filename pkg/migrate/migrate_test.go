@@ -110,6 +110,7 @@ func TestFindBeforeUpFile(t *testing.T) {
 	writeMigrationFile(t, dir, "002_add.before.up.sql")
 	writeMigrationFile(t, dir, "002_add.before.down.sql")
 	writeMigrationFile(t, dir, "003_other.before.up.sql")
+	writeMigrationFile(t, dir, "004_new.before.sql")
 
 	found, err := findBeforeUpFile(dir, 2)
 	if err != nil {
@@ -126,6 +127,14 @@ func TestFindBeforeUpFile(t *testing.T) {
 	if found != "" {
 		t.Fatalf("findBeforeUpFile() got = %q, want empty", found)
 	}
+
+	found, err = findBeforeUpFile(dir, 4)
+	if err != nil {
+		t.Fatalf("findBeforeUpFile() error = %v", err)
+	}
+	if found != "004_new.before.sql" {
+		t.Fatalf("findBeforeUpFile() got = %q, want %q", found, "004_new.before.sql")
+	}
 }
 
 func TestFindAfterUpFile(t *testing.T) {
@@ -133,6 +142,7 @@ func TestFindAfterUpFile(t *testing.T) {
 	writeMigrationFile(t, dir, "001_init.after.up.sql")
 	writeMigrationFile(t, dir, "002_add.after.up.sql")
 	writeMigrationFile(t, dir, "003_other.after.up.sql")
+	writeMigrationFile(t, dir, "004_new.after.sql")
 
 	found, err := findAfterUpFile(dir, 2)
 	if err != nil {
@@ -148,6 +158,14 @@ func TestFindAfterUpFile(t *testing.T) {
 	}
 	if found != "" {
 		t.Fatalf("findAfterUpFile() got = %q, want empty", found)
+	}
+
+	found, err = findAfterUpFile(dir, 4)
+	if err != nil {
+		t.Fatalf("findAfterUpFile() error = %v", err)
+	}
+	if found != "004_new.after.sql" {
+		t.Fatalf("findAfterUpFile() got = %q, want %q", found, "004_new.after.sql")
 	}
 }
 
