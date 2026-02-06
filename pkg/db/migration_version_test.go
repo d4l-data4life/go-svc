@@ -11,7 +11,7 @@ type fakeVersionSetter struct {
 	version  uint
 	dirty    bool
 	err      error
-	forced   []uint
+	forced   []int
 	forceErr error
 }
 
@@ -20,7 +20,7 @@ func (f *fakeVersionSetter) Version() (uint, bool, error) {
 }
 
 func (f *fakeVersionSetter) Force(v int) error {
-	f.forced = append(f.forced, uint(v))
+	f.forced = append(f.forced, v)
 	return f.forceErr
 }
 

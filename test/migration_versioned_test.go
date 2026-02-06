@@ -79,7 +79,7 @@ INSERT INTO migration_steps (step) VALUES ('after-3');
 
 	opts := db.NewConnection(
 		db.WithHost(cfg.PGHost),
-		db.WithPort(strconv.Itoa(int(cfg.PGPort))),
+		db.WithPort(strconv.FormatUint(uint64(cfg.PGPort), 10)),
 		db.WithDatabaseName(cfg.PGName),
 		db.WithUser(cfg.PGUser),
 		db.WithPassword(cfg.PGPassword),
