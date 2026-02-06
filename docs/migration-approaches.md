@@ -20,6 +20,20 @@ services.
   - `{version}_{name}.up.sql` / `{version}_{name}.down.sql`
 - Runs `fdw.down.sql` (optional).
 
+**Diagram**
+```mermaid
+flowchart TB
+  %% Legacy Migration Logic
+
+  A0["Start migrations"] --> A1["AutoMigrate (once, latest models)"]
+  A1 --> A2["setup.sql (optional, idempotent)"]
+  A2 --> A3["fdw.up.sql (optional)"]
+  A3 --> L1["For each version v = current+1 .. target"]
+  L1 --> L2["{version}_{name}.up.sql"]
+  L2 -.-> L1
+  L2 --> A4["fdw.down.sql (optional)"]
+```
+
 ## 2) Versioned Migration Flow
 
 Use when you need **interleaving** per migration version.
@@ -43,6 +57,22 @@ Use when you need **interleaving** per migration version.
 - **Supported naming (versioned flow only):**
   - Before: `{version}_{name}.before.sql` **or** `{version}_{name}.before.up.sql`
   - After: `{version}_{name}.after.sql` **or** `{version}_{name}.after.up.sql`
+
+**Diagram**
+```mermaid
+flowchart TB
+  %% Versioned Migration Logic
+
+  B0["Start migrations"] --> B1["setup.sql (optional, idempotent)"]
+  B1 --> B2["fdw.up.sql (optional)"]
+  B2 --> V1["For each version v = current+1 .. target"]
+  V1 --> V2["{version}_{name}.before.sql or .before.up.sql (optional)"]
+  V2 --> V3["AutoMigrate(version)"]
+  V3 --> V4["{version}_{name}.after.sql or .after.up.sql (optional)"]
+  V4 --> V5["Record version v"]
+  V5 -.-> V1
+  V5 --> B3["fdw.down.sql (optional)"]
+```
 
 ## File Naming Summary
 
