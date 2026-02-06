@@ -126,7 +126,14 @@ INSERT INTO migration_steps (step) VALUES ('after-3');
 	}
 
 	migration := migrate.NewMigration(sqlDB, sqlDir, "migrations", &testLog{})
-	version, dirty, err := migration.CurrentVersion()
+	mpg, cleanup, err := migration.MigrateInstanceForVersionTracking()
+	if err != nil {
+		t.Fatalf("current version: %v", err)
+	}
+	if cleanup != nil {
+		defer cleanup()
+	}
+	version, dirty, err := mpg.Version()
 	if err != nil {
 		t.Fatalf("current version: %v", err)
 	}

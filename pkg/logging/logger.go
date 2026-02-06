@@ -174,7 +174,13 @@ func LogWarningfCtx(ctx context.Context, err error, format string, fields ...int
 
 // LogAudit logs a generic audit event containing of a message along with an object pertaining to the message.
 func LogAudit(ctx context.Context, message string, object any) {
-	if err := Logger().Audit(ctx, message, object); err != nil {
+	if err := Logger().AuditSecurity(
+		ctx,
+		"audit",
+		true,
+		golog.Message(message),
+		golog.AdditionalData(object),
+	); err != nil {
 		fmt.Printf("Logging error (LogAudit): %s\n", err.Error())
 	}
 }

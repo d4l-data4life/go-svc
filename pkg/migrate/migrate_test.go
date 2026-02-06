@@ -120,7 +120,7 @@ func TestFindBeforeUpFile(t *testing.T) {
 		t.Fatalf("findBeforeUpFile() got = %q, want %q", found, "002_add.before.up.sql")
 	}
 
-	found, err = findBeforeUpFile(dir, 4)
+	found, err = findBeforeUpFile(dir, 5)
 	if err != nil {
 		t.Fatalf("findBeforeUpFile() error = %v", err)
 	}
@@ -152,7 +152,7 @@ func TestFindAfterUpFile(t *testing.T) {
 		t.Fatalf("findAfterUpFile() got = %q, want %q", found, "002_add.after.up.sql")
 	}
 
-	found, err = findAfterUpFile(dir, 4)
+	found, err = findAfterUpFile(dir, 5)
 	if err != nil {
 		t.Fatalf("findAfterUpFile() error = %v", err)
 	}

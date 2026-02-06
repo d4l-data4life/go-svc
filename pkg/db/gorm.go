@@ -198,9 +198,12 @@ func runMigrationVersions(
 	migrationVersion uint,
 	startFromZero bool,
 ) error {
-	mpg, err := migration.MigrateInstance()
+	mpg, cleanup, err := migration.MigrateInstanceForVersionTracking()
 	if err != nil {
 		return err
+	}
+	if cleanup != nil {
+		defer cleanup()
 	}
 
 	currentVersion, dirty, err := currentMigrationVersion(mpg, migrationVersion, startFromZero)

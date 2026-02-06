@@ -148,6 +148,35 @@ func (m *Migration) MigrateInstance() (*migrate.Migrate, error) {
 	return mpg, nil
 }
 
+// MigrateInstanceForVersionTracking creates a migrate instance that excludes before/after scripts.
+func (m *Migration) MigrateInstanceForVersionTracking() (*migrate.Migrate, func(), error) {
+	sourceFolder, cleanup, err := CreateVersionSourceFolder(m.sourceFolder)
+	if err != nil {
+		return nil, nil, err
+	}
+	driver, err := postgres.WithInstance(m.db, &postgres.Config{
+		MigrationsTable: m.migrationTable,
+	})
+	if err != nil {
+		if cleanup != nil {
+			cleanup()
+		}
+		return nil, nil, errors.Wrap(err, "error creating database driver")
+	}
+	mpg, err := migrate.NewWithDatabaseInstance(
+		"file://"+sourceFolder,
+		"postgres",
+		driver,
+	)
+	if err != nil {
+		if cleanup != nil {
+			cleanup()
+		}
+		return nil, nil, errors.Wrap(err, "error creating migrate instance")
+	}
+	return mpg, cleanup, nil
+}
+
 // CurrentVersion returns the current migration version.
 func (m *Migration) CurrentVersion() (uint, bool, error) {
 	mpg, err := m.MigrateInstance()
@@ -340,6 +369,39 @@ func CreateAfterSourceFolder(sourceFolder string) (string, func(), error) {
 	return tempDir, cleanup, nil
 }
 
+// CreateVersionSourceFolder returns a temp folder with only tracked migration files.
+// It excludes before/after scripts to avoid duplicate version conflicts.
+func CreateVersionSourceFolder(sourceFolder string) (string, func(), error) {
+	entries, err := os.ReadDir(sourceFolder)
+	if err != nil {
+		return "", nil, errors.Wrap(err, "could not read migrations folder")
+	}
+	tempDir, err := os.MkdirTemp("", "migrate-version-*")
+	if err != nil {
+		return "", nil, errors.Wrap(err, "could not create temp folder")
+	}
+	cleanup := func() {
+		_ = os.RemoveAll(tempDir)
+	}
+	for _, entry := range entries {
+		if entry.IsDir() {
+			continue
+		}
+		name := entry.Name()
+		if isBeforeMigrationFile(name) || isAfterMigrationFile(name) {
+			continue
+		}
+		if !strings.HasSuffix(name, ".up.sql") && !strings.HasSuffix(name, ".down.sql") {
+			continue
+		}
+		if err := copyFile(filepath.Join(sourceFolder, name), filepath.Join(tempDir, name)); err != nil {
+			cleanup()
+			return "", nil, err
+		}
+	}
+	return tempDir, cleanup, nil
+}
+
 // CreateAfterSourceFolderForVersion returns a temp folder with the after migration for a single version.
 func CreateAfterSourceFolderForVersion(sourceFolder string, migrationVersion uint) (string, func(), error) {
 	entries, err := os.ReadDir(sourceFolder)
@@ -400,6 +462,10 @@ func isBeforeMigrationFile(filename string) bool {
 	return strings.HasSuffix(filename, beforeUpSuffix) ||
 		strings.HasSuffix(filename, beforeDownSuffix) ||
 		strings.HasSuffix(filename, beforeSuffix)
+}
+
+func isAfterMigrationFile(filename string) bool {
+	return strings.HasSuffix(filename, afterUpSuffix) || strings.HasSuffix(filename, afterSuffix)
 }
 
 func findBeforeUpFile(sourceFolder string, migrationVersion uint) (string, error) {
