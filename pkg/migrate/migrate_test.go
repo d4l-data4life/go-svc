@@ -255,7 +255,7 @@ var wantParsedSetup = `CREATE TABLE IF NOT EXISTS test_setup.testtable (
 func writeMigrationFile(t *testing.T, dir, name string) {
 	t.Helper()
 	path := filepath.Join(dir, name)
-	if err := os.WriteFile(path, []byte("SELECT 1;"), 0o644); err != nil {
+	if err := os.WriteFile(path, []byte("SELECT 1;"), 0o600); err != nil {
 		t.Fatalf("WriteFile(%q) error = %v", path, err)
 	}
 }

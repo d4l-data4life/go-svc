@@ -149,7 +149,7 @@ func (m *Migration) MigrateInstance() (*migrate.Migrate, error) {
 }
 
 // CurrentVersion returns the current migration version.
-func (m *Migration) CurrentVersion(ctx context.Context) (uint, bool, error) {
+func (m *Migration) CurrentVersion() (uint, bool, error) {
 	mpg, err := m.MigrateInstance()
 	if err != nil {
 		return 0, false, err
@@ -159,7 +159,7 @@ func (m *Migration) CurrentVersion(ctx context.Context) (uint, bool, error) {
 	if err != nil {
 		return 0, false, err
 	}
-	return uint(version), dirty, nil
+	return version, dirty, nil
 }
 
 // MigrateToVersion runs golang-migrate without setup/fdw scripts.
@@ -197,12 +197,18 @@ func (m *Migration) MigrateToVersion(ctx context.Context, migrationVersion uint,
 }
 
 // SetVersion records the current version in the migrations table using an existing migrate instance.
-func SetVersion(mpg *migrate.Migrate, migrationVersion uint) error {
+func SetVersion(mpg VersionSetter, migrationVersion uint) error {
 	// nolint: gosec
 	if err := mpg.Force(int(migrationVersion)); err != nil {
 		return errors.Wrap(err, "error setting migration version")
 	}
 	return nil
+}
+
+// VersionSetter abstracts a migrate instance that can report and set version.
+type VersionSetter interface {
+	Version() (uint, bool, error)
+	Force(int) error
 }
 
 func (m *Migration) parseFile(ctx context.Context, filename string, templateData interface{}) (string, error) {
@@ -369,7 +375,7 @@ func CreateAfterSourceFolderForVersion(sourceFolder string, migrationVersion uin
 	}
 	if !copied {
 		noopName := fmt.Sprintf("%d_noop.up.sql", migrationVersion)
-		if err := os.WriteFile(filepath.Join(tempDir, noopName), []byte("SELECT 1;"), 0o644); err != nil {
+		if err := os.WriteFile(filepath.Join(tempDir, noopName), []byte("SELECT 1;"), 0o600); err != nil {
 			cleanup()
 			return "", nil, errors.Wrap(err, fmt.Sprintf("could not write %q", noopName))
 		}
@@ -391,11 +397,9 @@ func fileExists(path string) (bool, error) {
 }
 
 func isBeforeMigrationFile(filename string) bool {
-	return strings.HasSuffix(filename, beforeUpSuffix) || strings.HasSuffix(filename, beforeDownSuffix) || strings.HasSuffix(filename, beforeSuffix)
-}
-
-func isAfterMigrationFile(filename string) bool {
-	return strings.HasSuffix(filename, afterUpSuffix) || strings.HasSuffix(filename, afterSuffix)
+	return strings.HasSuffix(filename, beforeUpSuffix) ||
+		strings.HasSuffix(filename, beforeDownSuffix) ||
+		strings.HasSuffix(filename, beforeSuffix)
 }
 
 func findBeforeUpFile(sourceFolder string, migrationVersion uint) (string, error) {
@@ -468,7 +472,7 @@ func copyFile(src, dest string) error {
 	if err != nil {
 		return errors.Wrap(err, fmt.Sprintf("could not read %q", src))
 	}
-	if err := os.WriteFile(dest, data, 0o644); err != nil {
+	if err := os.WriteFile(dest, data, 0o600); err != nil {
 		return errors.Wrap(err, fmt.Sprintf("could not write %q", dest))
 	}
 	return nil
