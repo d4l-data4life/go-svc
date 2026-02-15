@@ -38,8 +38,8 @@ func InitializeTestPostgres(opts *ConnectionOptions) {
 		logging.LogErrorf(err, "error connecting to testing postgres")
 		db = nil
 	}
-	if opts.VersionedMigrationFunc != nil {
-		if err = runMigration(conn, opts.VersionedMigrationFunc, opts.MigrationVersion, true); err != nil {
+	if opts.MigrationFunc != nil || opts.VersionedMigrationFunc != nil || opts.MigrationVersion > 0 {
+		if err = runMigration(conn, opts.MigrationFunc, opts.VersionedMigrationFunc, opts.MigrationVersion, true); err != nil {
 			logging.LogErrorf(err, "test DB migration error")
 		}
 	}
