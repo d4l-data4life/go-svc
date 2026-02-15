@@ -3,6 +3,7 @@ package migrate
 import (
 	"context"
 	"database/sql"
+	stderrors "errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -199,7 +200,7 @@ func (m *Migration) MigrateToVersion(ctx context.Context, migrationVersion uint,
 	}
 
 	_, _, err = mpg.Version()
-	if err == migrate.ErrNilVersion && !startFromZero {
+	if stderrors.Is(err, migrate.ErrNilVersion) && !startFromZero {
 		// no migration information in the database, so it's a fresh database
 		// and the data model is already the latest one set up Gorm automigrations
 		// nolint: gosec
@@ -289,23 +290,6 @@ func (m *Migration) execute(ctx context.Context, filename string, templateData i
 		_ = m.log.InfoGeneric(ctx, fmt.Sprintf("successfully executed script %q", filename))
 	}
 	return err
-}
-
-// ExecuteTargetBeforeUp runs a target-version before migration if present.
-// The script is expected to be idempotent because it is not tracked.
-func (m *Migration) ExecuteTargetBeforeUp(ctx context.Context, migrationVersion uint) (bool, error) {
-	filename, err := findBeforeUpFile(m.sourceFolder, migrationVersion)
-	if err != nil {
-		return false, errors.Wrap(err, "could not scan for before migration")
-	}
-	if filename == "" {
-		_ = m.log.InfoGeneric(ctx, fmt.Sprintf("no before migration found for version %d - skipped", migrationVersion))
-		return false, nil
-	}
-	if err := m.execute(ctx, filename, nil); err != nil {
-		return false, errors.Wrap(err, fmt.Sprintf("could not run before migration %q", filename))
-	}
-	return true, nil
 }
 
 // ExecuteBeforeUp runs a versioned before migration if present.
@@ -415,25 +399,10 @@ func CreateAfterSourceFolderForVersion(sourceFolder string, migrationVersion uin
 	cleanup := func() {
 		_ = os.RemoveAll(tempDir)
 	}
-	copied := false
-	for _, entry := range entries {
-		if entry.IsDir() {
-			continue
-		}
-		name := entry.Name()
-		if !strings.HasSuffix(name, afterUpSuffix) {
-			continue
-		}
-		version, ok := parseMigrationVersion(name)
-		if !ok || version != migrationVersion {
-			continue
-		}
-		targetName := strings.TrimSuffix(name, afterUpSuffix) + ".up.sql"
-		if err := copyFile(filepath.Join(sourceFolder, name), filepath.Join(tempDir, targetName)); err != nil {
-			cleanup()
-			return "", nil, err
-		}
-		copied = true
+	copied, err := copyAfterMigrationForVersion(entries, sourceFolder, tempDir, migrationVersion)
+	if err != nil {
+		cleanup()
+		return "", nil, err
 	}
 	if !copied {
 		noopName := fmt.Sprintf("%d_noop.up.sql", migrationVersion)
@@ -443,6 +412,40 @@ func CreateAfterSourceFolderForVersion(sourceFolder string, migrationVersion uin
 		}
 	}
 	return tempDir, cleanup, nil
+}
+
+func copyAfterMigrationForVersion(entries []os.DirEntry, sourceFolder, tempDir string, migrationVersion uint) (bool, error) {
+	copied := false
+	for _, entry := range entries {
+		if entry.IsDir() {
+			continue
+		}
+		name := entry.Name()
+		targetName, ok := afterMigrationTargetName(name)
+		if !ok {
+			continue
+		}
+		version, ok := parseMigrationVersion(name)
+		if !ok || version != migrationVersion {
+			continue
+		}
+		if err := copyFile(filepath.Join(sourceFolder, name), filepath.Join(tempDir, targetName)); err != nil {
+			return false, err
+		}
+		copied = true
+	}
+	return copied, nil
+}
+
+func afterMigrationTargetName(filename string) (string, bool) {
+	switch {
+	case strings.HasSuffix(filename, afterUpSuffix):
+		return strings.TrimSuffix(filename, afterUpSuffix) + ".up.sql", true
+	case strings.HasSuffix(filename, afterSuffix):
+		return strings.TrimSuffix(filename, afterSuffix) + ".up.sql", true
+	default:
+		return "", false
+	}
 }
 
 func fileExists(path string) (bool, error) {
@@ -469,51 +472,92 @@ func isAfterMigrationFile(filename string) bool {
 }
 
 func findBeforeUpFile(sourceFolder string, migrationVersion uint) (string, error) {
-	entries, err := os.ReadDir(sourceFolder)
-	if err != nil {
-		return "", err
-	}
-	for _, entry := range entries {
-		if entry.IsDir() {
-			continue
-		}
-		name := entry.Name()
-		if !strings.HasSuffix(name, beforeUpSuffix) && !strings.HasSuffix(name, beforeSuffix) {
-			continue
-		}
-		version, ok := parseMigrationVersion(name)
-		if !ok {
-			continue
-		}
-		if version == migrationVersion {
-			return name, nil
-		}
-	}
-	return "", nil
+	return findHookFile(sourceFolder, migrationVersion, beforeUpSuffix, beforeSuffix, "before")
 }
 
 func findAfterUpFile(sourceFolder string, migrationVersion uint) (string, error) {
+	return findHookFile(sourceFolder, migrationVersion, afterUpSuffix, afterSuffix, "after")
+}
+
+type hookFileKind uint8
+
+const (
+	hookFileNone hookFileKind = iota
+	hookFileUp
+	hookFilePlain
+)
+
+func findHookFile(sourceFolder string, migrationVersion uint, suffixUp, suffixPlain, hookName string) (string, error) {
 	entries, err := os.ReadDir(sourceFolder)
 	if err != nil {
 		return "", err
 	}
+	foundUp, foundPlain, err := scanHookFiles(entries, migrationVersion, suffixUp, suffixPlain, hookName)
+	if err != nil {
+		return "", err
+	}
+	if foundUp != "" && foundPlain != "" {
+		return "", fmt.Errorf("conflicting %s migrations found for version %d: %q and %q", hookName, migrationVersion, foundUp, foundPlain)
+	}
+	if foundUp != "" {
+		return foundUp, nil
+	}
+	return foundPlain, nil
+}
+
+func scanHookFiles(entries []os.DirEntry, migrationVersion uint, suffixUp, suffixPlain, hookName string) (string, string, error) {
+	var foundUp string
+	var foundPlain string
 	for _, entry := range entries {
 		if entry.IsDir() {
 			continue
 		}
 		name := entry.Name()
-		if !strings.HasSuffix(name, afterUpSuffix) && !strings.HasSuffix(name, afterSuffix) {
-			continue
-		}
-		version, ok := parseMigrationVersion(name)
+		kind, ok := classifyHookFile(name, migrationVersion, suffixUp, suffixPlain)
 		if !ok {
 			continue
 		}
-		if version == migrationVersion {
-			return name, nil
+		switch kind {
+		case hookFileUp:
+			if foundUp != "" && foundUp != name {
+				return "", "", fmt.Errorf(
+					"multiple %s migrations found for version %d: %q and %q",
+					hookName,
+					migrationVersion,
+					foundUp,
+					name,
+				)
+			}
+			foundUp = name
+		case hookFilePlain:
+			if foundPlain != "" && foundPlain != name {
+				return "", "", fmt.Errorf(
+					"multiple %s migrations found for version %d: %q and %q",
+					hookName,
+					migrationVersion,
+					foundPlain,
+					name,
+				)
+			}
+			foundPlain = name
+		default:
+			continue
 		}
 	}
-	return "", nil
+	return foundUp, foundPlain, nil
+}
+
+func classifyHookFile(filename string, migrationVersion uint, suffixUp, suffixPlain string) (hookFileKind, bool) {
+	switch {
+	case strings.HasSuffix(filename, suffixUp):
+		version, ok := parseMigrationVersion(filename)
+		return hookFileUp, ok && version == migrationVersion
+	case strings.HasSuffix(filename, suffixPlain):
+		version, ok := parseMigrationVersion(filename)
+		return hookFilePlain, ok && version == migrationVersion
+	default:
+		return hookFileNone, false
+	}
 }
 
 func parseMigrationVersion(filename string) (uint, bool) {

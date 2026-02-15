@@ -146,13 +146,6 @@ func WithSSLRootCertPath(value string) ConnectionOption {
 func WithMigrationFunc(fn MigrationFunc) ConnectionOption {
 	return func(c *ConnectionOptions) {
 		c.MigrationFunc = fn
-		// Backward compatibility: wrap legacy migration into versioned flow.
-		c.VersionedMigrationFunc = func(do *gorm.DB, version uint) error {
-			if version == c.MigrationVersion {
-				return fn(do)
-			}
-			return nil
-		}
 	}
 }
 

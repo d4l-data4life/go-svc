@@ -137,6 +137,17 @@ func TestFindBeforeUpFile(t *testing.T) {
 	}
 }
 
+func TestFindBeforeUpFile_Conflicts(t *testing.T) {
+	dir := t.TempDir()
+	writeMigrationFile(t, dir, "004_new.before.sql")
+	writeMigrationFile(t, dir, "004_new.before.up.sql")
+
+	_, err := findBeforeUpFile(dir, 4)
+	if err == nil {
+		t.Fatalf("expected conflict error")
+	}
+}
+
 func TestFindAfterUpFile(t *testing.T) {
 	dir := t.TempDir()
 	writeMigrationFile(t, dir, "001_init.after.up.sql")
@@ -166,6 +177,17 @@ func TestFindAfterUpFile(t *testing.T) {
 	}
 	if found != "004_new.after.sql" {
 		t.Fatalf("findAfterUpFile() got = %q, want %q", found, "004_new.after.sql")
+	}
+}
+
+func TestFindAfterUpFile_Conflicts(t *testing.T) {
+	dir := t.TempDir()
+	writeMigrationFile(t, dir, "004_new.after.sql")
+	writeMigrationFile(t, dir, "004_new.after.up.sql")
+
+	_, err := findAfterUpFile(dir, 4)
+	if err == nil {
+		t.Fatalf("expected conflict error")
 	}
 }
 
@@ -252,6 +274,30 @@ func TestCreateAfterSourceFolderForVersion(t *testing.T) {
 	}
 	if !found["4_noop.up.sql"] {
 		t.Fatalf("CreateAfterSourceFolderForVersion() should create noop migration")
+	}
+}
+
+func TestCreateAfterSourceFolderForVersion_afterDotSql(t *testing.T) {
+	dir := t.TempDir()
+	writeMigrationFile(t, dir, "004_new.after.sql")
+
+	afterDir, cleanup, err := CreateAfterSourceFolderForVersion(dir, 4)
+	if err != nil {
+		t.Fatalf("CreateAfterSourceFolderForVersion() error = %v", err)
+	}
+	if cleanup != nil {
+		defer cleanup()
+	}
+	entries, err := os.ReadDir(afterDir)
+	if err != nil {
+		t.Fatalf("ReadDir() error = %v", err)
+	}
+	found := map[string]bool{}
+	for _, entry := range entries {
+		found[entry.Name()] = true
+	}
+	if !found["004_new.up.sql"] {
+		t.Fatalf("CreateAfterSourceFolderForVersion() should include renamed after.sql file")
 	}
 }
 
