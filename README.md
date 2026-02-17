@@ -1,3 +1,7 @@
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/d4l-data4life/go-svc)
+
+
+
 ## Go service toolkit
 
 Reusable building blocks for Go services: logging, middleware, database helpers,
