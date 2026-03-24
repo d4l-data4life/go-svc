@@ -17,9 +17,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- [log] Panic when parsing cookie headers
-
 ### Security
+
+## [v1.91.1] - 2026-03-24
+
+### Fixed
+
+- [log] Panic when parsing cookie headers
 
 ## [v1.91.0] - 2026-02-06
 
@@ -1066,7 +1070,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial state: standards for Main, HTTP Server, DB access (gorm), Logging, Instrumented-Handler, and K8s Probe
 
-[Unreleased]: https://github.com/d4l-data4life/go-svc/compare/v1.91.0...HEAD
+[Unreleased]: https://github.com/d4l-data4life/go-svc/compare/v1.91.1...HEAD
+[v1.91.1]: https://github.com/d4l-data4life/go-svc/compare/v1.91.0...v1.91.1
 [v1.91.0]: https://github.com/d4l-data4life/go-svc/compare/v1.90.0...v1.91.0
 [v1.90.0]: https://github.com/d4l-data4life/go-svc/compare/v1.89.0...v1.90.0
 [v1.89.0]: https://github.com/d4l-data4life/go-svc/compare/v1.88.0...v1.89.0
