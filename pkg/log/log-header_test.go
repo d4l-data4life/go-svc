@@ -181,6 +181,14 @@ func Test_headerObfuscator_ProcessHeaders(t *testing.T) {
 		want: map[string][]string{
 			"Cookie": {"awskey=Obfuscated{6}; tracking=Obfuscated{8};"}},
 	}, {
+		name: "Malformed cookie header does not panic",
+		heob: newHeaderObfuscator().ignoreHeaders([]string{"X-Real-Ip", "content-type"}).obfuscateHeaders([]string{"Authorization"}),
+		args: testutils.Request(
+			testutils.WithHeader("Cookie", "bad cookie"),
+		),
+		want: map[string][]string{
+			"Cookie": {"Invalid{10}"}},
+	}, {
 		name: "Default set-cookie value obfuscation",
 		heob: newHeaderObfuscator().ignoreHeaders([]string{"X-Real-Ip", "content-type"}).obfuscateHeaders([]string{"Authorization"}),
 		args: testutils.Request(
