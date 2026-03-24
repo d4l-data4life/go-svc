@@ -95,8 +95,14 @@ func (heob *headerObfuscator) processHeaders(header http.Header) http.Header {
 			cookieString.WriteString(fmt.Sprintf("%s=Obfuscated{%d}; ", cookie.Name, len(cookie.Value)))
 		}
 
-		// remove last whitespace
-		processedHeaders[headerCookie] = []string{cookieString.String()[:cookieString.Len()-1]}
+		// request.Cookies() can return an empty list for malformed cookie headers.
+		// Avoid panicking on a negative slice bound and preserve a safe, non-sensitive value.
+		if cookieString.Len() == 0 {
+			processedHeaders[headerCookie] = []string{fmt.Sprintf("Invalid{%d}", len(header.Get(headerCookie)))}
+		} else {
+			// remove last whitespace
+			processedHeaders[headerCookie] = []string{cookieString.String()[:cookieString.Len()-1]}
+		}
 	}
 
 	return processedHeaders
