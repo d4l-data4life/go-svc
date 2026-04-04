@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- [standard] Add WithPathPrefixStrip middleware to strip path prefix from request URLs (fixes AGIC+gRPC issue)
+
 ### Changed
 
 ### Deprecated
