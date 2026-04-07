@@ -18,6 +18,7 @@ import (
 const SSLVerifyFull = "verify-full"
 
 type MigrationFunc func(do *gorm.DB) error
+type VersionedMigrationFunc func(do *gorm.DB, version uint) error
 type DriverFunc func(connectString string, opts *ConnectionOptions) (*gorm.DB, error)
 
 func NewConnection(opts ...ConnectionOption) *ConnectionOptions {
@@ -50,6 +51,7 @@ type ConnectionOptions struct {
 	// The cert is provided by Jenkins on build under default path "/root.ca.pem"
 	SSLRootCertPath        string
 	MigrationFunc          MigrationFunc
+	VersionedMigrationFunc VersionedMigrationFunc
 	DriverFunc             DriverFunc
 	EnableInstrumentation  bool
 	LoggerConfig           logger.Config
@@ -144,6 +146,12 @@ func WithSSLRootCertPath(value string) ConnectionOption {
 func WithMigrationFunc(fn MigrationFunc) ConnectionOption {
 	return func(c *ConnectionOptions) {
 		c.MigrationFunc = fn
+	}
+}
+
+func WithVersionedMigrationFunc(fn VersionedMigrationFunc) ConnectionOption {
+	return func(c *ConnectionOptions) {
+		c.VersionedMigrationFunc = fn
 	}
 }
 
