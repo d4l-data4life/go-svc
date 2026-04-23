@@ -68,6 +68,7 @@ func (l *Logger) createBaseAuditLog(ctx context.Context, logType AuditLogType) b
 // The expected context keys are "trace-id" and "user-id".
 // This is the log type to use when a message should be accompanied
 // with an object relevant for auditing, e.g., new set of permissions.
+//
 // Deprecated: use AuditSecurity instead.
 func (l *Logger) Audit(
 	ctx context.Context,
