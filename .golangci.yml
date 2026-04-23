@@ -69,6 +69,11 @@ linters:
         linters:
           - revive
           - bodyclose
+      # LogAudit intentionally wraps the deprecated Audit API until callers migrate.
+      - path: pkg/logging/logger\.go
+        linters:
+          - staticcheck
+        text: "Logger\\(\\)\\.Audit is deprecated"
 
 formatters:
   enable:
