@@ -1,0 +1,10 @@
+flowchart TB
+  %% Legacy Migration Logic (as on main)
+
+  A0["Start migrations"] --> A1["AutoMigrate (once, latest models)"]
+  A1 --> A2["setup.sql (optional, idempotent)"]
+  A2 --> A3["fdw.up.sql (optional)"]
+  A3 --> L1["For each version v = current+1 .. target"]
+  L1 --> L2["{version}_{name}.up.sql"]
+  L2 -.-> L1
+  L2 --> A4["fdw.down.sql (optional)"]
