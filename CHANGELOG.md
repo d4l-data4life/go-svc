@@ -9,8 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- [bievents] Restore the BI events emitter
-
 ### Changed
 
 ### Deprecated
@@ -20,6 +18,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Security
+
+## [v1.93.0] - 2026-07-15
+
+### Added
+
+- [bievents] Restore the BI events emitter
 
 ## [v1.92.0] - 2026-04-05
 
@@ -1078,7 +1082,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial state: standards for Main, HTTP Server, DB access (gorm), Logging, Instrumented-Handler, and K8s Probe
 
-[Unreleased]: https://github.com/d4l-data4life/go-svc/compare/v1.92.0...HEAD
+[Unreleased]: https://github.com/d4l-data4life/go-svc/compare/v1.93.0...HEAD
+[v1.93.0]: https://github.com/d4l-data4life/go-svc/compare/v1.92.0...v1.93.0
 [v1.92.0]: https://github.com/d4l-data4life/go-svc/compare/v1.91.1...v1.92.0
 [v1.91.1]: https://github.com/d4l-data4life/go-svc/compare/v1.91.0...v1.91.1
 [v1.91.0]: https://github.com/d4l-data4life/go-svc/compare/v1.90.0...v1.91.0
