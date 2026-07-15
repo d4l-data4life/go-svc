@@ -12,6 +12,7 @@ import (
 
 	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/d4l-data4life/go-svc/pkg/log"
 )
@@ -106,13 +107,12 @@ func TestLog(t *testing.T) {
 			delete(res, "timestamp")
 			delete(res, "event-id")
 
-			assert.True(t, strings.Contains(fmt.Sprintf("%s", res["event-source"]), "pkg/bievents/event_test.go"))
+			assert.Contains(t, fmt.Sprintf("%s", res["event-source"]), "pkg/bievents/event_test.go")
 			res["event-source"] = ""
 
 			if want, have := tc.result, res; !reflect.DeepEqual(want, have) {
 				t.Errorf("expected values to be %q, got %q", want, have)
 			}
-
 		})
 	}
 }
@@ -136,13 +136,13 @@ func Test_LogCtx(t *testing.T) {
 
 	ctx := context.WithValue(context.Background(), log.UserIDContextKey, userID.String())
 	err := e.LogCtx(ctx, Event{})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	var res map[string]interface{}
 	err = json.NewDecoder(buf).Decode(&res)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
-	assert.True(t, strings.Contains(fmt.Sprintf("%s", res["event-source"]), "pkg/bievents/event_test.go"))
+	assert.Contains(t, fmt.Sprintf("%s", res["event-source"]), "pkg/bievents/event_test.go")
 
 	// UserID is filled from the context when the caller left it empty.
 	if v, ok := res["user-id"]; ok {
