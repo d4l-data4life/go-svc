@@ -1,6 +1,7 @@
 package db
 
 import (
+	"context"
 	"fmt"
 
 	"gorm.io/gorm"
@@ -38,9 +39,16 @@ func InitializeTestPostgres(opts *ConnectionOptions) {
 		logging.LogErrorf(err, "error connecting to testing postgres")
 		db = nil
 	}
+	testOpts := *opts
+	// Preserve the legacy test helper's historical replay behavior.
+	if opts.VersionedMigrationFunc == nil {
+		testOpts.MigrationStartFromZero = true
+	}
 	if opts.MigrationFunc != nil || opts.VersionedMigrationFunc != nil || opts.MigrationVersion > 0 {
-		if err = runMigration(conn, opts.MigrationFunc, opts.VersionedMigrationFunc, opts.MigrationVersion, true); err != nil {
+		if err = runMigrationWithOptions(context.Background(), conn, &testOpts); err != nil {
 			logging.LogErrorf(err, "test DB migration error")
+			Close()
+			db = nil
 		}
 	}
 }

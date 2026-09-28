@@ -1,9 +1,9 @@
 package testutils
 
 import (
+	"os"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gorm.io/gorm"
 
@@ -29,8 +29,11 @@ func InitializeTestDB(t *testing.T) {
 		db.WithMigrationFunc(MigrationFunc),
 		db.WithDriverFunc(db.TXDBPostgresDriver),
 	)
+	if port := os.Getenv("GO_SVC_TEST_PORT"); port != "" {
+		dbOpts.Port = port
+	}
 	db.InitializeTestPostgres(dbOpts)
-	assert.NotNil(t, db.Get(), "DB handle is nil")
+	require.NotNil(t, db.Get(), "DB handle is nil")
 	err := db.Ping()
 	require.NoError(t, err)
 }

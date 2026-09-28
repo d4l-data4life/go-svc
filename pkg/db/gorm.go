@@ -3,10 +3,8 @@ package db
 import (
 	"context"
 	"database/sql"
-	stderrors "errors"
+	"errors"
 	"time"
-
-	"github.com/pkg/errors"
 
 	"gorm.io/gorm"
 
@@ -61,9 +59,12 @@ func Initialize(runCtx context.Context, opts *ConnectionOptions) <-chan struct{}
 			defer logging.LogInfof("database connection closed")
 		}()
 
-		err = runMigration(conn, opts.MigrationFunc, opts.VersionedMigrationFunc, opts.MigrationVersion, opts.MigrationStartFromZero)
+		err = runMigrationWithOptions(runCtx, conn, opts)
 		if err != nil {
-			if opts.MigrationHaltOnError {
+			if opts.MigrationHaltOnError || opts.VersionedMigrationFunc != nil {
+				if sqlDB, closeErr := conn.DB(); closeErr == nil {
+					_ = sqlDB.Close()
+				}
 				logging.LogErrorf(err, "database migration failed - aborting")
 				return
 			}
@@ -150,44 +151,31 @@ func retryExponential(runCtx context.Context, attempts uint, waitPeriod time.Dur
 	return conn, nil
 }
 
-// runMigration Executes Migrations on the database
-func runMigration(
-	conn *gorm.DB,
-	legacyFn MigrationFunc,
-	versionedFn VersionedMigrationFunc,
-	migrationVersion uint,
-	startFromZero bool,
-) error {
+// runMigrationWithOptions keeps legacy behavior separate from the opt-in versioned runner.
+func runMigrationWithOptions(ctx context.Context, conn *gorm.DB, opts *ConnectionOptions) error {
 	if conn == nil {
-		logging.LogErrorf(ErrDBConnection, "MigrateDB() - db handle is nil")
 		return ErrDBConnection
 	}
-	if legacyFn != nil && versionedFn != nil {
-		return errors.New("both MigrationFunc (legacy) and VersionedMigrationFunc are set; please configure only one migration flow")
+	if opts.MigrationFunc != nil && opts.VersionedMigrationFunc != nil {
+		return errors.New("both MigrationFunc (legacy) and VersionedMigrationFunc are set; configure only one")
 	}
-	if migrationVersion == 0 {
-		// No SQL migrations; run whichever automigration function is provided.
-		if versionedFn != nil {
-			return versionedFn(conn, 0)
+	if opts.MigrationVersion == 0 {
+		if opts.VersionedMigrationFunc != nil {
+			return opts.VersionedMigrationFunc(conn.WithContext(ctx), 0)
 		}
-		if legacyFn != nil {
-			return legacyFn(conn)
+		if opts.MigrationFunc != nil {
+			return opts.MigrationFunc(conn.WithContext(ctx))
 		}
 		return nil
 	}
-
-	// Prefer explicit versioned flow when configured.
-	if versionedFn != nil {
-		return runMigrationVersioned(conn, versionedFn, migrationVersion, startFromZero)
+	if opts.VersionedMigrationFunc != nil {
+		return runMigrationVersioned(ctx, conn, opts)
 	}
-
 	sqlDB, err := conn.DB()
 	if err != nil {
-		logging.LogErrorf(err, "error getting sql DB")
 		return err
 	}
-
-	return runMigrationLegacy(sqlDB, conn, legacyFn, migrationVersion, startFromZero)
+	return runMigrationLegacy(sqlDB, conn, opts.MigrationFunc, opts.MigrationVersion, opts.MigrationStartFromZero)
 }
 
 func runMigrationLegacy(sqlDB *sql.DB, conn *gorm.DB, legacyFn MigrationFunc, migrationVersion uint, startFromZero bool) error {
@@ -203,128 +191,4 @@ func runMigrationLegacy(sqlDB *sql.DB, conn *gorm.DB, legacyFn MigrationFunc, mi
 	}
 	migration := migrate.NewMigration(sqlDB, migrationsSource, migrationsTable, logging.Logger())
 	return migration.MigrateDB(context.Background(), migrationVersion, startFromZero)
-}
-
-func runMigrationVersioned(conn *gorm.DB, migFn VersionedMigrationFunc, migrationVersion uint, startFromZero bool) error {
-	sqlDB, err := conn.DB()
-	if err != nil {
-		logging.LogErrorf(err, "error getting sql DB")
-		return err
-	}
-
-	ctx := context.Background()
-	migration := migrate.NewMigration(sqlDB, migrationsSource, migrationsTable, logging.Logger())
-
-	if err := migration.ExecuteSetup(ctx); err != nil {
-		return err
-	}
-	if err := migration.ExecuteFdwUp(ctx); err != nil {
-		return err
-	}
-	defer func() {
-		if err := migration.ExecuteFdwDown(ctx); err != nil {
-			logging.LogErrorf(err, "error executing fdw down script")
-		}
-	}()
-
-	return runMigrationVersions(ctx, conn, migration, migFn, migrationVersion, startFromZero)
-}
-
-func runMigrationVersions(
-	ctx context.Context,
-	conn *gorm.DB,
-	migration *migrate.Migration,
-	migFn VersionedMigrationFunc,
-	migrationVersion uint,
-	startFromZero bool,
-) error {
-	mpg, cleanup, err := migration.MigrateInstanceForVersionTracking()
-	if err != nil {
-		return err
-	}
-	if cleanup != nil {
-		defer cleanup()
-	}
-
-	currentVersion, dirty, needsRecordTarget, err := currentMigrationVersion(mpg, migrationVersion, startFromZero)
-	if err != nil {
-		return err
-	}
-	if dirty {
-		return errors.Errorf("database migration is dirty at version %d", currentVersion)
-	}
-
-	// Legacy behavior: when the database has no version info and startFromZero is false,
-	// run AutoMigrate once, then record the target version without running per-version hooks.
-	if needsRecordTarget {
-		if migFn != nil {
-			if err := migFn(conn, migrationVersion); err != nil {
-				logging.LogErrorf(err, "error running auto migration for version %d", migrationVersion)
-				return err
-			}
-		}
-		if err := migrate.SetVersion(mpg, migrationVersion); err != nil {
-			logging.LogErrorf(err, "error setting migration version to %d", migrationVersion)
-			return err
-		}
-		return nil
-	}
-
-	for version := currentVersion + 1; version <= migrationVersion; version++ {
-		if err := applyMigrationVersion(ctx, conn, migration, migFn, mpg, version); err != nil {
-			return err
-		}
-		logging.LogInfof("migration for version %d executed successfully", version)
-	}
-
-	return nil
-}
-
-func currentMigrationVersion(mpg migrate.VersionSetter, migrationVersion uint, startFromZero bool) (uint, bool, bool, error) {
-	currentVersion, dirty, err := mpg.Version()
-	if err == nil {
-		return currentVersion, dirty, false, nil
-	}
-	if !stderrors.Is(err, migrate.ErrNilVersion) {
-		return 0, false, false, err
-	}
-	if startFromZero {
-		return 0, false, false, nil
-	}
-	// Caller should run a single AutoMigrate and then record the target version.
-	return migrationVersion, false, true, nil
-}
-
-func applyMigrationVersion(
-	ctx context.Context,
-	conn *gorm.DB,
-	migration *migrate.Migration,
-	migFn VersionedMigrationFunc,
-	mpg migrate.VersionSetter,
-	version uint,
-) error {
-	if _, err := migration.ExecuteBeforeUp(ctx, version); err != nil {
-		logging.LogErrorf(err, "error running before migration for version %d", version)
-		return err
-	}
-
-	if migFn != nil {
-		if err := migFn(conn, version); err != nil {
-			logging.LogErrorf(err, "error running auto migration for version %d", version)
-			return err
-		}
-	}
-
-	if _, err := migration.ExecuteAfterUp(ctx, version); err != nil {
-		logging.LogErrorf(err, "error running after migration for version %d", version)
-		return err
-	}
-
-	// Record version after full before/auto/after sequence.
-	if err := migrate.SetVersion(mpg, version); err != nil {
-		logging.LogErrorf(err, "error setting migration version to %d", version)
-		return err
-	}
-
-	return nil
 }

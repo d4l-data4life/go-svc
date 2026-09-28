@@ -3,6 +3,7 @@ package db
 import (
 	"io"
 	"net/http/httptest"
+	"os"
 	"strconv"
 	"strings"
 	"sync"
@@ -24,7 +25,7 @@ func migrateFunc(conn *gorm.DB) error {
 }
 
 func dbOpts() *ConnectionOptions {
-	return NewConnection(
+	opts := NewConnection(
 		WithDatabaseName("test"),
 		WithUser("user"),
 		WithPassword("test"),
@@ -32,6 +33,10 @@ func dbOpts() *ConnectionOptions {
 		WithMigrationFunc(migrateFunc),
 		WithDriverFunc(TXDBPostgresDriver),
 	)
+	if port := os.Getenv("GO_SVC_TEST_PORT"); port != "" {
+		opts.Port = port
+	}
+	return opts
 }
 
 func BenchmarkMapFunctions(b *testing.B) {

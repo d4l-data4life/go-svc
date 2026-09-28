@@ -12,6 +12,7 @@ require (
 	github.com/golang-migrate/migrate/v4 v4.17.1
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.20.0
 	github.com/improbable-eng/grpc-web v0.15.0
+	github.com/lib/pq v1.10.9
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.19.1
 	github.com/rs/cors v1.11.0
@@ -37,7 +38,6 @@ require (
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/klauspost/compress v1.17.1 // indirect
-	github.com/lib/pq v1.10.9 // indirect
 	github.com/mattn/go-isatty v0.0.17 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/prometheus/client_model v0.5.0 // indirect

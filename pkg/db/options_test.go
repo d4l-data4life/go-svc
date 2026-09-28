@@ -3,6 +3,8 @@ package db
 import (
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"gorm.io/gorm"
 )
 
@@ -14,10 +16,6 @@ func TestWithMigrationFuncDoesNotSetVersionedMigrationFunc(t *testing.T) {
 		WithMigrationFunc(fn),
 	)
 
-	if opts.MigrationFunc == nil {
-		t.Fatalf("expected MigrationFunc to be set")
-	}
-	if opts.VersionedMigrationFunc != nil {
-		t.Fatalf("expected VersionedMigrationFunc to be nil when only WithMigrationFunc is used")
-	}
+	require.NotNil(t, opts.MigrationFunc)
+	require.Nil(t, opts.VersionedMigrationFunc)
 }

@@ -50,6 +50,9 @@ jobs:
           make test-gh-action
           go-junit-report -in test-result.out -out report.xml -set-exit-code
 
+      - name: Versioned migration concurrency and recovery
+        run: ./scripts/test-versioned-migrations.sh
+
       - name: Publish Test Results
         uses: EnricoMi/publish-unit-test-result-action@v2
         if: always()

@@ -8,6 +8,8 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/d4l-data4life/go-svc/pkg/db"
 	"github.com/d4l-data4life/go-svc/pkg/migrate"
 	"gorm.io/gorm"
@@ -15,14 +17,10 @@ import (
 
 func TestVersionedMigrationFlow(t *testing.T) {
 	cfg, err := parseEnv()
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	sqlDB, err := connectToDB(cfg)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	defer sqlDB.Close()
 
 	ctx := context.Background()
@@ -35,9 +33,7 @@ func TestVersionedMigrationFlow(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	sqlDir := filepath.Join(tmpDir, "sql")
-	if err := os.MkdirAll(sqlDir, 0o755); err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, os.MkdirAll(sqlDir, 0o755))
 
 	writeSQL(t, sqlDir, "001_init.before.sql", `
 CREATE TABLE IF NOT EXISTS migration_steps (
@@ -63,12 +59,8 @@ INSERT INTO migration_steps (step) VALUES ('after-3');
 `)
 
 	cwd, err := os.Getwd()
-	if err != nil {
-		t.Fatal(err)
-	}
-	if err := os.Chdir(tmpDir); err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
+	require.NoError(t, os.Chdir(tmpDir))
 	defer func() {
 		_ = os.Chdir(cwd)
 	}()
@@ -91,18 +83,14 @@ INSERT INTO migration_steps (step) VALUES ('after-3');
 
 	db.InitializeTestPostgres(opts)
 	conn := db.Get()
-	if conn == nil {
-		t.Fatal("db handle is nil")
-	}
+	require.NotNil(t, conn, "db handle is nil")
 
 	type row struct {
 		Seq  int
 		Step string
 	}
 	rows := []row{}
-	if err := conn.Raw("SELECT seq, step FROM migration_steps ORDER BY seq").Scan(&rows).Error; err != nil {
-		t.Fatalf("query steps: %v", err)
-	}
+	require.NoError(t, conn.Raw("SELECT seq, step FROM migration_steps ORDER BY seq").Scan(&rows).Error)
 
 	want := []string{
 		"before-1",
@@ -116,39 +104,22 @@ INSERT INTO migration_steps (step) VALUES ('after-3');
 		"after-3",
 		"auto-4",
 	}
-	if len(rows) != len(want) {
-		t.Fatalf("got %d steps, want %d", len(rows), len(want))
-	}
+	require.Len(t, rows, len(want))
 	for i, w := range want {
-		if rows[i].Step != w {
-			t.Fatalf("step %d: got %q, want %q", i, rows[i].Step, w)
-		}
+		require.Equal(t, w, rows[i].Step, "step %d", i)
 	}
 
-	migration := migrate.NewMigration(sqlDB, sqlDir, "migrations", &testLog{})
-	mpg, cleanup, err := migration.MigrateInstanceForVersionTracking()
-	if err != nil {
-		t.Fatalf("current version: %v", err)
-	}
-	if cleanup != nil {
-		defer cleanup()
-	}
-	version, dirty, err := mpg.Version()
-	if err != nil {
-		t.Fatalf("current version: %v", err)
-	}
-	if dirty {
-		t.Fatalf("expected clean migrations table")
-	}
-	if version != 4 {
-		t.Fatalf("expected version 4, got %d", version)
-	}
+	store, err := migrate.OpenVersionStore(ctx, sqlDB, "migrations")
+	require.NoError(t, err)
+	defer store.Close()
+	version, dirty, err := store.Version(ctx)
+	require.NoError(t, err)
+	require.False(t, dirty)
+	require.Equal(t, uint(4), version)
 }
 
 func writeSQL(t *testing.T, dir, name, content string) {
 	t.Helper()
 	path := filepath.Join(dir, name)
-	if err := os.WriteFile(path, []byte(content), 0o600); err != nil {
-		t.Fatalf("WriteFile(%q) error = %v", path, err)
-	}
+	require.NoError(t, os.WriteFile(path, []byte(content), 0o600))
 }

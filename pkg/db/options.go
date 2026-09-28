@@ -33,20 +33,21 @@ func NewConnection(opts ...ConnectionOption) *ConnectionOptions {
 }
 
 type ConnectionOptions struct {
-	Debug                  bool
-	MaxConnectionLifetime  time.Duration
-	MaxIdleConnections     int
-	MaxOpenConnections     int
-	Host                   string
-	Port                   string
-	DatabaseName           string
-	DatabaseSchema         string
-	User                   string
-	Password               string
-	SSLMode                string
-	MigrationVersion       uint
-	MigrationStartFromZero bool
-	MigrationHaltOnError   bool
+	Debug                   bool
+	MaxConnectionLifetime   time.Duration
+	MaxIdleConnections      int
+	MaxOpenConnections      int
+	Host                    string
+	Port                    string
+	DatabaseName            string
+	DatabaseSchema          string
+	User                    string
+	Password                string
+	SSLMode                 string
+	MigrationVersion        uint
+	MinimumMigrationVersion uint
+	MigrationStartFromZero  bool
+	MigrationHaltOnError    bool
 	// SSLRootCertPath represents path to a file containing the root-CA used for Postgres server identity validation
 	// The cert is provided by Jenkins on build under default path "/root.ca.pem"
 	SSLRootCertPath        string
@@ -268,4 +269,10 @@ func TXDBPostgresDriverWithoutSavepoint(connectString string, opts *ConnectionOp
 			SingularTable: false,
 		},
 	})
+}
+
+// WithMinimumMigrationVersion rejects older recorded starting versions in the
+// versioned flow. Empty databases may bootstrap directly to the target.
+func WithMinimumMigrationVersion(version uint) ConnectionOption {
+	return func(c *ConnectionOptions) { c.MinimumMigrationVersion = version }
 }

@@ -1,90 +1,45 @@
-# Migration Approaches
+# Migration flows
 
-This repository supports **two migration flows** for services using `pkg/db`.
-Choose the versioned flow if you need per‑version interleaving, or the legacy
-flow for a single AutoMigrate pass.
+Choose exactly one callback:
 
-## 1) Versioned Migration Flow
+- `WithMigrationFunc(func(*gorm.DB) error)` retains legacy behavior: AutoMigrate once, then golang-migrate numbered `.up.sql`/`.down.sql` scripts.
+- `WithVersionedMigrationFunc(func(*gorm.DB, uint) error)` opts into the serialized, forward-only flow below.
 
-Use when you need **interleaving** per migration version.
+`WithMigrationVersion(0)` calls the selected callback once (with version 0 for the versioned callback), without SQL or version tracking. Services should interpret 0 as AutoMigrate current models. This is useful for isolated model tests, not production migration verification.
 
-**API**
-- `WithVersionedMigrationFunc(func(*gorm.DB, uint) error)`
-- Optional: `WithMigrationVersion(version)`
+## Versioned execution
 
-**Behavior**
-- Runs `setup.sql` once (idempotent).
-- Runs `fdw.up.sql` / `fdw.down.sql` once (optional).
-- For each version from current+1 to target:
-  1. Versioned before script (optional)
-  2. `AutoMigrate(version)` (service implementation)
-  3. Versioned after script (optional)
-  4. Record version **after** the full sequence completes
+1. Pin a database connection and acquire the PostgreSQL advisory lock keyed identically to golang-migrate (database/schema/migration table). Wait up to 30 seconds, or until the startup context is cancelled.
+2. Read the migration record under the lock. Reject dirty state and versions newer than the configured target. `WithMinimumMigrationVersion(N)` optionally rejects existing starting versions below N.
+3. If no version exists, require an otherwise empty current schema. The metadata table alone is allowed. With the default `MigrationStartFromZero=false`, run current models once and record the target, without historical hooks. With `true`, replay from version 1; this is incompatible with a positive minimum starting version.
+4. For an existing supported database, run versions `current+1 … target`: mark N dirty, optional before(N), AutoMigrate(N), optional after(N), record N clean. The final version becomes clean only after shared FDW cleanup succeeds. Setup and FDW scripts run once for a pending migration under the same lock; they do not run for an already-current database.
+5. Release the migration connection and lock. A second startup rereads the version after acquiring the lock. Versioned failures always stop initialization, regardless of the legacy halt-on-error option.
 
-**Notes**
-- Missing before/after scripts are skipped.
-- The version bump represents completion of before + AutoMigrate + after.
-- **Recording a version** means updating the `migrations` table used by
-  `golang-migrate` with the new version number.
-- **Supported naming (versioned flow only):**
-  - Before: `{version}_{name}.before.sql` **or** `{version}_{name}.before.up.sql`
-  - After: `{version}_{name}.after.sql` **or** `{version}_{name}.after.up.sql`
+Hooks, callback and metadata writes use the pinned connection. Callbacks must use the supplied GORM handle synchronously; do not open independent connections or launch background migration work. Lock cleanup releases the migration session only, not the shared application pool. There is no temporary SQL source directory and no nested Force lock.
 
-**Diagram**
-```mermaid
-flowchart TB
-  %% Versioned Migration Logic
+The current schema must exist before initialization. Like the legacy postgres version store, metadata lives in PostgreSQL's current schema. GORM table prefixes alone do not change PostgreSQL search_path; configure these consistently. Schemas other than public require their own deployment validation.
 
-  B0["Start migrations"] --> B1["setup.sql (optional, idempotent)"]
-  B1 --> B2["fdw.up.sql (optional)"]
-  B2 --> V1["For each version v = current+1 .. target"]
-  V1 --> V2["{version}_{name}.before.sql or .before.up.sql (optional)"]
-  V2 --> V3["AutoMigrate(version)"]
-  V3 --> V4["{version}_{name}.after.sql or .after.up.sql (optional)"]
-  V4 --> V5["Record version v (migrations table)"]
-  V5 -.-> V1
-  V5 --> B3["fdw.down.sql (optional)"]
-```
+## SQL hooks
 
-## 2) Legacy Migration Flow
+Place hooks in `sql/`:
 
-Use when you want a single AutoMigrate call and minimal changes to existing
-services.
+- `N_name.before.sql` or `N_name.before.up.sql`
+- `N_name.after.sql` or `N_name.after.up.sql`
 
-**API**
-- `WithMigrationFunc(func(*gorm.DB) error)`
-- Optional: `WithMigrationVersion(version)`
+At most one file per version/phase is allowed; duplicate or competing naming variants fail. Missing phases are optional. Discovery does not recurse into archived legacy directories. Keep the active SQL directory in the built application image and verify packaging when adding hooks.
 
-**Behavior**
-- Runs **one** AutoMigrate (latest models).
-- Runs `setup.sql` (idempotent), then `fdw.up.sql` (optional).
-- Runs numbered SQL migrations via `golang-migrate`:
-  - `{version}_{name}.up.sql` / `{version}_{name}.down.sql`
-- Runs `fdw.down.sql` (optional).
+`setup.sql`, `fdw.up.sql` and `fdw.down.sql` remain optional. Versioned startup has no ForeignDatabase template configuration; callers needing that facility can still use the separate legacy Migration API.
 
-**Diagram**
-```mermaid
-flowchart TB
-  %% Legacy Migration Logic
+## Failure and recovery
 
-  A0["Start migrations"] --> A1["AutoMigrate (once, latest models)"]
-  A1 --> A2["setup.sql (optional, idempotent)"]
-  A2 --> A3["fdw.up.sql (optional)"]
-  A3 --> L1["For each version v = current+1 .. target"]
-  L1 --> L2["{version}_{name}.up.sql"]
-  L2 -.-> L1
-  L2 --> A4["fdw.down.sql (optional)"]
-```
+A whole migration step is not a single transaction. Before/AutoMigrate/after may each commit work. A crash or failure leaves the attempted version dirty and stops subsequent startups before any replay. This includes errors during fresh initialization, the version write, and final FDW cleanup. Earlier completed versions can remain clean.
 
-## File Naming Summary
+Hooks should still be idempotent where possible for deliberate recovery, but individual idempotency does not guarantee whole-step replay: an after-hook may remove a column a before-hook needs. Never automatically clear dirty state. Inspect the database and logs, then restore a known backup or perform a reviewed repair. Record a clean version only after verifying its complete schema/data postconditions, while holding the migration lock and controlling other writers. A hook's own BEGIN/COMMIT does not include the callback or metadata write.
 
-Versioned flow:
-- Before: `{version}_{name}.before.sql` or `{version}_{name}.before.up.sql`
-- After: `{version}_{name}.after.sql` or `{version}_{name}.after.up.sql`
+A lock serializes participating migration runners, not normal application traffic. Deployment owners must ensure old replicas remain compatible or arrange a maintenance rollout. Forward-only runtime migration requires a backup/restore rollback procedure.
 
-Legacy flow:
-- SQL migrations: `{version}_{name}.up.sql`
+## Verification
 
-Shared:
-- Setup: `setup.sql`
-- FDW: `fdw.up.sql`, `fdw.down.sql`
+Run `scripts/test-versioned-migrations.sh` (also called by CI). It creates its own PostgreSQL 15 container on an ephemeral loopback port and runs the concurrency/recovery suite with the race detector. It does not reuse an existing local database. Coverage includes fresh initialization/restart, phase order, competing startups, cancellation while waiting, dirty rejection, before/auto/after/record/cleanup failures, and unsupported or populated unversioned states.
+
+The general test suite's existing local DB helpers accept `GO_SVC_TEST_PORT` to avoid assuming port 5432 is free. The `test` package uses its existing PG_* settings. Use only disposable databases for these tests.
