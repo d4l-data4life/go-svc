@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- [donortoken] Verify data-dispatcher donor access tokens (ES256 JWT against the dispatcher JWKS) with HTTP middleware and gRPC interceptor
+
 ### Changed
 
 ### Deprecated

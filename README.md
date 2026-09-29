@@ -11,6 +11,7 @@ Prometheus instrumentation, HTTP client/server utilities, and more.
 
 - `pkg/client`: HTTP client helpers and OAuth2 client
 - `pkg/db`: GORM setup, connection management, and metrics
+- `pkg/donortoken`: Verification of data-dispatcher donor access tokens (JWKS, HTTP middleware, gRPC interceptor)
 - `pkg/instrumented`: Handler factory with structured logging and metrics
 - `pkg/log`: Structured logging, audit logs, HTTP request/response logging
 - `pkg/logging`: Global logger facade for convenience
