@@ -59,6 +59,15 @@ func TestVerify(t *testing.T) {
 			want: donortoken.Claims{AlpID: testAlpID, StudyID: testStudyID, ExpiresAt: now.Add(-10 * time.Second)}},
 		{name: "expired", token: valid.with(jwt.ExpirationKey, now.Add(-time.Minute)).sign(t, jwa.ES256, key.private), expired: true},
 		{name: "wrong issuer", token: valid.with(jwt.IssuerKey, "data-receiver").sign(t, jwa.ES256, key.private)},
+		// Expiry is only reported for otherwise valid tokens; anything else is a security failure.
+		{name: "expired with wrong issuer", token: valid.with(jwt.ExpirationKey, now.Add(-time.Minute)).
+			with(jwt.IssuerKey, "data-receiver").sign(t, jwa.ES256, key.private)},
+		{name: "expired without subject", token: valid.with(jwt.ExpirationKey, now.Add(-time.Minute)).
+			with(jwt.SubjectKey, nil).sign(t, jwa.ES256, key.private)},
+		{name: "expired with empty studyID", token: valid.with(jwt.ExpirationKey, now.Add(-time.Minute)).
+			with(donortoken.StudyIDClaim, "").sign(t, jwa.ES256, key.private)},
+		{name: "expired and not yet valid", token: valid.with(jwt.ExpirationKey, now.Add(-time.Minute)).
+			with(jwt.NotBeforeKey, now.Add(time.Hour)).sign(t, jwa.ES256, key.private)},
 		{name: "missing issuer", token: valid.with(jwt.IssuerKey, nil).sign(t, jwa.ES256, key.private)},
 		{name: "missing sub", token: valid.with(jwt.SubjectKey, nil).sign(t, jwa.ES256, key.private)},
 		{name: "empty sub", token: valid.with(jwt.SubjectKey, "").sign(t, jwa.ES256, key.private)},

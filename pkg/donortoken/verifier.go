@@ -152,8 +152,8 @@ type Verifier struct {
 	now                func() time.Time
 	minRefreshInterval time.Duration
 
-	refreshMu     sync.Mutex
-	lastRefreshAt time.Time
+	fetches   *fetchTracker
+	refreshMu sync.Mutex
 }
 
 // NewVerifier creates a Verifier for the tokens of the data-dispatcher at dispatcherURL
@@ -180,9 +180,10 @@ func NewVerifier(ctx context.Context, dispatcherURL string, opts ...Option) (*Ve
 		cancel:             cancel,
 		now:                cfg.now,
 		minRefreshInterval: cfg.minRefreshInterval,
+		fetches:            &fetchTracker{now: cfg.now},
 	}
 	err := v.cache.Register(v.jwksURL,
-		jwk.WithHTTPClient(limitedClient{cfg.httpClient}),
+		jwk.WithHTTPClient(limitedClient{client: cfg.httpClient, fetches: v.fetches}),
 		jwk.WithMinRefreshInterval(cfg.minRefreshInterval),
 	)
 	if err == nil {
@@ -192,7 +193,6 @@ func NewVerifier(ctx context.Context, dispatcherURL string, opts ...Option) (*Ve
 		cancel()
 		return nil, fmt.Errorf("donortoken: fetching the dispatcher JWKS from %s: %w", v.jwksURL, err)
 	}
-	v.lastRefreshAt = v.now()
 	return v, nil
 }
 
@@ -227,17 +227,24 @@ func (v *Verifier) Verify(ctx context.Context, raw string) (Claims, error) {
 		return Claims{}, err
 	}
 
-	token, err := jwt.Parse([]byte(raw),
-		jwt.WithKey(jwa.ES256, key),
-		jwt.WithValidate(true),
-		jwt.WithClock(jwt.ClockFunc(v.now)),
-		jwt.WithAcceptableSkew(clockSkew),
+	token, err := jwt.Parse([]byte(raw), jwt.WithKey(jwa.ES256, key), jwt.WithValidate(false))
+	if err != nil {
+		return Claims{}, reject("signature verification failed", nil)
+	}
+	return v.validate(token)
+}
+
+// validate checks every claim but the expiry first and the expiry last, so that ErrExpired
+// (logged as routine, not as a security event) only ever reports an otherwise valid token.
+func (v *Verifier) validate(token jwt.Token) (Claims, error) {
+	if err := jwt.Validate(token, v.validateOptions(
+		jwt.WithValidator(jwt.IsIssuedAtValid()),
+		jwt.WithValidator(jwt.IsNbfValid()),
 		jwt.WithIssuer(Issuer),
 		jwt.WithRequiredClaim(jwt.ExpirationKey),
 		jwt.WithRequiredClaim(jwt.SubjectKey),
 		jwt.WithRequiredClaim(StudyIDClaim),
-	)
-	if err != nil {
+	)...); err != nil {
 		return Claims{}, classify(err)
 	}
 	studyID, _ := token.PrivateClaims()[StudyIDClaim].(string)
@@ -245,7 +252,19 @@ func (v *Verifier) Verify(ctx context.Context, raw string) (Claims, error) {
 	if claims.AlpID == "" || claims.StudyID == "" {
 		return Claims{}, reject("empty sub or studyID", nil)
 	}
+	if err := jwt.Validate(token, v.validateOptions(jwt.WithValidator(jwt.IsExpirationValid()))...); err != nil {
+		return Claims{}, classify(err)
+	}
 	return claims, nil
+}
+
+// validateOptions runs exactly the given validators (no jwx defaults) with the verifier's clock.
+func (v *Verifier) validateOptions(validators ...jwt.ValidateOption) []jwt.ValidateOption {
+	return append([]jwt.ValidateOption{
+		jwt.WithResetValidators(true),
+		jwt.WithClock(jwt.ClockFunc(v.now)),
+		jwt.WithAcceptableSkew(clockSkew),
+	}, validators...)
 }
 
 // classify maps jwx parse/validation errors to rejections.
@@ -282,17 +301,36 @@ func (v *Verifier) lookupKey(ctx context.Context, kid string) (jwk.Key, error) {
 	return nil, reject(fmt.Sprintf("unknown kid %q", kid), nil)
 }
 
-// refresh re-fetches the key set unless a fetch was done within the minimum refresh interval,
-// in which case the cached set is returned. Concurrent callers wait for the in-flight fetch.
+// refresh re-fetches the key set unless any fetch (initial, unknown kid or the cache's
+// background refresh) started within the minimum refresh interval, in which case the cached
+// set is returned. Concurrent callers wait for the in-flight fetch.
 func (v *Verifier) refresh(ctx context.Context) (jwk.Set, error) {
 	v.refreshMu.Lock()
 	defer v.refreshMu.Unlock()
-	now := v.now()
-	if now.Sub(v.lastRefreshAt) < v.minRefreshInterval {
+	if v.now().Sub(v.fetches.last()) < v.minRefreshInterval {
 		return v.cache.Get(ctx, v.jwksURL)
 	}
-	v.lastRefreshAt = now
 	return v.cache.Refresh(ctx, v.jwksURL)
+}
+
+// fetchTracker records when the key set was last fetched. Every fetch goes through
+// limitedClient, so this covers the cache's own background refreshes as well.
+type fetchTracker struct {
+	mu        sync.Mutex
+	now       func() time.Time
+	lastFetch time.Time
+}
+
+func (f *fetchTracker) record() {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	f.lastFetch = f.now()
+}
+
+func (f *fetchTracker) last() time.Time {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	return f.lastFetch
 }
 
 // usableKey returns the key with the given id if it is a P-256 EC key usable for ES256
@@ -315,12 +353,14 @@ func usableKey(set jwk.Set, kid string) (jwk.Key, bool) {
 	return key, true
 }
 
-// limitedClient caps the size of JWKS responses.
+// limitedClient caps the size of JWKS responses and records every fetch attempt.
 type limitedClient struct {
-	client *http.Client
+	client  *http.Client
+	fetches *fetchTracker
 }
 
 func (c limitedClient) Get(url string) (*http.Response, error) {
+	c.fetches.record()
 	// The jwk cache fetches without a context; the client timeout bounds the request.
 	res, err := c.client.Get(url)
 	if err != nil {
