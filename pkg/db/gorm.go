@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"time"
 
 	"gorm.io/gorm"
@@ -169,6 +170,9 @@ func runMigrationWithOptions(ctx context.Context, conn *gorm.DB, opts *Connectio
 		return nil
 	}
 	if opts.VersionedMigrationFunc != nil {
+		if opts.MinimumMigrationVersion > opts.MigrationVersion {
+			return fmt.Errorf("minimum migration version %d exceeds target %d", opts.MinimumMigrationVersion, opts.MigrationVersion)
+		}
 		return runMigrationVersioned(ctx, conn, opts)
 	}
 	sqlDB, err := conn.DB()

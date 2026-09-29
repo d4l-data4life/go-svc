@@ -27,6 +27,17 @@ func TestMigrationConfiguration(t *testing.T) {
 	require.True(t, called)
 }
 
+func TestMigrationMinimumExceedsTarget(t *testing.T) {
+	opts := NewConnection(WithMigrationVersion(8), WithMinimumMigrationVersion(9),
+		WithVersionedMigrationFunc(func(*gorm.DB, uint) error {
+			t.Fatal("invalid options must not reach the callback")
+			return nil
+		}))
+	// A handle without a connection also proves validation precedes DB access.
+	require.ErrorContains(t, runMigrationWithOptions(context.Background(), &gorm.DB{}, opts),
+		"minimum migration version 9 exceeds target 8")
+}
+
 // Explicit local-only opt-in: the test never reads an arbitrary database URL.
 func localMigrationDB(t *testing.T) *gorm.DB {
 	t.Helper()
@@ -112,10 +123,13 @@ func TestVersionedMigrationPostgres(t *testing.T) {
 		require.Equal(t, []string{"before1", "auto1", "after1", "before2", "auto2", "after2"}, steps)
 		migrationState(t, conn, 2, false)
 	})
-	for _, stage := range []string{"before", "auto", "after", "record", "cleanup", "bootstrap"} {
+	for _, stage := range []string{"setup", "before", "auto", "after", "record", "cleanup", "bootstrap"} {
 		t.Run("failure_"+stage, func(t *testing.T) {
 			cleanMigrationDB(t, conn)
 			calls := 0
+			if stage == "setup" {
+				hook(t, "setup.sql", "SELECT missing_function();")
+			}
 			if stage == "before" {
 				hook(t, "1_fail.before.sql", "BEGIN; CREATE TABLE partial (id int); SELECT missing_function(); COMMIT;")
 			}
@@ -264,4 +278,53 @@ CREATE TRIGGER reject_record BEFORE DELETE ON migrations FOR EACH ROW EXECUTE FU
 		close(release)
 		require.NoError(t, <-done)
 	})
+}
+
+// Characterizes the unresolved open-transaction issue; this is not the desired
+// contract. Keep the reproducer until an explicit recovery policy is decided.
+func TestVersionedMigrationOpenTransactionReproducer(t *testing.T) {
+	conn := localMigrationDB(t)
+	for _, phase := range []string{"before", "after"} {
+		t.Run(phase, func(t *testing.T) {
+			cleanMigrationDB(t, conn)
+			hook(t, "1_open."+phase+".sql", "BEGIN; CREATE TABLE uncommitted_hook (id int); INSERT INTO uncommitted_hook VALUES (42);")
+			opts := NewConnection(WithMigrationVersion(1), WithMigrationStartFromZero(true),
+				WithVersionedMigrationFunc(func(*gorm.DB, uint) error { return nil }))
+			require.NoError(t, runMigrationWithOptions(context.Background(), conn, opts))
+			// Read through an independent session, so an open transaction cannot
+			// make its own uncommitted effects look durable.
+			observer := localMigrationDB(t)
+			migrationState(t, observer, 1, false)
+			var id int
+			require.NoError(t, observer.Raw("SELECT id FROM uncommitted_hook").Scan(&id).Error)
+			require.Equal(t, 42, id)
+			t.Log("REPRODUCED: unmatched BEGIN hook changes were committed and version recorded clean")
+		})
+	}
+}
+
+func TestLegacyTestHelperCompatibility(t *testing.T) {
+	for _, withCallback := range []bool{false, true} {
+		t.Run(fmt.Sprintf("callback_%t", withCallback), func(t *testing.T) {
+			conn := localMigrationDB(t)
+			cleanMigrationDB(t, conn)
+			opts := NewConnection(WithMigrationVersion(1),
+				WithDriverFunc(func(string, *ConnectionOptions) (*gorm.DB, error) { return conn, nil }))
+			called := false
+			if withCallback {
+				opts.MigrationFunc = func(*gorm.DB) error {
+					called = true
+					return errors.New("legacy helper failure")
+				}
+			}
+			InitializeTestPostgres(opts)
+			t.Cleanup(Close)
+			require.Same(t, conn, Get(), "legacy helper retains handle even after migration error")
+			require.Equal(t, withCallback, called)
+			var count int
+			query := "SELECT count(*) FROM pg_tables WHERE schemaname='public' AND tablename='migrations'"
+			require.NoError(t, conn.Raw(query).Scan(&count).Error)
+			require.Zero(t, count, "version alone must not execute legacy SQL migrations")
+		})
+	}
 }

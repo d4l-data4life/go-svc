@@ -39,16 +39,19 @@ func InitializeTestPostgres(opts *ConnectionOptions) {
 		logging.LogErrorf(err, "error connecting to testing postgres")
 		db = nil
 	}
-	testOpts := *opts
-	// Preserve the legacy test helper's historical replay behavior.
-	if opts.VersionedMigrationFunc == nil {
-		testOpts.MigrationStartFromZero = true
-	}
-	if opts.MigrationFunc != nil || opts.VersionedMigrationFunc != nil || opts.MigrationVersion > 0 {
-		if err = runMigrationWithOptions(context.Background(), conn, &testOpts); err != nil {
+	if opts.VersionedMigrationFunc != nil {
+		if err = runMigrationWithOptions(context.Background(), conn, opts); err != nil {
 			logging.LogErrorf(err, "test DB migration error")
 			Close()
 			db = nil
+		}
+	} else if opts.MigrationFunc != nil {
+		// Preserve the legacy helper: replay only when a callback is configured,
+		// and retain the connected handle when migration fails.
+		testOpts := *opts
+		testOpts.MigrationStartFromZero = true
+		if err = runMigrationWithOptions(context.Background(), conn, &testOpts); err != nil {
+			logging.LogErrorf(err, "test DB migration error")
 		}
 	}
 }

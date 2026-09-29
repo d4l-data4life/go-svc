@@ -43,3 +43,27 @@ A lock serializes participating migration runners, not normal application traffi
 Run `scripts/test-versioned-migrations.sh` (also called by CI). It creates its own PostgreSQL 15 container on an ephemeral loopback port and runs the concurrency/recovery suite with the race detector. It does not reuse an existing local database. Coverage includes fresh initialization/restart, phase order, competing startups, cancellation while waiting, dirty rejection, before/auto/after/record/cleanup failures, and unsupported or populated unversioned states.
 
 The general test suite's existing local DB helpers accept `GO_SVC_TEST_PORT` to avoid assuming port 5432 is free. The `test` package uses its existing PG_* settings. Use only disposable databases for these tests.
+
+## Startup budgets and dirty state
+
+The versioned lock wait is fixed at 30 seconds, bounded further by the caller's
+context. When the application uses `standard.Main`, its 120-second startup wait
+covers connection establishment and migration together. Time spent connecting or
+waiting for the lock reduces the time available for schema work. These budgets
+are not configurable yet; configurability is a follow-up.
+
+A lock waiter timing out before mutation does not mark a migration dirty. Once a
+step has recorded dirty intent, cancellation or timeout fails startup and leaves
+that intent for explicit recovery. Applications must rehearse migration duration
+within the effective startup budget. A dirty target may mean schema work already
+finished but final `fdw.down.sql` cleanup or recording failed; inspect the actual
+state rather than inferring completed work from the version number.
+
+Setup and FDW scripts run only when versioned migration work is pending. They do
+not run on every start of an already-current database. Per-start application
+initialization must not rely on these migration hooks.
+
+For positive versioned targets, the minimum supported starting version cannot
+exceed the target; invalid configuration is rejected before opening the version
+store. Target 0 remains the explicitly untracked callback mode and ignores the
+minimum starting version.
