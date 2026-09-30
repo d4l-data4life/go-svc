@@ -1,0 +1,10 @@
+flowchart TB
+  %% Legacy Example: Current v5 -> Target v7
+
+  A0["Current DB version: 5"] --> A1["Target version: 7"]
+  A1 --> A2["AutoMigrate (once, latest models)"]
+  A2 --> A3["setup.sql (optional, idempotent)"]
+  A3 --> A4["fdw.up.sql (optional)"]
+  A4 --> A5["006_fix_constraint.up.sql"]
+  A5 --> A6["007_add_feature.up.sql"]
+  A6 --> A7["fdw.down.sql (optional)"]

@@ -1,0 +1,12 @@
+flowchart TB
+  %% Versioned Migration Logic (WithVersionedMigrationFunc)
+
+  B0["Start migrations"] --> B1["setup.sql (optional, idempotent)"]
+  B1 --> B2["fdw.up.sql (optional)"]
+  B2 --> V1["For each version v = current+1 .. target"]
+  V1 --> V2["{version}_{name}.before.sql or .before.up.sql (optional)"]
+  V2 --> V3["AutoMigrate(version)"]
+  V3 --> V4["{version}_{name}.after.sql or .after.up.sql (optional)"]
+  V4 --> V5["Record version v"]
+  V5 -.-> V1
+  V5 --> B3["fdw.down.sql (optional)"]
