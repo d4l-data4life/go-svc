@@ -43,11 +43,11 @@ func runMigrationVersioned(ctx context.Context, conn *gorm.DB, opts *ConnectionO
 	if err = store.SetVersion(ctx, next, true); err != nil {
 		return err
 	}
-	if err = prepareVersionedMigration(ctx, migration); err != nil {
+	if err = prepareVersionedMigration(ctx, migration, store); err != nil {
 		return err
 	}
 	defer func() {
-		cleanupErr := migration.ExecuteFdwDown(ctx)
+		cleanupErr := errors.Join(migration.ExecuteFdwDown(ctx), store.RequireIdle("fdw.down"))
 		err = errors.Join(err, cleanupErr)
 		if err == nil {
 			err = store.SetVersion(ctx, opts.MigrationVersion, false)
@@ -91,15 +91,18 @@ func applyMigrationSteps(ctx context.Context, scoped *gorm.DB, migration *migrat
 			}
 		}
 		if !bootstrap {
-			if _, err = migration.ExecuteBeforeUp(ctx, version); err != nil {
+			_, err = migration.ExecuteBeforeUp(ctx, version)
+			if err = errors.Join(err, store.RequireIdle("before hook")); err != nil {
 				return err
 			}
 		}
-		if err = opts.VersionedMigrationFunc(scoped, version); err != nil {
+		err = opts.VersionedMigrationFunc(scoped, version)
+		if err = errors.Join(err, store.RequireIdle("model callback")); err != nil {
 			return err
 		}
 		if !bootstrap {
-			if _, err = migration.ExecuteAfterUp(ctx, version); err != nil {
+			_, err = migration.ExecuteAfterUp(ctx, version)
+			if err = errors.Join(err, store.RequireIdle("after hook")); err != nil {
 				return err
 			}
 		}
@@ -113,11 +116,11 @@ func applyMigrationSteps(ctx context.Context, scoped *gorm.DB, migration *migrat
 	return nil
 }
 
-func prepareVersionedMigration(ctx context.Context, migration *migrate.Migration) error {
-	if err := migration.ExecuteSetup(ctx); err != nil {
+func prepareVersionedMigration(ctx context.Context, migration *migrate.Migration, store *migrate.VersionStore) error {
+	if err := errors.Join(migration.ExecuteSetup(ctx), store.RequireIdle("setup")); err != nil {
 		return err
 	}
-	return migration.ExecuteFdwUp(ctx)
+	return errors.Join(migration.ExecuteFdwUp(ctx), store.RequireIdle("fdw.up"))
 }
 func validateFreshMigration(ctx context.Context, store *migrate.VersionStore, opts *ConnectionOptions) error {
 	empty, err := store.EmptySchema(ctx)

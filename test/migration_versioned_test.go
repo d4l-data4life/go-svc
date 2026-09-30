@@ -109,7 +109,9 @@ INSERT INTO migration_steps (step) VALUES ('after-3');
 		require.Equal(t, w, rows[i].Step, "step %d", i)
 	}
 
-	store, err := migrate.OpenVersionStore(ctx, sqlDB, "migrations")
+	migrationPool, err := conn.DB()
+	require.NoError(t, err)
+	store, err := migrate.OpenVersionStore(ctx, migrationPool, "migrations")
 	require.NoError(t, err)
 	defer store.Close()
 	version, dirty, err := store.Version(ctx)

@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/golang-migrate/migrate/v4/database"
+	"github.com/jackc/pgx/v5/stdlib"
 	"github.com/lib/pq"
 )
 
@@ -36,6 +37,9 @@ func OpenVersionStore(ctx context.Context, db *sql.DB, table string) (_ *Version
 			_ = store.Close()
 		}
 	}()
+	if err = store.RequireIdle("initial connection"); err != nil {
+		return nil, err
+	}
 	var name string
 	if err = conn.QueryRowContext(ctx, "SELECT current_database(), current_schema()").Scan(&name, &store.schema); err != nil {
 		return nil, err
@@ -45,30 +49,37 @@ func OpenVersionStore(ctx context.Context, db *sql.DB, table string) (_ *Version
 	if err != nil {
 		return nil, err
 	}
-	waitCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
-	defer cancel()
-	for {
-		var acquired bool
-		if err = conn.QueryRowContext(waitCtx, "SELECT pg_try_advisory_lock($1)", id).Scan(&acquired); err != nil {
-			return nil, err
-		}
-		if acquired {
-			store.lockID = id
-			break
-		}
-		timer := time.NewTimer(100 * time.Millisecond)
-		select {
-		case <-waitCtx.Done():
-			timer.Stop()
-			return nil, fmt.Errorf("waiting for migration lock: %w", waitCtx.Err())
-		case <-timer.C:
-		}
+	if err = store.acquireLock(ctx, id); err != nil {
+		return nil, err
 	}
 	query := "CREATE TABLE IF NOT EXISTS " + store.qualified + " (version bigint NOT NULL PRIMARY KEY, dirty boolean NOT NULL)"
 	if _, err = conn.ExecContext(ctx, query); err != nil {
 		return nil, err
 	}
 	return store, nil
+}
+
+func (s *VersionStore) acquireLock(ctx context.Context, id string) error {
+	waitCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
+	for {
+		var acquired bool
+		if err := s.Conn.QueryRowContext(waitCtx, "SELECT pg_try_advisory_lock($1)", id).Scan(&acquired); err != nil {
+			return err
+		}
+		if acquired {
+			s.lockID = id
+			break
+		}
+		timer := time.NewTimer(100 * time.Millisecond)
+		select {
+		case <-waitCtx.Done():
+			timer.Stop()
+			return fmt.Errorf("waiting for migration lock: %w", waitCtx.Err())
+		case <-timer.C:
+		}
+	}
+	return nil
 }
 
 func (s *VersionStore) Version(ctx context.Context) (uint, bool, error) {
@@ -89,6 +100,9 @@ func (s *VersionStore) Version(ctx context.Context) (uint, bool, error) {
 
 // SetVersion atomically replaces the version record. It does not reacquire the lock.
 func (s *VersionStore) SetVersion(ctx context.Context, version uint, dirty bool) error {
+	if err := s.RequireIdle("version recording"); err != nil {
+		return err
+	}
 	tx, err := s.Conn.BeginTx(ctx, nil)
 	if err != nil {
 		return err
@@ -114,6 +128,31 @@ func (s *VersionStore) EmptySchema(ctx context.Context) (bool, error) {
  WHERE n.nspname=$1 AND c.relname<>$2 AND c.relkind IN ('r','p','v','m','f','S')
  )`, s.schema, s.table).Scan(&empty)
 	return empty, err
+}
+
+// RequireIdle prevents a later version write from committing an unfinished hook
+// or callback transaction. Inspect the driver's actual protocol state, not SQL text.
+func (s *VersionStore) RequireIdle(phase string) error {
+	var status byte
+	if err := s.Conn.Raw(func(raw any) error {
+		conn, ok := raw.(*stdlib.Conn)
+		if !ok {
+			return fmt.Errorf("versioned migrations require pgx transaction status; unsupported driver %T", raw)
+		}
+		status = conn.Conn().PgConn().TxStatus()
+		return nil
+	}); err != nil {
+		return fmt.Errorf("%s: %w", phase, err)
+	}
+	if status == 'I' {
+		return nil
+	}
+	// The migration context may already be canceled. Cleanup gets its own
+	// bounded context; Close discards the session if cleanup cannot finish.
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	_, rollbackErr := s.Conn.ExecContext(ctx, "ROLLBACK")
+	return errors.Join(fmt.Errorf("%s left a non-idle transaction (status %q); migration remains dirty", phase, status), rollbackErr)
 }
 
 func (s *VersionStore) Close() error {

@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"os"
@@ -10,6 +11,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/d4l-data4life/go-svc/pkg/migrate"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gorm.io/gorm"
@@ -280,25 +282,33 @@ CREATE TRIGGER reject_record BEFORE DELETE ON migrations FOR EACH ROW EXECUTE FU
 	})
 }
 
-// Characterizes the unresolved open-transaction issue; this is not the desired
-// contract. Keep the reproducer until an explicit recovery policy is decided.
-func TestVersionedMigrationOpenTransactionReproducer(t *testing.T) {
+// An unfinished transaction must not be committed by a later version write.
+func TestVersionedMigrationRejectsOpenTransactions(t *testing.T) {
 	conn := localMigrationDB(t)
-	for _, phase := range []string{"before", "after"} {
+	for _, phase := range []string{"before", "after", "callback", "setup", "fdw.up", "fdw.down"} {
 		t.Run(phase, func(t *testing.T) {
 			cleanMigrationDB(t, conn)
-			hook(t, "1_open."+phase+".sql", "BEGIN; CREATE TABLE uncommitted_hook (id int); INSERT INTO uncommitted_hook VALUES (42);")
+			script := "BEGIN; CREATE TABLE uncommitted_hook (id int); INSERT INTO uncommitted_hook VALUES (42);"
+			switch phase {
+			case "before", "after":
+				hook(t, "1_open."+phase+".sql", script)
+			case "setup", "fdw.up", "fdw.down":
+				hook(t, phase+".sql", script)
+			}
 			opts := NewConnection(WithMigrationVersion(1), WithMigrationStartFromZero(true),
-				WithVersionedMigrationFunc(func(*gorm.DB, uint) error { return nil }))
-			require.NoError(t, runMigrationWithOptions(context.Background(), conn, opts))
-			// Read through an independent session, so an open transaction cannot
-			// make its own uncommitted effects look durable.
+				WithVersionedMigrationFunc(func(tx *gorm.DB, _ uint) error {
+					if phase == "callback" {
+						return tx.Exec(script).Error
+					}
+					return nil
+				}))
+			require.ErrorContains(t, runMigrationWithOptions(context.Background(), conn, opts), "non-idle transaction")
 			observer := localMigrationDB(t)
-			migrationState(t, observer, 1, false)
-			var id int
-			require.NoError(t, observer.Raw("SELECT id FROM uncommitted_hook").Scan(&id).Error)
-			require.Equal(t, 42, id)
-			t.Log("REPRODUCED: unmatched BEGIN hook changes were committed and version recorded clean")
+			migrationState(t, observer, 1, true)
+			var absent bool
+			require.NoError(t, observer.Raw("SELECT to_regclass('public.uncommitted_hook') IS NULL").Scan(&absent).Error)
+			require.True(t, absent, "uncommitted hook/callback changes must be rolled back")
+			require.ErrorContains(t, runMigrationWithOptions(context.Background(), conn, opts), "dirty")
 		})
 	}
 }
@@ -327,4 +337,20 @@ func TestLegacyTestHelperCompatibility(t *testing.T) {
 			require.Zero(t, count, "version alone must not execute legacy SQL migrations")
 		})
 	}
+}
+
+func TestVersionedMigrationRejectsUnsupportedDriver(t *testing.T) {
+	conn := localMigrationDB(t)
+	cleanMigrationDB(t, conn)
+	dsn := fmt.Sprintf("host=127.0.0.1 port=%s dbname=migration_test user=postgres password=postgres sslmode=disable",
+		os.Getenv("GO_SVC_MIGRATION_TEST_PORT"))
+	pool, err := sql.Open("postgres", dsn) // lib/pq, deliberately not pgx.
+	require.NoError(t, err)
+	t.Cleanup(func() { require.NoError(t, pool.Close()) })
+	store, err := migrate.OpenVersionStore(context.Background(), pool, "migrations")
+	require.ErrorContains(t, err, "unsupported driver")
+	require.Nil(t, store)
+	var absent bool
+	require.NoError(t, conn.Raw("SELECT to_regclass('public.migrations') IS NULL").Scan(&absent).Error)
+	require.True(t, absent, "unsupported driver must fail before metadata creation")
 }
