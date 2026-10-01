@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Opt-in versioned migrations with before/AutoMigrate/after ordering, a connection-scoped advisory lock, dirty-state recovery, and minimum starting-version validation (proposed release v1.94.0).
+- Opt-in versioned migrations with before/AutoMigrate/after ordering, a connection-scoped advisory lock, dirty-state recovery, and minimum starting-version validation.
 
 ### Changed
 

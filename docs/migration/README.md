@@ -44,18 +44,19 @@ Run `scripts/test-versioned-migrations.sh` (also called by CI). It creates its o
 
 The general test suite's existing local DB helpers accept `GO_SVC_TEST_PORT` to avoid assuming port 5432 is free. The `test` package uses its existing PG_* settings. Use only disposable databases for these tests.
 
-## Startup budgets and dirty state
+## Startup time limit and dirty state
 
 The versioned lock wait is fixed at 30 seconds, bounded further by the caller's
-context. When the application uses `standard.Main`, its 120-second startup wait
-covers connection establishment and migration together. Time spent connecting or
-waiting for the lock reduces the time available for schema work. These budgets
+context. When the application uses `standard.Main`, its 120-second startup time limit
+covers waiting for the database to become ready, including connection establishment
+and migration. Time spent connecting or
+waiting for the lock reduces the time available for schema work. These time limits
 are not configurable yet; configurability is a follow-up.
 
 A lock waiter timing out before mutation does not mark a migration dirty. Once a
 step has recorded dirty intent, cancellation or timeout fails startup and leaves
 that intent for explicit recovery. Applications must rehearse migration duration
-within the effective startup budget. A dirty target may mean schema work already
+within the remaining startup time. A dirty target may mean schema work already
 finished but final `fdw.down.sql` cleanup or recording failed; inspect the actual
 state rather than inferring completed work from the version number.
 
