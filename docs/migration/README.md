@@ -2,6 +2,8 @@
 
 Choose exactly one callback:
 
+Adopting the flow, bumping the version, or recovering from a failure? See [versioned-guide.md](versioned-guide.md).
+
 - `WithMigrationFunc(func(*gorm.DB) error)` retains legacy behavior: AutoMigrate once, then golang-migrate numbered `.up.sql`/`.down.sql` scripts.
 - `WithVersionedMigrationFunc(func(*gorm.DB, uint) error)` opts into the serialized, forward-only flow below.
 
