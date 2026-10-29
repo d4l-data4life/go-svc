@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - [breaking] Raise the minimum Go version to 1.27.
 - Upgrade dependencies
+- [breaking] `standard.ListenAndServe` takes an `http.Handler` instead of a chi `*chi.Mux`. Existing calls that pass a chi mux of any version keep compiling. Code that assigns the function to a variable or field with the old function type no longer compiles. go-svc no longer depends on `github.com/go-chi/chi`.
 - [breaking] Upgrade `github.com/gofrs/uuid` v4.4.0 to `github.com/gofrs/uuid/v5` v5.5.1. `ticket.Claims.SubjectIDs`, `ticket.Ticketer.Create`, and `bievents.BaseEvent.EventID` now use the v5 `uuid.UUID` type. Change your import to `github.com/gofrs/uuid/v5`. Generated UUIDs and their JSON format don't change.
 - Upgrade `github.com/caarlos0/env` v3.5.0 to `github.com/caarlos0/env/v11` v11.4.1.
 - [breaking] grpc-gateway no longer forwards `Grpc-Metadata-*` HTTP headers to gRPC metadata by default, and it rejects malformed query and path parameters more strictly.

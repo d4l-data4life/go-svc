@@ -6,7 +6,6 @@ require (
 	github.com/DATA-DOG/go-txdb v0.2.1
 	github.com/caarlos0/env/v11 v11.4.1
 	github.com/eapache/go-resiliency v1.7.0
-	github.com/go-chi/chi v4.1.2+incompatible
 	github.com/gofrs/uuid/v5 v5.5.1
 	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/golang-migrate/migrate/v4 v4.17.1
