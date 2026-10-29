@@ -1,6 +1,6 @@
 package test
 
-import "github.com/caarlos0/env"
+import "github.com/caarlos0/env/v11"
 
 type config struct {
 	PGHost     string `env:"PG_HOST,required"`
