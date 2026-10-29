@@ -227,16 +227,18 @@ func DefaultPostgresDriver(connectString string, opts *ConnectionOptions) (*gorm
 	})
 }
 
+const txdbDriverName = "txdb"
+
 // TXDBPostgresDriver defines the TXDB DB driver which treats every operation as transaction, and does rollback on disconnect.
 // To be used in options as argument for db.WithDriverFunc()
 // Example: db.InitializeTestPostgres(db.NewConnection(db.WithDriverFunc(db.TXDBPostgresDriver)))
 func TXDBPostgresDriver(connectString string, opts *ConnectionOptions) (*gorm.DB, error) {
 	drivers := sql.Drivers()
-	i := sort.SearchStrings(drivers, "txdb")
-	if i >= len(drivers) || drivers[i] != "txdb" {
-		txdb.Register("txdb", "pgx", connectString)
+	i := sort.SearchStrings(drivers, txdbDriverName)
+	if i >= len(drivers) || drivers[i] != txdbDriverName {
+		txdb.Register(txdbDriverName, "pgx", connectString)
 	}
-	return gorm.Open(postgres.New(postgres.Config{DriverName: "txdb", DSN: connectString}), &gorm.Config{
+	return gorm.Open(postgres.New(postgres.Config{DriverName: txdbDriverName, DSN: connectString}), &gorm.Config{
 		Logger:                 NewLogger(opts.LoggerConfig),
 		SkipDefaultTransaction: opts.SkipDefaultTransaction,
 		NamingStrategy: schema.NamingStrategy{
@@ -248,11 +250,11 @@ func TXDBPostgresDriver(connectString string, opts *ConnectionOptions) (*gorm.DB
 
 func TXDBPostgresDriverWithoutSavepoint(connectString string, opts *ConnectionOptions) (*gorm.DB, error) {
 	drivers := sql.Drivers()
-	i := sort.SearchStrings(drivers, "txdb")
-	if i >= len(drivers) || drivers[i] != "txdb" {
-		txdb.Register("txdb", "pgx", connectString, txdb.SavePointOption(nil))
+	i := sort.SearchStrings(drivers, txdbDriverName)
+	if i >= len(drivers) || drivers[i] != txdbDriverName {
+		txdb.Register(txdbDriverName, "pgx", connectString, txdb.SavePointOption(nil))
 	}
-	return gorm.Open(postgres.New(postgres.Config{DriverName: "txdb", DSN: connectString}), &gorm.Config{
+	return gorm.Open(postgres.New(postgres.Config{DriverName: txdbDriverName, DSN: connectString}), &gorm.Config{
 		Logger:                 NewLogger(opts.LoggerConfig),
 		SkipDefaultTransaction: opts.SkipDefaultTransaction,
 		NamingStrategy: schema.NamingStrategy{
