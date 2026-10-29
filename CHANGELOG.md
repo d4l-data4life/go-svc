@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- [breaking] `standard.NewGRPCGatewayServer` accepts optional `runtime.ServeMuxOption` values. Use `runtime.WithIncomingHeaderMatcher` to keep forwarding specific `Grpc-Metadata-*` headers as gRPC metadata. The function type changes, so code that assigns it to a variable or field with the old function type no longer compiles.
+
 ### Changed
 
 - [breaking] Raise the minimum Go version to 1.27.
