@@ -92,7 +92,7 @@ func (heob *headerObfuscator) processHeaders(header http.Header) http.Header {
 
 		for _, cookie := range request.Cookies() {
 			// be RFC compliant with the white space (https://datatracker.ietf.org/doc/html/rfc6265#section-4.2)
-			cookieString.WriteString(fmt.Sprintf("%s=Obfuscated{%d}; ", cookie.Name, len(cookie.Value)))
+			fmt.Fprintf(&cookieString, "%s=Obfuscated{%d}; ", cookie.Name, len(cookie.Value))
 		}
 
 		// request.Cookies() can return an empty list for malformed cookie headers.
