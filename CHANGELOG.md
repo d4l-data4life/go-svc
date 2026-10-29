@@ -11,6 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- [breaking] Raise the minimum Go version to 1.27.
+- Upgrade dependencies
+- [breaking] grpc-gateway no longer forwards `Grpc-Metadata-*` HTTP headers to gRPC metadata by default, and it rejects malformed query and path parameters more strictly.
+- [breaking] The Postgres driver for GORM now drops a column default during `AutoMigrate` when the struct field doesn't declare one. Add `gorm:"default:..."` to fields whose default is set only in SQL migrations. Primary key columns aren't affected.
+- The Prometheus client no longer exports the `go_memstat_lookups_total` metric.
+
 ### Deprecated
 
 ### Removed
