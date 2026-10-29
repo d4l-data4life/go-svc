@@ -30,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - `migrate` detects wrapped golang-migrate errors, so a locked database or an unchanged schema still skips the migration instead of failing.
+- `transport.Retrier` retries on the status codes passed in `retriableStatusCodes`. Before, it used the slice indexes (0, 1, 2, …) instead of the codes, so custom status codes were never retried.
 
 ### Security
 
