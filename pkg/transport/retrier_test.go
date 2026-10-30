@@ -129,3 +129,47 @@ func TestRetrierTransport_RoundTrip(t *testing.T) {
 		}
 	})
 }
+
+func TestRetrierTransport_CustomStatusCodes(t *testing.T) {
+	tests := []struct {
+		name             string
+		proxy            *ProxyRoundTrip
+		successfulRetry  bool
+		numberOfRequests int
+	}{
+		{
+			"Happy path - custom status code is retried",
+			&ProxyRoundTrip{[]int{http.StatusConflict, http.StatusAccepted}, 0},
+			true, 2,
+		}, {
+			"Bad path - default status code is not retried",
+			&ProxyRoundTrip{[]int{http.StatusServiceUnavailable, http.StatusAccepted}, 0},
+			false, 1,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			retrier := transport.Retrier(3, time.Millisecond, []int{http.StatusConflict})
+			roundtripper := retrier(tt.proxy)
+
+			req, err := http.NewRequest(http.MethodGet, "", nil)
+			if err != nil {
+				t.Fatalf("error creating http request: %v", err)
+			}
+
+			resp, err := roundtripper.RoundTrip(req)
+
+			if tt.successfulRetry && (err != nil || resp.StatusCode < 200 || resp.StatusCode >= 400) {
+				t.Fatalf("Expected no error and positive status code (200-399), got error: %v and status code: %d", err, resp.StatusCode)
+			}
+
+			if !tt.successfulRetry && (err != nil || resp.StatusCode < 400) {
+				t.Fatalf("Expected no error and bad status code (>399), got error: %v and status code: %d", err, resp.StatusCode)
+			}
+
+			if tt.numberOfRequests != tt.proxy.currentIndex {
+				t.Fatalf("Expected %v request, got: %v", tt.numberOfRequests, tt.proxy.currentIndex)
+			}
+		})
+	}
+}

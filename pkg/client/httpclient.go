@@ -27,7 +27,7 @@ func (c *Client) DoWithContext(ctx context.Context, req *http.Request) (*http.Re
 
 	req = req.WithContext(ctxWTimeout)
 
-	return c.httpClient.Do(req)
+	return c.httpClient.Do(req) //nolint:gosec // G704: the caller provides the request URL by design
 }
 
 func NewInstrumentedClient(name string, timeoutSec int, logger *log.Logger) *Client {

@@ -9,13 +9,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- [breaking] `standard.NewGRPCGatewayServer` accepts optional `runtime.ServeMuxOption` values. Use `runtime.WithIncomingHeaderMatcher` to keep forwarding specific `Grpc-Metadata-*` headers as gRPC metadata. The function type changes, so code that assigns it to a variable or field with the old function type no longer compiles.
+
 ### Changed
+
+- [breaking] Raise the minimum Go version to 1.27.
+- Upgrade dependencies
+- [breaking] `standard.ListenAndServe` takes an `http.Handler` instead of a chi `*chi.Mux`. Existing calls that pass a chi mux of any version keep compiling. Code that assigns the function to a variable or field with the old function type no longer compiles. go-svc no longer depends on `github.com/go-chi/chi`.
+- [breaking] Upgrade `github.com/gofrs/uuid` v4.4.0 to `github.com/gofrs/uuid/v5` v5.5.1. `ticket.Claims.SubjectIDs`, `ticket.Ticketer.Create`, and `bievents.BaseEvent.EventID` now use the v5 `uuid.UUID` type. Change your import to `github.com/gofrs/uuid/v5`. Generated UUIDs and their JSON format don't change.
+- Upgrade `github.com/caarlos0/env` v3.5.0 to `github.com/caarlos0/env/v11` v11.4.1.
+- [breaking] grpc-gateway no longer forwards `Grpc-Metadata-*` HTTP headers to gRPC metadata by default, and it rejects malformed query and path parameters more strictly.
+- [breaking] The Postgres driver for GORM now drops a column default during `AutoMigrate` when the struct field doesn't declare one. Add `gorm:"default:..."` to fields whose default is set only in SQL migrations. Primary key columns aren't affected.
+- The Prometheus client no longer exports the `go_memstat_lookups_total` metric.
+- Upgrade `github.com/golang-migrate/migrate/v4` v4.17.1 to v4.20.1.
 
 ### Deprecated
 
 ### Removed
 
 ### Fixed
+
+- `migrate` detects wrapped golang-migrate errors, so a locked database or an unchanged schema still skips the migration instead of failing.
+- `transport.Retrier` retries on the status codes passed in `retriableStatusCodes`. Before, it used the slice indexes (0, 1, 2, …) instead of the codes, so custom status codes were never retried.
 
 ### Security
 
