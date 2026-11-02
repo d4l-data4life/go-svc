@@ -1,4 +1,4 @@
-CILINT_VERSION := v2.0
+CILINT_VERSION := v2.14
 
 DB_CONTAINER_NAME=go-svc-postgres
 DB_PORT=5432
@@ -27,7 +27,7 @@ lint: _check-lint-version
 .PHONY: _check-lint-version  
 _check-lint-version:
 	@golangci-lint --version
-	@INSTALLED_VERSION=$$(golangci-lint version 2>/dev/null | grep -o 'v[0-9]\+\.[0-9]\+' | head -1); \
+	@INSTALLED_VERSION=v$$(golangci-lint version 2>/dev/null | grep -o '[0-9]\+\.[0-9]\+' | head -1); \
 	if [ "$$INSTALLED_VERSION" != "$(CILINT_VERSION)" ]; then \
 		echo "⚠️  Warning: Local golangci-lint version ($$INSTALLED_VERSION) differs from CI version ($(CILINT_VERSION))  ⚠️"; \
 		echo ""; \

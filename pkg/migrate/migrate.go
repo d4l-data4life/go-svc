@@ -100,7 +100,7 @@ func (m *Migration) MigrateDB(ctx context.Context, migrationVersion uint, startF
 	}
 
 	_, _, err = mpg.Version()
-	if err == migrate.ErrNilVersion && !startFromZero {
+	if errors.Is(err, migrate.ErrNilVersion) && !startFromZero {
 		// no migration information in the database, so it's a fresh database
 		// and the data model is already the latest one set up Gorm automigrations
 		// nolint: gosec
@@ -112,12 +112,12 @@ func (m *Migration) MigrateDB(ctx context.Context, migrationVersion uint, startF
 
 	err = mpg.Migrate(migrationVersion)
 
-	switch err {
-	case nil:
+	switch {
+	case err == nil:
 		_ = m.log.InfoGeneric(ctx, fmt.Sprintf("migration to v%d succeeded", migrationVersion))
-	case migrate.ErrNoChange:
+	case errors.Is(err, migrate.ErrNoChange):
 		_ = m.log.InfoGeneric(ctx, fmt.Sprintf("migration to v%d skipped: no changes", migrationVersion))
-	case database.ErrLocked:
+	case errors.Is(err, database.ErrLocked):
 		_ = m.log.InfoGeneric(ctx, fmt.Sprintf("migration to v%d skipped: database locked by another instance", migrationVersion))
 	default:
 		return errors.Wrap(err, fmt.Sprintf("error migrating database to v%d", migrationVersion))

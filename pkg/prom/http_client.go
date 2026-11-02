@@ -33,9 +33,9 @@ type RoundTripperInstrumenter struct {
 
 // Instrument wraps the given handler and records gauge, count and duration of all HTTP requests
 func (t *RoundTripperInstrumenter) Instrument(handlerName string, next http.RoundTripper) http.RoundTripper {
-	return instrumentRoundTripperInFlight(t.gauge.MustCurryWith(prometheus.Labels{"handler": handlerName}),
-		promhttp.InstrumentRoundTripperCounter(t.count.MustCurryWith(prometheus.Labels{"handler": handlerName}),
-			promhttp.InstrumentRoundTripperDuration(t.duration.MustCurryWith(prometheus.Labels{"handler": handlerName}),
+	return instrumentRoundTripperInFlight(t.gauge.MustCurryWith(prometheus.Labels{handlerLabel: handlerName}),
+		promhttp.InstrumentRoundTripperCounter(t.count.MustCurryWith(prometheus.Labels{handlerLabel: handlerName}),
+			promhttp.InstrumentRoundTripperDuration(t.duration.MustCurryWith(prometheus.Labels{handlerLabel: handlerName}),
 				next)))
 }
 

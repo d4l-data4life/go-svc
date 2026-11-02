@@ -6,18 +6,16 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/go-chi/chi"
-
 	"github.com/d4l-data4life/go-svc/pkg/logging"
 )
 
 // ListenAndServe starts the server
-func ListenAndServe(runCtx context.Context, mux *chi.Mux, port string) <-chan struct{} {
+func ListenAndServe(runCtx context.Context, handler http.Handler, port string) <-chan struct{} {
 	serverStopped := make(chan struct{})
 
 	listenAddress := net.JoinHostPort("", port)
 	logging.LogInfof("listeninig on %s", listenAddress)
-	server := &http.Server{Addr: listenAddress, Handler: mux, ReadHeaderTimeout: 0}
+	server := &http.Server{Addr: listenAddress, Handler: handler, ReadHeaderTimeout: 0}
 
 	// goroutine that runs the server
 	go func() {

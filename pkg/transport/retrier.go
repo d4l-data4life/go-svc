@@ -83,7 +83,7 @@ func Retrier(retries int, retrySleep time.Duration, retriableStatusCodes []int) 
 			}
 		} else {
 			statusCodeSet = make(map[StatusCode]bool)
-			for sc := range retriableStatusCodes {
+			for _, sc := range retriableStatusCodes {
 				statusCodeSet[StatusCode(sc)] = true
 			}
 		}

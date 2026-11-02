@@ -11,7 +11,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gofrs/uuid"
+	"github.com/gofrs/uuid/v5"
 
 	"github.com/d4l-data4life/go-svc/pkg/log"
 )

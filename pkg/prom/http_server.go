@@ -64,15 +64,15 @@ func (t *HandlerInstrumenter) Instrument(handlerName string, next http.Handler, 
 		option(o)
 	}
 	if o.respSize {
-		next = promhttp.InstrumentHandlerResponseSize(t.respSize.MustCurryWith(prometheus.Labels{"handler": handlerName}), next)
+		next = promhttp.InstrumentHandlerResponseSize(t.respSize.MustCurryWith(prometheus.Labels{handlerLabel: handlerName}), next)
 	}
 	if o.reqSize {
-		next = promhttp.InstrumentHandlerRequestSize(t.reqSize.MustCurryWith(prometheus.Labels{"handler": handlerName}), next)
+		next = promhttp.InstrumentHandlerRequestSize(t.reqSize.MustCurryWith(prometheus.Labels{handlerLabel: handlerName}), next)
 	}
 
-	return instrumentHandlerInFlight(t.gauge.MustCurryWith(prometheus.Labels{"handler": handlerName}),
-		promhttp.InstrumentHandlerCounter(t.count.MustCurryWith(prometheus.Labels{"handler": handlerName}),
-			promhttp.InstrumentHandlerDuration(t.duration.MustCurryWith(prometheus.Labels{"handler": handlerName}),
+	return instrumentHandlerInFlight(t.gauge.MustCurryWith(prometheus.Labels{handlerLabel: handlerName}),
+		promhttp.InstrumentHandlerCounter(t.count.MustCurryWith(prometheus.Labels{handlerLabel: handlerName}),
+			promhttp.InstrumentHandlerDuration(t.duration.MustCurryWith(prometheus.Labels{handlerLabel: handlerName}),
 				next)))
 }
 

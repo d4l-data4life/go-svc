@@ -21,12 +21,14 @@ import (
 )
 
 // NewGRPCGatewayServer creates a gRPC-Gateway server with given grpc handler registration functions and the given metrics handler.
+// muxOptions are passed to runtime.NewServeMux, e.g. runtime.WithIncomingHeaderMatcher to forward custom headers as gRPC metadata.
 func NewGRPCGatewayServer(
 	server *grpc.Server,
 	grpcPort, gatewayPort string,
 	corsOptions cors.Options,
 	handlerRegisterFunctions []func(context.Context, *runtime.ServeMux, *grpc.ClientConn) error,
 	metricsHandler runtime.HandlerFunc,
+	muxOptions ...runtime.ServeMuxOption,
 ) (*http.Server, error) {
 	// Adds gRPC internal logs. This is quite verbose, so adjust as desired!
 	log := grpclog.NewLoggerV2(io.Discard, io.Discard, os.Stderr)
@@ -43,7 +45,7 @@ func NewGRPCGatewayServer(
 		return nil, fmt.Errorf("failed to dial server: %w", err)
 	}
 
-	gwmux := runtime.NewServeMux()
+	gwmux := runtime.NewServeMux(muxOptions...)
 	// Register all handlers
 	for _, f := range handlerRegisterFunctions {
 		if err := f(context.Background(), gwmux, conn); err != nil {

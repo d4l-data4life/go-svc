@@ -70,6 +70,12 @@ func GetNamespace() string {
 
 const defaultSubsystem = "phdp"
 
+const (
+	codeLabel    = "code"
+	methodLabel  = "method"
+	handlerLabel = "handler"
+)
+
 func defaultSizeBuckets() []float64 {
 	return []float64{1024, 5120, 20480, 102400, 512000, 1048576, 10485760, 52428800} // 1KB, 5KB, 20KB, 100KB, 500KB, 1MB, 10MB, 50MB
 }
@@ -86,7 +92,7 @@ func registerHistogramMetric(subsystem string, name string, help string, buckets
 			Help:      help,
 			Buckets:   buckets,
 		},
-		[]string{"code", "method", "handler"},
+		[]string{codeLabel, methodLabel, handlerLabel},
 	)
 	if err := prometheus.Register(histogram); err != nil {
 		if are, ok := err.(prometheus.AlreadyRegisteredError); ok {
@@ -106,7 +112,7 @@ func registerCountMetric(subsystem string, name string, help string) *prometheus
 			Name:      name,
 			Help:      help,
 		},
-		[]string{"code", "method", "handler"},
+		[]string{codeLabel, methodLabel, handlerLabel},
 	)
 	if err := prometheus.Register(count); err != nil {
 		if are, ok := err.(prometheus.AlreadyRegisteredError); ok {
@@ -126,7 +132,7 @@ func registerGaugeMetric(subsystem string, name string, help string) *prometheus
 			Name:      name,
 			Help:      help,
 		},
-		[]string{"method", "handler"},
+		[]string{methodLabel, handlerLabel},
 	)
 	if err := prometheus.Register(gauge); err != nil {
 		if are, ok := err.(prometheus.AlreadyRegisteredError); ok {
