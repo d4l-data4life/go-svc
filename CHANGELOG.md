@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## [v1.95.0] - 2026-11-02
+
+### Added
+
 - [breaking] `standard.NewGRPCGatewayServer` accepts optional `runtime.ServeMuxOption` values. Use `runtime.WithIncomingHeaderMatcher` to keep forwarding specific `Grpc-Metadata-*` headers as gRPC metadata. The function type changes, so code that assigns it to a variable or field with the old function type no longer compiles.
 
 ### Changed
@@ -23,16 +37,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The Prometheus client no longer exports the `go_memstat_lookups_total` metric.
 - Upgrade `github.com/golang-migrate/migrate/v4` v4.17.1 to v4.20.1.
 
-### Deprecated
-
-### Removed
-
 ### Fixed
 
 - `migrate` detects wrapped golang-migrate errors, so a locked database or an unchanged schema still skips the migration instead of failing.
 - `transport.Retrier` retries on the status codes passed in `retriableStatusCodes`. Before, it used the slice indexes (0, 1, 2, …) instead of the codes, so custom status codes were never retried.
-
-### Security
 
 ## [v1.94.0] - 2026-09-29
 
@@ -1103,7 +1111,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial state: standards for Main, HTTP Server, DB access (gorm), Logging, Instrumented-Handler, and K8s Probe
 
-[Unreleased]: https://github.com/d4l-data4life/go-svc/compare/v1.94.0...HEAD
+[Unreleased]: https://github.com/d4l-data4life/go-svc/compare/v1.95.0...HEAD
+[v1.95.0]: https://github.com/d4l-data4life/go-svc/compare/v1.94.0...v1.95.0
 [v1.94.0]: https://github.com/d4l-data4life/go-svc/compare/v1.93.0...v1.94.0
 [v1.93.0]: https://github.com/d4l-data4life/go-svc/compare/v1.92.0...v1.93.0
 [v1.92.0]: https://github.com/d4l-data4life/go-svc/compare/v1.91.1...v1.92.0
