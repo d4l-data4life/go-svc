@@ -11,11 +11,14 @@ import (
 
 // ListenAndServe starts the server
 func ListenAndServe(runCtx context.Context, handler http.Handler, port string) <-chan struct{} {
-	serverStopped := make(chan struct{})
-
 	listenAddress := net.JoinHostPort("", port)
 	logging.LogInfof("listeninig on %s", listenAddress)
-	server := &http.Server{Addr: listenAddress, Handler: handler, ReadHeaderTimeout: 0}
+	return serve(runCtx, &http.Server{Addr: listenAddress, Handler: handler, ReadHeaderTimeout: 0})
+}
+
+// serve runs server until runCtx is canceled. The returned channel closes when the server has stopped.
+func serve(runCtx context.Context, server *http.Server) <-chan struct{} {
+	serverStopped := make(chan struct{})
 
 	// goroutine that runs the server
 	go func() {
