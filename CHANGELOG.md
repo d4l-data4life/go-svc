@@ -9,11 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- `standard.ListenAndServeMetrics` serves the Prometheus metrics at `/metrics` on a separate port, so an ingress that publishes the application port doesn't publish them too.
-
 ### Changed
-
-- [breaking] `standard.NewGRPCGatewayServer` no longer takes a `metricsHandler` and no longer serves `/metrics` on the gateway, as an ingress that publishes the gateway publishes the metrics too. Serve them on a separate port with `standard.ListenAndServeMetrics`.
 
 ### Deprecated
 
@@ -22,6 +18,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Security
+
+## [v1.96.0] - 2026-11-06
+
+### Added
+
+- `standard.ListenAndServeMetrics` serves the Prometheus metrics at `/metrics` on a separate port, so an ingress that publishes the application port doesn't publish them too.
+
+### Changed
+
+- [breaking] `standard.NewGRPCGatewayServer` no longer takes a `metricsHandler` and no longer serves `/metrics` on the gateway, as an ingress that publishes the gateway publishes the metrics too. Serve them on a separate port with `standard.ListenAndServeMetrics`.
 
 ## [v1.95.0] - 2026-11-02
 
@@ -1115,7 +1121,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial state: standards for Main, HTTP Server, DB access (gorm), Logging, Instrumented-Handler, and K8s Probe
 
-[Unreleased]: https://github.com/d4l-data4life/go-svc/compare/v1.95.0...HEAD
+[Unreleased]: https://github.com/d4l-data4life/go-svc/compare/v1.96.0...HEAD
+[v1.96.0]: https://github.com/d4l-data4life/go-svc/compare/v1.95.0...v1.96.0
 [v1.95.0]: https://github.com/d4l-data4life/go-svc/compare/v1.94.0...v1.95.0
 [v1.94.0]: https://github.com/d4l-data4life/go-svc/compare/v1.93.0...v1.94.0
 [v1.93.0]: https://github.com/d4l-data4life/go-svc/compare/v1.92.0...v1.93.0
