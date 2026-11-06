@@ -9,7 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `standard.ListenAndServeMetrics` serves the Prometheus metrics at `/metrics` on a separate port, so an ingress that publishes the application port doesn't publish them too.
+
 ### Changed
+
+- [breaking] `standard.NewGRPCGatewayServer` no longer takes a `metricsHandler` and no longer serves `/metrics` on the gateway, as an ingress that publishes the gateway publishes the metrics too. Serve them on a separate port with `standard.ListenAndServeMetrics`.
 
 ### Deprecated
 

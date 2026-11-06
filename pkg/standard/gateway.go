@@ -20,14 +20,14 @@ import (
 	"github.com/d4l-data4life/go-svc/pkg/logging"
 )
 
-// NewGRPCGatewayServer creates a gRPC-Gateway server with given grpc handler registration functions and the given metrics handler.
+// NewGRPCGatewayServer creates a gRPC-Gateway server with given grpc handler registration functions.
+// It serves no metrics; use ListenAndServeMetrics to serve them on a separate port.
 // muxOptions are passed to runtime.NewServeMux, e.g. runtime.WithIncomingHeaderMatcher to forward custom headers as gRPC metadata.
 func NewGRPCGatewayServer(
 	server *grpc.Server,
 	grpcPort, gatewayPort string,
 	corsOptions cors.Options,
 	handlerRegisterFunctions []func(context.Context, *runtime.ServeMux, *grpc.ClientConn) error,
-	metricsHandler runtime.HandlerFunc,
 	muxOptions ...runtime.ServeMuxOption,
 ) (*http.Server, error) {
 	// Adds gRPC internal logs. This is quite verbose, so adjust as desired!
@@ -51,12 +51,6 @@ func NewGRPCGatewayServer(
 		if err := f(context.Background(), gwmux, conn); err != nil {
 			return nil, fmt.Errorf("failed to register handlers: %w", err)
 		}
-	}
-
-	// Add Prometheus metrics endpoint
-	err = gwmux.HandlePath("GET", "/metrics", metricsHandler)
-	if err != nil {
-		return nil, fmt.Errorf("failed to register metrics handler: %w", err)
 	}
 
 	// Wrap the GRPC server so that web clients can talk grpc with this server
